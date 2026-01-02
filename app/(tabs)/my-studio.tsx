@@ -20,9 +20,10 @@ const membershipBenefits: MembershipBenefit[] = [
 ];
 
 export default function MyStudioScreen() {
-  const { user, session, loading, signOut } = useAuth();
-  const [userRole, setUserRole] = useState<UserRole>('registered');
+  const { user, session, profile, loading, signOut, refreshProfile } = useAuth();
   const [isClient, setIsClient] = useState(false);
+
+  const isMember = profile?.membership_status === 'active';
 
   useEffect(() => {
     console.log('MyStudioScreen: Checking authentication state');
@@ -158,23 +159,23 @@ export default function MyStudioScreen() {
         <Pressable
           style={({ pressed }) => [
             commonStyles.card,
-            userRole === 'member' ? styles.memberCard : null,
+            isMember ? styles.memberCard : null,
             pressed && styles.pressed
           ]}
-          onPress={userRole === 'member' ? handleManageMembership : handleBecomeMember}
+          onPress={isMember ? handleManageMembership : handleBecomeMember}
         >
           <View style={styles.membershipHeader}>
             <IconSymbol 
-              ios_icon_name={userRole === 'member' ? 'crown.fill' : 'crown'}
-              android_material_icon_name={userRole === 'member' ? 'workspace-premium' : 'workspace-premium'}
+              ios_icon_name={isMember ? 'crown.fill' : 'crown'}
+              android_material_icon_name="workspace-premium"
               size={24}
-              color={userRole === 'member' ? colors.secondary : colors.textSecondary}
+              color={isMember ? colors.secondary : colors.textSecondary}
             />
             <Text style={commonStyles.cardTitle}>
-              {userRole === 'member' ? 'Active Member' : 'Membership'}
+              {isMember ? 'Membership Active' : 'Membership'}
             </Text>
           </View>
-          {userRole === 'member' ? (
+          {isMember ? (
             <>
               <Text style={commonStyles.cardText}>
                 You&apos;re part of The Olive & Fable Club! Enjoy full access to all educational content.

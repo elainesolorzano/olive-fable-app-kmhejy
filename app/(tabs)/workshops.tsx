@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
+import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WorkshopFeature {
   id: string;
@@ -44,14 +46,21 @@ const workshopFeatures: WorkshopFeature[] = [
 ];
 
 export default function WorkshopsScreen() {
+  const { profile } = useAuth();
+  const isMember = profile?.membership_status === 'active';
+
   const handleNotifyMe = () => {
     console.log('Notify Me When Workshops Launch button pressed');
-    // TODO: Implement notification signup
+    Alert.alert(
+      'Stay Tuned!',
+      'We\'ll notify you as soon as workshops are available. Make sure notifications are enabled in your settings.',
+      [{ text: 'OK' }]
+    );
   };
 
   const handleJoinMembership = () => {
     console.log('Join Membership for Early Access button pressed');
-    // TODO: Navigate to membership signup
+    router.push('/my-studio/membership');
   };
 
   return (
@@ -138,28 +147,44 @@ export default function WorkshopsScreen() {
           </Pressable>
         </View>
 
-        <View style={[commonStyles.card, styles.membershipCard]}>
-          <IconSymbol 
-            ios_icon_name="crown.fill"
-            android_material_icon_name="workspace-premium"
-            size={32}
-            color={colors.secondary}
-            style={styles.membershipIcon}
-          />
-          <Text style={commonStyles.cardTitle}>Members Get Early Access</Text>
-          <Text style={commonStyles.cardText}>
-            Join The Olive & Fable Club for priority registration and exclusive member pricing on all workshops.
-          </Text>
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.secondaryButton,
-              pressed && styles.pressed
-            ]}
-            onPress={handleJoinMembership}
-          >
-            <Text style={buttonStyles.buttonText}>Join Membership for Early Access</Text>
-          </Pressable>
-        </View>
+        {isMember ? (
+          <View style={[commonStyles.card, styles.memberCard]}>
+            <IconSymbol 
+              ios_icon_name="checkmark.circle.fill"
+              android_material_icon_name="check-circle"
+              size={32}
+              color={colors.secondary}
+              style={styles.membershipIcon}
+            />
+            <Text style={commonStyles.cardTitle}>You&apos;re All Set!</Text>
+            <Text style={commonStyles.cardText}>
+              As a member of The Olive & Fable Club, you&apos;ll get priority registration and exclusive member pricing when workshops launch.
+            </Text>
+          </View>
+        ) : (
+          <View style={[commonStyles.card, styles.membershipCard]}>
+            <IconSymbol 
+              ios_icon_name="crown.fill"
+              android_material_icon_name="workspace-premium"
+              size={32}
+              color={colors.secondary}
+              style={styles.membershipIcon}
+            />
+            <Text style={commonStyles.cardTitle}>Members Get Early Access</Text>
+            <Text style={commonStyles.cardText}>
+              Join The Olive & Fable Club for priority registration and exclusive member pricing on all workshops.
+            </Text>
+            <Pressable 
+              style={({ pressed }) => [
+                buttonStyles.secondaryButton,
+                pressed && styles.pressed
+              ]}
+              onPress={handleJoinMembership}
+            >
+              <Text style={buttonStyles.buttonText}>Join Membership for Early Access</Text>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -255,6 +280,10 @@ const styles = StyleSheet.create({
   membershipCard: {
     alignItems: 'center',
     backgroundColor: colors.accent,
+  },
+  memberCard: {
+    alignItems: 'center',
+    backgroundColor: colors.highlight,
   },
   membershipIcon: {
     marginBottom: 12,

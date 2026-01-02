@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
+import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ContentCategory {
   id: string;
@@ -86,21 +88,39 @@ const categories: ContentCategory[] = [
 ];
 
 export default function LearnScreen() {
+  const { profile } = useAuth();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+  const isMember = profile?.membership_status === 'active';
 
   const toggleCategory = (categoryId: string) => {
     console.log(`Category ${categoryId} toggled`);
     setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
   };
 
-  const handleContentItemPress = (itemId: string, itemTitle: string) => {
-    console.log(`Content item pressed: ${itemTitle} (${itemId})`);
+  const handleContentItemPress = (item: ContentItem, itemTitle: string) => {
+    console.log(`Content item pressed: ${itemTitle} (${item.id})`);
+    
+    // Check if content is locked and user is not a member
+    if (!item.isFree && !isMember) {
+      Alert.alert(
+        'Premium Content',
+        'This content is available to members only. Join The Olive & Fable Club to unlock all educational content.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Join Membership', onPress: () => router.push('/my-studio/membership') }
+        ]
+      );
+      return;
+    }
+
     // TODO: Navigate to content detail or play video
+    Alert.alert('Coming Soon', `${itemTitle} will be available soon!`);
   };
 
   const handleJoinMembership = () => {
     console.log('Join Membership button pressed');
-    // TODO: Navigate to membership signup
+    router.push('/my-studio/membership');
   };
 
   const getTypeIcon = (type: string) => {
@@ -171,23 +191,28 @@ export default function LearnScreen() {
                           styles.contentItem,
                           pressed && styles.pressed
                         ]}
-                        onPress={() => handleContentItemPress(item.id, item.title)}
+                        onPress={() => handleContentItemPress(item, item.title)}
                       >
                         <View style={styles.contentItemLeft}>
                           <IconSymbol 
                             ios_icon_name="play.circle.fill"
                             android_material_icon_name={getTypeIcon(item.type) as any}
                             size={20}
-                            color={item.isFree ? colors.primary : colors.textSecondary}
+                            color={item.isFree || isMember ? colors.primary : colors.textSecondary}
                           />
                           <View style={styles.contentItemText}>
-                            <Text style={styles.contentItemTitle}>{item.title}</Text>
+                            <Text style={[
+                              styles.contentItemTitle,
+                              !item.isFree && !isMember && styles.lockedText
+                            ]}>
+                              {item.title}
+                            </Text>
                             {item.duration && (
                               <Text style={styles.contentItemDuration}>{item.duration}</Text>
                             )}
                           </View>
                         </View>
-                        {!item.isFree && (
+                        {!item.isFree && !isMember && (
                           <View style={styles.lockBadge}>
                             <IconSymbol 
                               ios_icon_name="lock.fill"
@@ -206,29 +231,31 @@ export default function LearnScreen() {
           </React.Fragment>
         ))}
 
-        {/* Membership CTA */}
-        <View style={[commonStyles.card, styles.ctaCard]}>
-          <IconSymbol 
-            ios_icon_name="star.fill"
-            android_material_icon_name="star"
-            size={32}
-            color={colors.secondary}
-            style={styles.ctaIcon}
-          />
-          <Text style={commonStyles.cardTitle}>Unlock All Guides</Text>
-          <Text style={commonStyles.cardText}>
-            Get full access to our complete library of educational content with membership.
-          </Text>
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.primaryButton,
-              pressed && styles.pressed
-            ]}
-            onPress={handleJoinMembership}
-          >
-            <Text style={buttonStyles.buttonText}>Join Membership</Text>
-          </Pressable>
-        </View>
+        {/* Membership CTA - Only show if not a member */}
+        {!isMember && (
+          <View style={[commonStyles.card, styles.ctaCard]}>
+            <IconSymbol 
+              ios_icon_name="star.fill"
+              android_material_icon_name="star"
+              size={32}
+              color={colors.secondary}
+              style={styles.ctaIcon}
+            />
+            <Text style={commonStyles.cardTitle}>Unlock All Guides</Text>
+            <Text style={commonStyles.cardText}>
+              Get full access to our complete library of educational content with membership.
+            </Text>
+            <Pressable 
+              style={({ pressed }) => [
+                buttonStyles.primaryButton,
+                pressed && styles.pressed
+              ]}
+              onPress={handleJoinMembership}
+            >
+              <Text style={buttonStyles.buttonText}>Join Membership</Text>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -293,6 +320,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.text,
     marginBottom: 2,
+  },
+  lockedText: {
+    color: colors.textSecondary,
   },
   contentItemDuration: {
     fontSize: 12,
