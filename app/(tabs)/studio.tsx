@@ -6,6 +6,17 @@ import { IconSymbol } from '@/components/IconSymbol';
 
 type UserRole = 'visitor' | 'registered' | 'member' | 'client';
 
+interface MembershipBenefit {
+  id: string;
+  text: string;
+}
+
+const membershipBenefits: MembershipBenefit[] = [
+  { id: 'library', text: 'Full Learn library access' },
+  { id: 'workshops', text: 'Early workshop access' },
+  { id: 'announcements', text: 'Exclusive announcements' },
+];
+
 export default function MyStudioScreen() {
   // For demo purposes, simulating different user states
   const [userRole, setUserRole] = useState<UserRole>('visitor');
@@ -161,33 +172,17 @@ export default function MyStudioScreen() {
               You&apos;re part of The Olive & Fable Club! Enjoy full access to all educational content.
             </Text>
             <View style={styles.membershipBenefits}>
-              <View style={styles.benefitItem}>
-                <IconSymbol 
-                  ios_icon_name="checkmark.circle.fill"
-                  android_material_icon_name="check-circle"
-                  size={18}
-                  color={colors.secondary}
-                />
-                <Text style={styles.benefitText}>Full Learn library access</Text>
-              </View>
-              <View style={styles.benefitItem}>
-                <IconSymbol 
-                  ios_icon_name="checkmark.circle.fill"
-                  android_material_icon_name="check-circle"
-                  size={18}
-                  color={colors.secondary}
-                />
-                <Text style={styles.benefitText}>Early workshop access</Text>
-              </View>
-              <View style={styles.benefitItem}>
-                <IconSymbol 
-                  ios_icon_name="checkmark.circle.fill"
-                  android_material_icon_name="check-circle"
-                  size={18}
-                  color={colors.secondary}
-                />
-                <Text style={styles.benefitText}>Exclusive announcements</Text>
-              </View>
+              {membershipBenefits.map((benefit, index) => (
+                <View key={`${benefit.id}-${index}`} style={styles.benefitItem}>
+                  <IconSymbol 
+                    ios_icon_name="checkmark.circle.fill"
+                    android_material_icon_name="check-circle"
+                    size={18}
+                    color={colors.secondary}
+                  />
+                  <Text style={styles.benefitText}>{benefit.text}</Text>
+                </View>
+              ))}
             </View>
             <Pressable 
               style={({ pressed }) => [

@@ -94,8 +94,8 @@ export default function BookScreen() {
         </View>
 
         {/* Session Types */}
-        {sessionTypes.map((session) => (
-          <View key={session.id} style={commonStyles.card}>
+        {sessionTypes.map((session, sessionIndex) => (
+          <View key={`${session.id}-${session.title}-${sessionIndex}`} style={commonStyles.card}>
             <View style={styles.sessionHeader}>
               <View>
                 <Text style={commonStyles.cardTitle}>{session.title}</Text>
@@ -117,8 +117,8 @@ export default function BookScreen() {
             </Text>
 
             <View style={styles.featuresContainer}>
-              {session.features.map((feature, index) => (
-                <View key={index} style={styles.featureItem}>
+              {session.features.map((feature, featureIndex) => (
+                <View key={`${session.id}-feature-${featureIndex}-${feature}`} style={styles.featureItem}>
                   <IconSymbol 
                     ios_icon_name="checkmark.circle.fill"
                     android_material_icon_name="check-circle"

@@ -132,8 +132,8 @@ export default function LearnScreen() {
         </View>
 
         {/* Categories */}
-        {categories.map((category) => (
-          <View key={category.id} style={commonStyles.card}>
+        {categories.map((category, index) => (
+          <View key={`${category.id}-${category.title}-${index}`} style={commonStyles.card}>
             <Pressable 
               style={({ pressed }) => [
                 styles.categoryHeader,
@@ -163,9 +163,9 @@ export default function LearnScreen() {
 
             {expandedCategory === category.id && (
               <View style={styles.categoryContent}>
-                {category.items.map((item) => (
+                {category.items.map((item, itemIndex) => (
                   <Pressable 
-                    key={item.id} 
+                    key={`${category.id}-${item.id}-${item.title}-${itemIndex}`}
                     style={({ pressed }) => [
                       styles.contentItem,
                       pressed && styles.pressed

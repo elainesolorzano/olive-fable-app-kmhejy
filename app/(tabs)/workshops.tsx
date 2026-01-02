@@ -4,6 +4,45 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
+interface WorkshopFeature {
+  id: string;
+  icon: string;
+  iosIcon: string;
+  title: string;
+  description: string;
+}
+
+const workshopFeatures: WorkshopFeature[] = [
+  {
+    id: 'photography',
+    icon: 'camera-alt',
+    iosIcon: 'camera.fill',
+    title: 'Photography Workshops',
+    description: 'Learn professional techniques for capturing your pet\'s personality',
+  },
+  {
+    id: 'group-sessions',
+    icon: 'people',
+    iosIcon: 'person.2.fill',
+    title: 'Small Group Sessions',
+    description: 'Intimate workshops with personalized attention and feedback',
+  },
+  {
+    id: 'expert-instruction',
+    icon: 'star',
+    iosIcon: 'star.fill',
+    title: 'Expert Instruction',
+    description: 'Learn from professional pet photographers with years of experience',
+  },
+  {
+    id: 'bonding',
+    icon: 'favorite',
+    iosIcon: 'heart.fill',
+    title: 'Bonding Activities',
+    description: 'Strengthen your connection while learning new skills together',
+  },
+];
+
 export default function WorkshopsScreen() {
   const handleNotifyMe = () => {
     console.log('Notify Me When Workshops Launch button pressed');
@@ -46,65 +85,22 @@ export default function WorkshopsScreen() {
         {/* What to Expect */}
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>What to Expect</Text>
-          <View style={styles.featureItem}>
-            <IconSymbol 
-              ios_icon_name="camera.fill"
-              android_material_icon_name="camera-alt"
-              size={24}
-              color={colors.secondary}
-            />
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Photography Workshops</Text>
-              <Text style={commonStyles.cardText}>
-                Learn professional techniques for capturing your pet&apos;s personality
-              </Text>
+          {workshopFeatures.map((feature, index) => (
+            <View key={`${feature.id}-${index}`} style={styles.featureItem}>
+              <IconSymbol 
+                ios_icon_name={feature.iosIcon as any}
+                android_material_icon_name={feature.icon as any}
+                size={24}
+                color={colors.secondary}
+              />
+              <View style={styles.featureText}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={commonStyles.cardText}>
+                  {feature.description}
+                </Text>
+              </View>
             </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <IconSymbol 
-              ios_icon_name="person.2.fill"
-              android_material_icon_name="people"
-              size={24}
-              color={colors.secondary}
-            />
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Small Group Sessions</Text>
-              <Text style={commonStyles.cardText}>
-                Intimate workshops with personalized attention and feedback
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <IconSymbol 
-              ios_icon_name="star.fill"
-              android_material_icon_name="star"
-              size={24}
-              color={colors.secondary}
-            />
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Expert Instruction</Text>
-              <Text style={commonStyles.cardText}>
-                Learn from professional pet photographers with years of experience
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <IconSymbol 
-              ios_icon_name="heart.fill"
-              android_material_icon_name="favorite"
-              size={24}
-              color={colors.secondary}
-            />
-            <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Bonding Activities</Text>
-              <Text style={commonStyles.cardText}>
-                Strengthen your connection while learning new skills together
-              </Text>
-            </View>
-          </View>
+          ))}
         </View>
 
         {/* Gemma Quote */}
