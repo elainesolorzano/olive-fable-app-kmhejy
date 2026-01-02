@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
@@ -11,6 +11,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const { signIn, signUp } = useAuth();
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -22,16 +23,13 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password,
-      });
+      const { error } = await signIn(email, password);
 
       if (error) {
         console.error('Sign in error:', error);
-        Alert.alert('Sign In Failed', error.message);
-      } else if (data.session) {
-        console.log('Sign in successful');
+        Alert.alert('Sign In Failed', error.message || 'An error occurred during sign in');
+      } else {
+        console.log('Sign in successful, redirecting to My Studio');
         Alert.alert('Success', 'Signed in successfully!');
         router.replace('/(tabs)/my-studio');
       }
@@ -58,17 +56,11 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password,
-        options: {
-          emailRedirectTo: 'https://natively.dev/email-confirmed'
-        }
-      });
+      const { error } = await signUp(email, password);
 
       if (error) {
         console.error('Sign up error:', error);
-        Alert.alert('Sign Up Failed', error.message);
+        Alert.alert('Sign Up Failed', error.message || 'An error occurred during sign up');
       } else {
         console.log('Sign up successful');
         Alert.alert(

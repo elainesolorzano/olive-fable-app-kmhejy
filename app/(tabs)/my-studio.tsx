@@ -2,10 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import type { Session } from '@supabase/supabase-js';
 
 type UserRole = 'visitor' | 'registered' | 'member' | 'client';
 
@@ -21,60 +20,19 @@ const membershipBenefits: MembershipBenefit[] = [
 ];
 
 export default function MyStudioScreen() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, session, loading, signOut } = useAuth();
   const [userRole, setUserRole] = useState<UserRole>('registered');
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     console.log('MyStudioScreen: Checking authentication state');
     
-    // Check current session
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('MyStudioScreen: Error getting session', error);
-          setLoading(false);
-          router.replace('/(auth)/login');
-          return;
-        }
-        
-        console.log('MyStudioScreen: Session retrieved', session ? 'User logged in' : 'No session');
-        setSession(session);
-        setLoading(false);
-        
-        // If no session, redirect to login
-        if (!session) {
-          console.log('MyStudioScreen: No session found, redirecting to login');
-          router.replace('/(auth)/login');
-        }
-      } catch (error) {
-        console.error('MyStudioScreen: Unexpected error checking session', error);
-        setLoading(false);
-        router.replace('/(auth)/login');
-      }
-    };
-
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('MyStudioScreen: Auth state changed', _event, session ? 'User logged in' : 'No session');
-      setSession(session);
-      
-      if (!session && _event === 'SIGNED_OUT') {
-        console.log('MyStudioScreen: User signed out, redirecting to login');
-        router.replace('/(auth)/login');
-      }
-    });
-
-    return () => {
-      console.log('MyStudioScreen: Cleaning up auth listener');
-      subscription.unsubscribe();
-    };
-  }, []);
+    // If not loading and no session, redirect to login
+    if (!loading && !session) {
+      console.log('MyStudioScreen: No session found, redirecting to login');
+      router.replace('/(auth)/login');
+    }
+  }, [loading, session]);
 
   const handleEditProfile = () => {
     console.log('Edit Profile button pressed');
@@ -129,15 +87,11 @@ export default function MyStudioScreen() {
   const handleSignOut = async () => {
     console.log('Sign Out button pressed');
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error);
-      } else {
-        console.log('User signed out successfully');
-        router.replace('/(auth)/login');
-      }
+      await signOut();
+      console.log('User signed out successfully, redirecting to Home');
+      router.replace('/(tabs)/');
     } catch (error) {
-      console.error('Unexpected error signing out:', error);
+      console.error('Error signing out:', error);
     }
   };
 
@@ -152,7 +106,7 @@ export default function MyStudioScreen() {
   }
 
   // If no session after loading, return null (redirect will happen)
-  if (!session) {
+  if (!session || !user) {
     return null;
   }
 
@@ -177,10 +131,10 @@ export default function MyStudioScreen() {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
-                {session.user.user_metadata?.full_name || 'User'}
+                {user.user_metadata?.full_name || 'User'}
               </Text>
               <Text style={styles.profileEmail}>
-                {session.user.email || 'No email'}
+                {user.email || 'No email'}
               </Text>
             </View>
             <Pressable 
@@ -429,41 +383,6 @@ export default function MyStudioScreen() {
         >
           <Text style={styles.signOutText}>Sign Out</Text>
         </Pressable>
-
-        {/* Demo Controls (for testing) */}
-        <View style={[commonStyles.card, styles.demoControls]}>
-          <Text style={styles.demoTitle}>Demo Controls</Text>
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.outlineButton,
-              styles.demoButton,
-              pressed && styles.pressed
-            ]}
-            onPress={() => {
-              console.log('Toggling membership status');
-              setUserRole(userRole === 'member' ? 'registered' : 'member');
-            }}
-          >
-            <Text style={buttonStyles.outlineButtonText}>
-              Toggle Membership ({userRole === 'member' ? 'Active' : 'Inactive'})
-            </Text>
-          </Pressable>
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.outlineButton,
-              styles.demoButton,
-              pressed && styles.pressed
-            ]}
-            onPress={() => {
-              console.log('Toggling client portal visibility');
-              setIsClient(!isClient);
-            }}
-          >
-            <Text style={buttonStyles.outlineButtonText}>
-              Toggle Client Portal ({isClient ? 'Visible' : 'Hidden'})
-            </Text>
-          </Pressable>
-        </View>
       </ScrollView>
     </View>
   );
@@ -622,20 +541,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#DC3545',
-  },
-  demoControls: {
-    backgroundColor: colors.highlight,
-  },
-  demoTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  demoButton: {
-    marginTop: 8,
   },
   pressed: {
     opacity: 0.7,
