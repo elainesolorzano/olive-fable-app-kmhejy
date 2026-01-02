@@ -82,7 +82,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="studio"
+        name="my-studio"
         options={{
           title: 'My Studio',
           tabBarIcon: ({ color, size }) => (
