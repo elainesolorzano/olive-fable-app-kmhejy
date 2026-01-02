@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
+import { colors } from '@/styles/commonStyles';
 
 export default function TabLayout() {
-  // Define the tabs configuration
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
@@ -12,24 +13,44 @@ export default function TabLayout() {
       label: 'Home',
     },
     {
-      name: 'profile',
-      route: '/(tabs)/profile',
+      name: 'learn',
+      route: '/(tabs)/learn',
+      icon: 'book',
+      label: 'Learn',
+    },
+    {
+      name: 'book',
+      route: '/(tabs)/book',
+      icon: 'calendar-today',
+      label: 'Book',
+    },
+    {
+      name: 'workshops',
+      route: '/(tabs)/workshops',
+      icon: 'lightbulb',
+      label: 'Workshops',
+    },
+    {
+      name: 'my-studio',
+      route: '/(tabs)/my-studio',
       icon: 'person',
-      label: 'Profile',
+      label: 'My Studio',
     },
   ];
 
-  // For Android and Web, use Stack navigation with custom floating tab bar
   return (
     <>
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'none', // Remove fade animation to prevent black screen flash
+          animation: 'none',
         }}
       >
         <Stack.Screen key="home" name="(home)" />
-        <Stack.Screen key="profile" name="profile" />
+        <Stack.Screen key="learn" name="learn" />
+        <Stack.Screen key="book" name="book" />
+        <Stack.Screen key="workshops" name="workshops" />
+        <Stack.Screen key="my-studio" name="my-studio" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>
