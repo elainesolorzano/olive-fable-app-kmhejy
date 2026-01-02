@@ -36,27 +36,27 @@ export default function MyStudioScreen() {
 
   const handleEditProfile = () => {
     console.log('Edit Profile button pressed');
-    // TODO: Navigate to edit profile screen
+    router.push('/my-studio/edit-profile');
   };
 
   const handleBecomeMember = () => {
     console.log('Become a Member button pressed');
-    // TODO: Navigate to membership signup
+    router.push('/my-studio/membership');
   };
 
   const handleManageMembership = () => {
     console.log('Manage Membership button pressed');
-    // TODO: Navigate to membership management
+    router.push('/my-studio/membership');
   };
 
   const handleSavedContent = () => {
     console.log('Saved Content button pressed');
-    // TODO: Navigate to saved content
+    router.push('/my-studio/saved');
   };
 
   const handlePurchases = () => {
     console.log('Purchases button pressed');
-    // TODO: Navigate to purchases
+    router.push('/my-studio/purchases');
   };
 
   const handleViewSessionDetails = () => {
@@ -71,17 +71,17 @@ export default function MyStudioScreen() {
 
   const handleNotifications = () => {
     console.log('Notifications setting pressed');
-    // TODO: Navigate to notifications settings
+    router.push('/my-studio/notifications');
   };
 
   const handlePrivacy = () => {
     console.log('Privacy setting pressed');
-    // TODO: Navigate to privacy settings
+    router.push('/my-studio/privacy');
   };
 
   const handleHelp = () => {
     console.log('Help & Support pressed');
-    // TODO: Navigate to help & support
+    router.push('/my-studio/support');
   };
 
   const handleSignOut = async () => {
@@ -89,7 +89,7 @@ export default function MyStudioScreen() {
     try {
       await signOut();
       console.log('User signed out successfully, redirecting to Home');
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)/index');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -138,7 +138,10 @@ export default function MyStudioScreen() {
               </Text>
             </View>
             <Pressable 
-              style={({ pressed }) => [pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.editButton,
+                pressed && styles.pressed
+              ]}
               onPress={handleEditProfile}
             >
               <IconSymbol 
@@ -152,7 +155,14 @@ export default function MyStudioScreen() {
         </View>
 
         {/* Membership Status */}
-        <View style={[commonStyles.card, userRole === 'member' ? styles.memberCard : null]}>
+        <Pressable
+          style={({ pressed }) => [
+            commonStyles.card,
+            userRole === 'member' ? styles.memberCard : null,
+            pressed && styles.pressed
+          ]}
+          onPress={userRole === 'member' ? handleManageMembership : handleBecomeMember}
+        >
           <View style={styles.membershipHeader}>
             <IconSymbol 
               ios_icon_name={userRole === 'member' ? 'crown.fill' : 'crown'}
@@ -182,34 +192,21 @@ export default function MyStudioScreen() {
                   </View>
                 ))}
               </View>
-              <Pressable 
-                style={({ pressed }) => [
-                  buttonStyles.outlineButton,
-                  styles.manageMembershipButton,
-                  pressed && styles.pressed
-                ]}
-                onPress={handleManageMembership}
-              >
+              <View style={styles.manageMembershipButton}>
                 <Text style={buttonStyles.outlineButtonText}>Manage Membership</Text>
-              </Pressable>
+              </View>
             </>
           ) : (
             <>
               <Text style={commonStyles.cardText}>
                 Join The Olive & Fable Club for full access to educational content and early workshop access.
               </Text>
-              <Pressable 
-                style={({ pressed }) => [
-                  buttonStyles.primaryButton,
-                  pressed && styles.pressed
-                ]}
-                onPress={handleBecomeMember}
-              >
+              <View style={styles.becomeMemberButton}>
                 <Text style={buttonStyles.buttonText}>Become a Member</Text>
-              </Pressable>
+              </View>
             </>
           )}
-        </View>
+        </Pressable>
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
@@ -434,6 +431,9 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: colors.textSecondary,
   },
+  editButton: {
+    padding: 8,
+  },
   memberCard: {
     backgroundColor: colors.highlight,
   },
@@ -459,6 +459,23 @@ const styles = StyleSheet.create({
   },
   manageMembershipButton: {
     marginTop: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  becomeMemberButton: {
+    marginTop: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
   },
   quickActions: {
     flexDirection: 'row',
