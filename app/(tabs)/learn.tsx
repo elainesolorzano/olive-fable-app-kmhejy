@@ -133,7 +133,7 @@ export default function LearnScreen() {
 
         {/* Categories */}
         {categories.map((category, index) => (
-          <View key={`${category.id}-${category.title}-${index}`} style={commonStyles.card}>
+          <View key={`${category.id ?? category.title ?? 'cat'}-${index}`} style={commonStyles.card}>
             <Pressable 
               style={({ pressed }) => [
                 styles.categoryHeader,
@@ -165,7 +165,7 @@ export default function LearnScreen() {
               <View style={styles.categoryContent}>
                 {category.items.map((item, itemIndex) => (
                   <Pressable 
-                    key={`${category.id}-${item.id}-${item.title}-${itemIndex}`}
+                    key={`${category.id ?? category.title ?? 'cat'}-${item.id ?? item.title ?? 'item'}-${itemIndex}`}
                     style={({ pressed }) => [
                       styles.contentItem,
                       pressed && styles.pressed
