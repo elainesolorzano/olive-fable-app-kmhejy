@@ -85,10 +85,9 @@ export default function WorkshopsScreen() {
         {/* What to Expect */}
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>What to Expect</Text>
-          {workshopFeatures.map((feature, index) => {
-            const uniqueKey = `${feature.id}-${index}`;
-            return (
-              <View key={uniqueKey} style={styles.featureItem}>
+          {workshopFeatures.map((feature, featureIndex) => (
+            <React.Fragment key={`feature-${feature.id}-${featureIndex}`}>
+              <View style={styles.featureItem}>
                 <IconSymbol 
                   ios_icon_name={feature.iosIcon as any}
                   android_material_icon_name={feature.icon as any}
@@ -102,8 +101,8 @@ export default function WorkshopsScreen() {
                   </Text>
                 </View>
               </View>
-            );
-          })}
+            </React.Fragment>
+          ))}
         </View>
 
         {/* Gemma Quote */}

@@ -132,75 +132,78 @@ export default function LearnScreen() {
         </View>
 
         {/* Categories */}
-        {categories.map((category, index) => (
-          <View key={`category-${index}-${category.id}`} style={commonStyles.card}>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.categoryHeader,
-                pressed && styles.pressed
-              ]}
-              onPress={() => toggleCategory(category.id)}
-            >
-              <View style={styles.categoryHeaderLeft}>
-                <IconSymbol 
-                  ios_icon_name="book.fill"
-                  android_material_icon_name={category.icon as any}
-                  size={24}
-                  color={colors.primary}
-                />
-                <View style={styles.categoryHeaderText}>
-                  <Text style={commonStyles.cardTitle}>{category.title}</Text>
-                  <Text style={commonStyles.cardText}>{category.description}</Text>
+        {categories.map((category, categoryIndex) => (
+          <React.Fragment key={`category-${category.id}-${categoryIndex}`}>
+            <View style={commonStyles.card}>
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.categoryHeader,
+                  pressed && styles.pressed
+                ]}
+                onPress={() => toggleCategory(category.id)}
+              >
+                <View style={styles.categoryHeaderLeft}>
+                  <IconSymbol 
+                    ios_icon_name="book.fill"
+                    android_material_icon_name={category.icon as any}
+                    size={24}
+                    color={colors.primary}
+                  />
+                  <View style={styles.categoryHeaderText}>
+                    <Text style={commonStyles.cardTitle}>{category.title}</Text>
+                    <Text style={commonStyles.cardText}>{category.description}</Text>
+                  </View>
                 </View>
-              </View>
-              <IconSymbol 
-                ios_icon_name={expandedCategory === category.id ? 'chevron.up' : 'chevron.down'}
-                android_material_icon_name={expandedCategory === category.id ? 'expand-less' : 'expand-more'}
-                size={24}
-                color={colors.textSecondary}
-              />
-            </Pressable>
+                <IconSymbol 
+                  ios_icon_name={expandedCategory === category.id ? 'chevron.up' : 'chevron.down'}
+                  android_material_icon_name={expandedCategory === category.id ? 'expand-less' : 'expand-more'}
+                  size={24}
+                  color={colors.textSecondary}
+                />
+              </Pressable>
 
-            {expandedCategory === category.id && (
-              <View style={styles.categoryContent}>
-                {category.items.map((item, itemIndex) => (
-                  <Pressable 
-                    key={`item-${index}-${itemIndex}-${item.id}`}
-                    style={({ pressed }) => [
-                      styles.contentItem,
-                      pressed && styles.pressed
-                    ]}
-                    onPress={() => handleContentItemPress(item.id, item.title)}
-                  >
-                    <View style={styles.contentItemLeft}>
-                      <IconSymbol 
-                        ios_icon_name="play.circle.fill"
-                        android_material_icon_name={getTypeIcon(item.type) as any}
-                        size={20}
-                        color={item.isFree ? colors.primary : colors.textSecondary}
-                      />
-                      <View style={styles.contentItemText}>
-                        <Text style={styles.contentItemTitle}>{item.title}</Text>
-                        {item.duration && (
-                          <Text style={styles.contentItemDuration}>{item.duration}</Text>
+              {expandedCategory === category.id && (
+                <View style={styles.categoryContent}>
+                  {category.items.map((item, itemIndex) => (
+                    <React.Fragment key={`category-${category.id}-item-${item.id}-${itemIndex}`}>
+                      <Pressable 
+                        style={({ pressed }) => [
+                          styles.contentItem,
+                          pressed && styles.pressed
+                        ]}
+                        onPress={() => handleContentItemPress(item.id, item.title)}
+                      >
+                        <View style={styles.contentItemLeft}>
+                          <IconSymbol 
+                            ios_icon_name="play.circle.fill"
+                            android_material_icon_name={getTypeIcon(item.type) as any}
+                            size={20}
+                            color={item.isFree ? colors.primary : colors.textSecondary}
+                          />
+                          <View style={styles.contentItemText}>
+                            <Text style={styles.contentItemTitle}>{item.title}</Text>
+                            {item.duration && (
+                              <Text style={styles.contentItemDuration}>{item.duration}</Text>
+                            )}
+                          </View>
+                        </View>
+                        {!item.isFree && (
+                          <View style={styles.lockBadge}>
+                            <IconSymbol 
+                              ios_icon_name="lock.fill"
+                              android_material_icon_name="lock"
+                              size={16}
+                              color={colors.textSecondary}
+                            />
+                          </View>
                         )}
-                      </View>
-                    </View>
-                    {!item.isFree && (
-                      <View style={styles.lockBadge}>
-                        <IconSymbol 
-                          ios_icon_name="lock.fill"
-                          android_material_icon_name="lock"
-                          size={16}
-                          color={colors.textSecondary}
-                        />
-                      </View>
-                    )}
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
+                      </Pressable>
+                    </React.Fragment>
+                  ))}
+                </View>
+              )}
+            </View>
+          </React.Fragment>
         ))}
 
         {/* Membership CTA */}
