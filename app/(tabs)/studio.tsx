@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
@@ -10,6 +10,71 @@ export default function MyStudioScreen() {
   // For demo purposes, simulating different user states
   const [userRole, setUserRole] = useState<UserRole>('visitor');
   const [isClient, setIsClient] = useState(false);
+
+  const handleSignIn = () => {
+    console.log('Sign In button pressed');
+    // TODO: Navigate to sign in screen
+  };
+
+  const handleCreateAccount = () => {
+    console.log('Create Account button pressed');
+    // TODO: Navigate to create account screen
+  };
+
+  const handleEditProfile = () => {
+    console.log('Edit Profile button pressed');
+    // TODO: Navigate to edit profile screen
+  };
+
+  const handleBecomeMember = () => {
+    console.log('Become a Member button pressed');
+    // TODO: Navigate to membership signup
+  };
+
+  const handleManageMembership = () => {
+    console.log('Manage Membership button pressed');
+    // TODO: Navigate to membership management
+  };
+
+  const handleSavedContent = () => {
+    console.log('Saved Content button pressed');
+    // TODO: Navigate to saved content
+  };
+
+  const handlePurchases = () => {
+    console.log('Purchases button pressed');
+    // TODO: Navigate to purchases
+  };
+
+  const handleViewSessionDetails = () => {
+    console.log('View Session Details button pressed');
+    // TODO: Navigate to session details
+  };
+
+  const handleAccessGallery = () => {
+    console.log('Access Gallery button pressed');
+    // TODO: Open gallery
+  };
+
+  const handleNotifications = () => {
+    console.log('Notifications setting pressed');
+    // TODO: Navigate to notifications settings
+  };
+
+  const handlePrivacy = () => {
+    console.log('Privacy setting pressed');
+    // TODO: Navigate to privacy settings
+  };
+
+  const handleHelp = () => {
+    console.log('Help & Support pressed');
+    // TODO: Navigate to help & support
+  };
+
+  const handleSignOut = () => {
+    console.log('Sign Out button pressed');
+    // TODO: Sign out user
+  };
 
   const renderVisitorView = () => (
     <View style={styles.emptyState}>
@@ -25,12 +90,24 @@ export default function MyStudioScreen() {
       <Text style={styles.emptyStateText}>
         Sign in or create an account to access your personalized studio hub.
       </Text>
-      <TouchableOpacity style={buttonStyles.primaryButton}>
+      <Pressable 
+        style={({ pressed }) => [
+          buttonStyles.primaryButton,
+          pressed && styles.pressed
+        ]}
+        onPress={handleSignIn}
+      >
         <Text style={buttonStyles.buttonText}>Sign In</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={buttonStyles.outlineButton}>
+      </Pressable>
+      <Pressable 
+        style={({ pressed }) => [
+          buttonStyles.outlineButton,
+          pressed && styles.pressed
+        ]}
+        onPress={handleCreateAccount}
+      >
         <Text style={buttonStyles.outlineButtonText}>Create Account</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 
@@ -51,14 +128,17 @@ export default function MyStudioScreen() {
             <Text style={styles.profileName}>Sarah Johnson</Text>
             <Text style={styles.profileEmail}>sarah@example.com</Text>
           </View>
-          <TouchableOpacity>
+          <Pressable 
+            style={({ pressed }) => [pressed && styles.pressed]}
+            onPress={handleEditProfile}
+          >
             <IconSymbol 
               ios_icon_name="pencil"
               android_material_icon_name="edit"
               size={20}
               color={colors.primary}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 
@@ -109,25 +189,44 @@ export default function MyStudioScreen() {
                 <Text style={styles.benefitText}>Exclusive announcements</Text>
               </View>
             </View>
-            <TouchableOpacity style={[buttonStyles.outlineButton, styles.manageMembershipButton]}>
+            <Pressable 
+              style={({ pressed }) => [
+                buttonStyles.outlineButton,
+                styles.manageMembershipButton,
+                pressed && styles.pressed
+              ]}
+              onPress={handleManageMembership}
+            >
               <Text style={buttonStyles.outlineButtonText}>Manage Membership</Text>
-            </TouchableOpacity>
+            </Pressable>
           </>
         ) : (
           <>
             <Text style={commonStyles.cardText}>
               Join The Olive & Fable Club for full access to educational content and early workshop access.
             </Text>
-            <TouchableOpacity style={buttonStyles.primaryButton}>
+            <Pressable 
+              style={({ pressed }) => [
+                buttonStyles.primaryButton,
+                pressed && styles.pressed
+              ]}
+              onPress={handleBecomeMember}
+            >
               <Text style={buttonStyles.buttonText}>Become a Member</Text>
-            </TouchableOpacity>
+            </Pressable>
           </>
         )}
       </View>
 
       {/* Quick Actions */}
       <View style={styles.quickActions}>
-        <TouchableOpacity style={styles.actionButton}>
+        <Pressable 
+          style={({ pressed }) => [
+            styles.actionButton,
+            pressed && styles.pressed
+          ]}
+          onPress={handleSavedContent}
+        >
           <IconSymbol 
             ios_icon_name="bookmark.fill"
             android_material_icon_name="bookmark"
@@ -135,9 +234,15 @@ export default function MyStudioScreen() {
             color={colors.primary}
           />
           <Text style={styles.actionButtonText}>Saved Content</Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity style={styles.actionButton}>
+        <Pressable 
+          style={({ pressed }) => [
+            styles.actionButton,
+            pressed && styles.pressed
+          ]}
+          onPress={handlePurchases}
+        >
           <IconSymbol 
             ios_icon_name="bag.fill"
             android_material_icon_name="shopping-bag"
@@ -145,7 +250,7 @@ export default function MyStudioScreen() {
             color={colors.primary}
           />
           <Text style={styles.actionButtonText}>Purchases</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Client Portal (conditional) */}
@@ -174,18 +279,37 @@ export default function MyStudioScreen() {
               <Text style={styles.sessionDetailValue}>Central Park</Text>
             </View>
           </View>
-          <TouchableOpacity style={buttonStyles.primaryButton}>
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.primaryButton,
+              pressed && styles.pressed
+            ]}
+            onPress={handleViewSessionDetails}
+          >
             <Text style={buttonStyles.buttonText}>View Session Details</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[buttonStyles.outlineButton, styles.galleryButton]}>
+          </Pressable>
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.outlineButton,
+              styles.galleryButton,
+              pressed && styles.pressed
+            ]}
+            onPress={handleAccessGallery}
+          >
             <Text style={buttonStyles.outlineButtonText}>Access Gallery</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
       {/* Settings */}
       <View style={commonStyles.card}>
-        <TouchableOpacity style={styles.settingItem}>
+        <Pressable 
+          style={({ pressed }) => [
+            styles.settingItem,
+            pressed && styles.pressed
+          ]}
+          onPress={handleNotifications}
+        >
           <View style={styles.settingItemLeft}>
             <IconSymbol 
               ios_icon_name="bell.fill"
@@ -201,11 +325,17 @@ export default function MyStudioScreen() {
             size={20}
             color={colors.textSecondary}
           />
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={commonStyles.divider} />
 
-        <TouchableOpacity style={styles.settingItem}>
+        <Pressable 
+          style={({ pressed }) => [
+            styles.settingItem,
+            pressed && styles.pressed
+          ]}
+          onPress={handlePrivacy}
+        >
           <View style={styles.settingItemLeft}>
             <IconSymbol 
               ios_icon_name="lock.fill"
@@ -221,11 +351,17 @@ export default function MyStudioScreen() {
             size={20}
             color={colors.textSecondary}
           />
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={commonStyles.divider} />
 
-        <TouchableOpacity style={styles.settingItem}>
+        <Pressable 
+          style={({ pressed }) => [
+            styles.settingItem,
+            pressed && styles.pressed
+          ]}
+          onPress={handleHelp}
+        >
           <View style={styles.settingItemLeft}>
             <IconSymbol 
               ios_icon_name="questionmark.circle.fill"
@@ -241,39 +377,59 @@ export default function MyStudioScreen() {
             size={20}
             color={colors.textSecondary}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Sign Out */}
-      <TouchableOpacity style={styles.signOutButton}>
+      <Pressable 
+        style={({ pressed }) => [
+          styles.signOutButton,
+          pressed && styles.pressed
+        ]}
+        onPress={handleSignOut}
+      >
         <Text style={styles.signOutText}>Sign Out</Text>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Demo Controls (for testing) */}
       <View style={[commonStyles.card, styles.demoControls]}>
         <Text style={styles.demoTitle}>Demo Controls</Text>
-        <TouchableOpacity 
-          style={[buttonStyles.outlineButton, styles.demoButton]}
-          onPress={() => setUserRole(userRole === 'member' ? 'registered' : 'member')}
+        <Pressable 
+          style={({ pressed }) => [
+            buttonStyles.outlineButton,
+            styles.demoButton,
+            pressed && styles.pressed
+          ]}
+          onPress={() => {
+            console.log('Toggling membership status');
+            setUserRole(userRole === 'member' ? 'registered' : 'member');
+          }}
         >
           <Text style={buttonStyles.outlineButtonText}>
             Toggle Membership ({userRole === 'member' ? 'Active' : 'Inactive'})
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[buttonStyles.outlineButton, styles.demoButton]}
-          onPress={() => setIsClient(!isClient)}
+        </Pressable>
+        <Pressable 
+          style={({ pressed }) => [
+            buttonStyles.outlineButton,
+            styles.demoButton,
+            pressed && styles.pressed
+          ]}
+          onPress={() => {
+            console.log('Toggling client portal visibility');
+            setIsClient(!isClient);
+          }}
         >
           <Text style={buttonStyles.outlineButtonText}>
             Toggle Client Portal ({isClient ? 'Visible' : 'Hidden'})
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </>
   );
 
   return (
-    <View style={commonStyles.container}>
+    <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -292,7 +448,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingBottom: 40,
   },
   emptyState: {
     alignItems: 'center',
@@ -458,5 +614,8 @@ const styles = StyleSheet.create({
   },
   demoButton: {
     marginTop: 8,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

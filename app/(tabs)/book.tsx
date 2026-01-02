@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
@@ -58,13 +58,12 @@ const sessionTypes: SessionType[] = [
 
 export default function BookScreen() {
   const handleBooking = () => {
-    console.log('Opening HoneyBook booking link');
-    // Replace with actual HoneyBook URL
-    Linking.openURL('https://www.honeybook.com/');
+    console.log('Book with Olive & Fable button pressed - opening external URL');
+    Linking.openURL('https://example.com');
   };
 
   return (
-    <View style={commonStyles.container}>
+    <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -146,12 +145,15 @@ export default function BookScreen() {
           <Text style={commonStyles.cardText}>
             Let&apos;s create beautiful memories together. Click below to schedule your session.
           </Text>
-          <TouchableOpacity 
-            style={buttonStyles.primaryButton}
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.primaryButton,
+              pressed && styles.pressed
+            ]}
             onPress={handleBooking}
           >
             <Text style={buttonStyles.buttonText}>Book with Olive & Fable</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* What to Expect */}
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingBottom: 40,
   },
   header: {
     marginBottom: 24,
@@ -314,5 +316,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginBottom: 4,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

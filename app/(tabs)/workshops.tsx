@@ -1,22 +1,22 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function WorkshopsScreen() {
   const handleNotifyMe = () => {
-    console.log('User requested workshop notifications');
+    console.log('Notify Me When Workshops Launch button pressed');
     // TODO: Implement notification signup
   };
 
   const handleJoinMembership = () => {
-    console.log('User wants to join membership for early access');
+    console.log('Join Membership for Early Access button pressed');
     // TODO: Navigate to membership signup
   };
 
   return (
-    <View style={commonStyles.container}>
+    <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -129,12 +129,15 @@ export default function WorkshopsScreen() {
           <Text style={commonStyles.cardText}>
             Get notified when workshops launch and secure your spot early.
           </Text>
-          <TouchableOpacity 
-            style={buttonStyles.primaryButton}
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.primaryButton,
+              pressed && styles.pressed
+            ]}
             onPress={handleNotifyMe}
           >
             <Text style={buttonStyles.buttonText}>Notify Me When Workshops Launch</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         <View style={[commonStyles.card, styles.membershipCard]}>
@@ -149,12 +152,15 @@ export default function WorkshopsScreen() {
           <Text style={commonStyles.cardText}>
             Join The Olive & Fable Club for priority registration and exclusive member pricing on all workshops.
           </Text>
-          <TouchableOpacity 
-            style={buttonStyles.secondaryButton}
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.secondaryButton,
+              pressed && styles.pressed
+            ]}
             onPress={handleJoinMembership}
           >
             <Text style={buttonStyles.buttonText}>Join Membership for Early Access</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
@@ -168,7 +174,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingBottom: 40,
     alignItems: 'center',
   },
   comingSoonBadge: {
@@ -254,5 +260,8 @@ const styles = StyleSheet.create({
   },
   membershipIcon: {
     marginBottom: 12,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
@@ -89,7 +89,18 @@ export default function LearnScreen() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const toggleCategory = (categoryId: string) => {
+    console.log(`Category ${categoryId} toggled`);
     setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
+  };
+
+  const handleContentItemPress = (itemId: string, itemTitle: string) => {
+    console.log(`Content item pressed: ${itemTitle} (${itemId})`);
+    // TODO: Navigate to content detail or play video
+  };
+
+  const handleJoinMembership = () => {
+    console.log('Join Membership button pressed');
+    // TODO: Navigate to membership signup
   };
 
   const getTypeIcon = (type: string) => {
@@ -106,7 +117,7 @@ export default function LearnScreen() {
   };
 
   return (
-    <View style={commonStyles.container}>
+    <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -123,8 +134,11 @@ export default function LearnScreen() {
         {/* Categories */}
         {categories.map((category) => (
           <View key={category.id} style={commonStyles.card}>
-            <TouchableOpacity 
-              style={styles.categoryHeader}
+            <Pressable 
+              style={({ pressed }) => [
+                styles.categoryHeader,
+                pressed && styles.pressed
+              ]}
               onPress={() => toggleCategory(category.id)}
             >
               <View style={styles.categoryHeaderLeft}>
@@ -145,12 +159,19 @@ export default function LearnScreen() {
                 size={24}
                 color={colors.textSecondary}
               />
-            </TouchableOpacity>
+            </Pressable>
 
             {expandedCategory === category.id && (
               <View style={styles.categoryContent}>
                 {category.items.map((item) => (
-                  <TouchableOpacity key={item.id} style={styles.contentItem}>
+                  <Pressable 
+                    key={item.id} 
+                    style={({ pressed }) => [
+                      styles.contentItem,
+                      pressed && styles.pressed
+                    ]}
+                    onPress={() => handleContentItemPress(item.id, item.title)}
+                  >
                     <View style={styles.contentItemLeft}>
                       <IconSymbol 
                         ios_icon_name="play.circle.fill"
@@ -175,7 +196,7 @@ export default function LearnScreen() {
                         />
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             )}
@@ -195,9 +216,15 @@ export default function LearnScreen() {
           <Text style={commonStyles.cardText}>
             Get full access to our complete library of educational content with membership.
           </Text>
-          <TouchableOpacity style={buttonStyles.primaryButton}>
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.primaryButton,
+              pressed && styles.pressed
+            ]}
+            onPress={handleJoinMembership}
+          >
             <Text style={buttonStyles.buttonText}>Join Membership</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
@@ -211,7 +238,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingBottom: 40,
   },
   header: {
     marginBottom: 24,
@@ -283,5 +310,8 @@ const styles = StyleSheet.create({
   },
   ctaIcon: {
     marginBottom: 12,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

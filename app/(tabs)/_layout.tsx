@@ -1,58 +1,100 @@
 
 import React from 'react';
-import { Stack } from 'expo-router';
-import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
+import { Tabs } from 'expo-router';
 import { colors } from '@/styles/commonStyles';
+import { IconSymbol } from '@/components/IconSymbol';
 
 export default function TabLayout() {
-  const tabs: TabBarItem[] = [
-    {
-      name: '(home)',
-      route: '/(tabs)/(home)/',
-      icon: 'home',
-      label: 'Home',
-    },
-    {
-      name: 'learn',
-      route: '/(tabs)/learn',
-      icon: 'book',
-      label: 'Learn',
-    },
-    {
-      name: 'book',
-      route: '/(tabs)/book',
-      icon: 'calendar-today',
-      label: 'Book',
-    },
-    {
-      name: 'workshops',
-      route: '/(tabs)/workshops',
-      icon: 'lightbulb',
-      label: 'Workshops',
-    },
-    {
-      name: 'my-studio',
-      route: '/(tabs)/my-studio',
-      icon: 'person',
-      label: 'My Studio',
-    },
-  ];
-
   return (
-    <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'none',
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopWidth: 1,
+          borderTopColor: colors.accent,
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 10,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol
+              ios_icon_name="house.fill"
+              android_material_icon_name="home"
+              size={size}
+              color={color}
+            />
+          ),
         }}
-      >
-        <Stack.Screen key="home" name="(home)" />
-        <Stack.Screen key="learn" name="learn" />
-        <Stack.Screen key="book" name="book" />
-        <Stack.Screen key="workshops" name="workshops" />
-        <Stack.Screen key="my-studio" name="my-studio" />
-      </Stack>
-      <FloatingTabBar tabs={tabs} />
-    </>
+      />
+      <Tabs.Screen
+        name="learn"
+        options={{
+          title: 'Learn',
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol
+              ios_icon_name="book.fill"
+              android_material_icon_name="book"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="book"
+        options={{
+          title: 'Book',
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol
+              ios_icon_name="calendar"
+              android_material_icon_name="calendar-today"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="workshops"
+        options={{
+          title: 'Workshops',
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol
+              ios_icon_name="lightbulb.fill"
+              android_material_icon_name="lightbulb"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="studio"
+        options={{
+          title: 'My Studio',
+          tabBarIcon: ({ color, size }) => (
+            <IconSymbol
+              ios_icon_name="person.fill"
+              android_material_icon_name="person"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }

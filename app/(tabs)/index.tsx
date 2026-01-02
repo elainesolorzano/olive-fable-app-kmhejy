@@ -1,12 +1,40 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
+  const handleLearnMore = () => {
+    console.log('Learn More button pressed - navigating to Learn screen');
+    router.push('/learn');
+  };
+
+  const handleExploreGuides = () => {
+    console.log('Explore Guides card pressed - navigating to Learn screen');
+    router.push('/learn');
+  };
+
+  const handleBookSession = () => {
+    console.log('Book Session card pressed - opening external URL');
+    Linking.openURL('https://example.com');
+  };
+
+  const handleBecomeMember = () => {
+    console.log('Become a Member button pressed');
+    // TODO: Navigate to membership signup
+  };
+
+  const handleBookWithOliveAndFable = () => {
+    console.log('Book with Olive & Fable button pressed - navigating to Book screen');
+    router.push('/book');
+  };
+
   return (
-    <View style={commonStyles.container}>
+    <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -46,14 +74,27 @@ export default function HomeScreen() {
           <Text style={commonStyles.cardText}>
             Start with treats at eye level. Keep sessions short and fun. The best portraits happen when your pet is relaxed and happy.
           </Text>
-          <TouchableOpacity style={[buttonStyles.outlineButton, styles.tipButton]}>
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.outlineButton,
+              styles.tipButton,
+              pressed && styles.pressed
+            ]}
+            onPress={handleLearnMore}
+          >
             <Text style={buttonStyles.outlineButtonText}>Learn More</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionCard}>
+          <Pressable 
+            style={({ pressed }) => [
+              styles.actionCard,
+              pressed && styles.pressed
+            ]}
+            onPress={handleExploreGuides}
+          >
             <IconSymbol 
               ios_icon_name="book.fill"
               android_material_icon_name="book"
@@ -62,9 +103,15 @@ export default function HomeScreen() {
             />
             <Text style={styles.actionTitle}>Explore Guides</Text>
             <Text style={styles.actionText}>Learn posing techniques</Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <Pressable 
+            style={({ pressed }) => [
+              styles.actionCard,
+              pressed && styles.pressed
+            ]}
+            onPress={handleBookSession}
+          >
             <IconSymbol 
               ios_icon_name="calendar"
               android_material_icon_name="calendar-today"
@@ -73,7 +120,7 @@ export default function HomeScreen() {
             />
             <Text style={styles.actionTitle}>Book Session</Text>
             <Text style={styles.actionText}>Schedule your portrait</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Membership CTA */}
@@ -82,9 +129,15 @@ export default function HomeScreen() {
           <Text style={commonStyles.cardText}>
             Think of this as the VIP lounge. More tips. More access. Fewer &apos;why won&apos;t my dog sit still&apos; moments.
           </Text>
-          <TouchableOpacity style={buttonStyles.primaryButton}>
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.primaryButton,
+              pressed && styles.pressed
+            ]}
+            onPress={handleBecomeMember}
+          >
             <Text style={buttonStyles.buttonText}>Become a Member</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Booking CTA */}
@@ -93,9 +146,15 @@ export default function HomeScreen() {
           <Text style={commonStyles.cardText}>
             I don&apos;t take bookings myself (paws, no thumbs), but my humans do.
           </Text>
-          <TouchableOpacity style={buttonStyles.secondaryButton}>
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.secondaryButton,
+              pressed && styles.pressed
+            ]}
+            onPress={handleBookWithOliveAndFable}
+          >
             <Text style={buttonStyles.buttonText}>Book with Olive & Fable</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
@@ -107,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 20,
+    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
@@ -190,5 +249,8 @@ const styles = StyleSheet.create({
   membershipCard: {
     backgroundColor: colors.highlight,
     marginBottom: 16,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });
