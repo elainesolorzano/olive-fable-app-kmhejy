@@ -32,18 +32,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const createProfile = async (userId: string): Promise<UserProfile | null> => {
+    try {
+      console.log('AuthContext: Creating profile for user:', userId);
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          membership_status: 'inactive'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('AuthContext: Error creating profile:', error);
+        return null;
+      }
+
+      console.log('AuthContext: Profile created:', data);
+      return data as UserProfile;
+    } catch (error) {
+      console.error('AuthContext: Unexpected error creating profile:', error);
+      return null;
+    }
+  };
+
+  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
       console.log('AuthContext: Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('AuthContext: Error fetching profile:', error);
         return null;
+      }
+
+      // If no profile exists, create one
+      if (!data) {
+        console.log('AuthContext: No profile found, creating one...');
+        return await createProfile(userId);
       }
 
       console.log('AuthContext: Profile fetched:', data);
