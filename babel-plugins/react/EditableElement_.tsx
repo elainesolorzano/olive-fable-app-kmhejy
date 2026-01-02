@@ -1,3 +1,4 @@
+
 /* eslint-disable */
 
 // @eslint-ignore-file
@@ -56,8 +57,8 @@ export default function EditableElement_(_props: PropsWithChildren<any>) {
   const type = getType(children);
   const __sourceLocation = props.__sourceLocation;
   const __trace = props.__trace;
-  const id = __trace.join("");
-  const attributes = overwrittenProps[id] ?? {};
+  const id = __trace?.join("") || "";
+  const attributes = (overwrittenProps && overwrittenProps[id]) ? overwrittenProps[id] : {};
 
   const editStyling =
     selected === id
