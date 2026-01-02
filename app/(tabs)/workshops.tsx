@@ -85,22 +85,25 @@ export default function WorkshopsScreen() {
         {/* What to Expect */}
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>What to Expect</Text>
-          {workshopFeatures.map((feature, index) => (
-            <View key={`${feature.id ?? feature.title ?? 'feature'}-${index}`} style={styles.featureItem}>
-              <IconSymbol 
-                ios_icon_name={feature.iosIcon as any}
-                android_material_icon_name={feature.icon as any}
-                size={24}
-                color={colors.secondary}
-              />
-              <View style={styles.featureText}>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={commonStyles.cardText}>
-                  {feature.description}
-                </Text>
+          {workshopFeatures.map((feature, index) => {
+            const uniqueKey = `${feature.id}-${index}`;
+            return (
+              <View key={uniqueKey} style={styles.featureItem}>
+                <IconSymbol 
+                  ios_icon_name={feature.iosIcon as any}
+                  android_material_icon_name={feature.icon as any}
+                  size={24}
+                  color={colors.secondary}
+                />
+                <View style={styles.featureText}>
+                  <Text style={styles.featureTitle}>{feature.title}</Text>
+                  <Text style={commonStyles.cardText}>
+                    {feature.description}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* Gemma Quote */}
