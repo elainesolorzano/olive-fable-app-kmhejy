@@ -1,10 +1,39 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Linking } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
+  const handleLearnMore = () => {
+    console.log('Navigating to Learn screen');
+    router.push('/(tabs)/learn');
+  };
+
+  const handleExploreGuides = () => {
+    console.log('Navigating to Learn screen from Explore Guides card');
+    router.push('/(tabs)/learn');
+  };
+
+  const handleBookSession = () => {
+    console.log('Opening booking URL');
+    // Placeholder URL - replace with actual HoneyBook URL when available
+    Linking.openURL('https://www.honeybook.com/');
+  };
+
+  const handleBecomeMember = () => {
+    console.log('User wants to become a member');
+    // TODO: Navigate to membership signup
+  };
+
+  const handleBookWithOliveAndFable = () => {
+    console.log('Navigating to Book screen');
+    router.push('/(tabs)/book');
+  };
+
   return (
     <View style={commonStyles.container}>
       <ScrollView 
@@ -46,14 +75,20 @@ export default function HomeScreen() {
           <Text style={commonStyles.cardText}>
             Start with treats at eye level. Keep sessions short and fun. The best portraits happen when your pet is relaxed and happy.
           </Text>
-          <TouchableOpacity style={[buttonStyles.outlineButton, styles.tipButton]}>
+          <TouchableOpacity 
+            style={[buttonStyles.outlineButton, styles.tipButton]}
+            onPress={handleLearnMore}
+          >
             <Text style={buttonStyles.outlineButtonText}>Learn More</Text>
           </TouchableOpacity>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={handleExploreGuides}
+          >
             <IconSymbol 
               ios_icon_name="book.fill"
               android_material_icon_name="book"
@@ -64,7 +99,10 @@ export default function HomeScreen() {
             <Text style={styles.actionText}>Learn posing techniques</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity 
+            style={styles.actionCard}
+            onPress={handleBookSession}
+          >
             <IconSymbol 
               ios_icon_name="calendar"
               android_material_icon_name="calendar-today"
@@ -82,7 +120,10 @@ export default function HomeScreen() {
           <Text style={commonStyles.cardText}>
             Think of this as the VIP lounge. More tips. More access. Fewer &apos;why won&apos;t my dog sit still&apos; moments.
           </Text>
-          <TouchableOpacity style={buttonStyles.primaryButton}>
+          <TouchableOpacity 
+            style={buttonStyles.primaryButton}
+            onPress={handleBecomeMember}
+          >
             <Text style={buttonStyles.buttonText}>Become a Member</Text>
           </TouchableOpacity>
         </View>
@@ -93,7 +134,10 @@ export default function HomeScreen() {
           <Text style={commonStyles.cardText}>
             I don&apos;t take bookings myself (paws, no thumbs), but my humans do.
           </Text>
-          <TouchableOpacity style={buttonStyles.secondaryButton}>
+          <TouchableOpacity 
+            style={buttonStyles.secondaryButton}
+            onPress={handleBookWithOliveAndFable}
+          >
             <Text style={buttonStyles.buttonText}>Book with Olive & Fable</Text>
           </TouchableOpacity>
         </View>
