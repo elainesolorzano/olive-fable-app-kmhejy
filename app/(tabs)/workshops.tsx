@@ -86,7 +86,7 @@ export default function WorkshopsScreen() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.cardTitle}>What to Expect</Text>
           {workshopFeatures.map((feature, index) => (
-            <View key={`${feature.id}-${index}`} style={styles.featureItem}>
+            <View key={`${feature.id ?? feature.title ?? 'feature'}-${index}`} style={styles.featureItem}>
               <IconSymbol 
                 ios_icon_name={feature.iosIcon as any}
                 android_material_icon_name={feature.icon as any}
