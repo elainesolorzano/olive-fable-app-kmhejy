@@ -13,70 +13,111 @@ export default function LoginScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
   const { signIn, signUp } = useAuth();
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSignIn = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
 
-    console.log('Attempting to sign in with email:', email);
+    if (!validateEmail(trimmedEmail)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    console.log('Attempting to sign in with email:', trimmedEmail);
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(trimmedEmail, trimmedPassword);
 
       if (error) {
         console.error('Sign in error:', error);
-        Alert.alert('Sign In Failed', error.message || 'An error occurred during sign in');
+        
+        // Provide more specific error messages
+        let errorMessage = error.message || 'An error occurred during sign in';
+        
+        if (errorMessage.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.\n\nIf you just signed up, make sure you verified your email address.';
+        } else if (errorMessage.includes('Email not confirmed')) {
+          errorMessage = 'Please verify your email address before signing in. Check your inbox for the confirmation email.';
+        }
+        
+        Alert.alert('Sign In Failed', errorMessage);
       } else {
         console.log('Sign in successful, redirecting to My Studio');
-        Alert.alert('Success', 'Signed in successfully!');
         router.replace('/(tabs)/my-studio');
       }
     } catch (error) {
       console.error('Unexpected error during sign in:', error);
-      Alert.alert('Error', 'An unexpected error occurred');
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSignUp = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
 
-    if (password.length < 6) {
+    if (!validateEmail(trimmedEmail)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    if (trimmedPassword.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
-    console.log('Attempting to sign up with email:', email);
+    console.log('Attempting to sign up with email:', trimmedEmail);
     setLoading(true);
 
     try {
-      const { error } = await signUp(email, password);
+      const { error } = await signUp(trimmedEmail, trimmedPassword);
 
       if (error) {
         console.error('Sign up error:', error);
-        Alert.alert('Sign Up Failed', error.message || 'An error occurred during sign up');
+        
+        let errorMessage = error.message || 'An error occurred during sign up';
+        
+        if (errorMessage.includes('User already registered')) {
+          errorMessage = 'This email is already registered. Please sign in instead or use a different email.';
+        }
+        
+        Alert.alert('Sign Up Failed', errorMessage);
       } else {
         console.log('Sign up successful');
         Alert.alert(
-          'Success', 
-          'Account created! Please check your email to verify your account before signing in.',
+          'Check Your Email!', 
+          `We've sent a verification email to ${trimmedEmail}.\n\nPlease click the link in the email to verify your account before signing in.`,
           [
             {
               text: 'OK',
-              onPress: () => setIsSignUp(false)
+              onPress: () => {
+                setIsSignUp(false);
+                setEmail('');
+                setPassword('');
+              }
             }
           ]
         );
       }
     } catch (error) {
       console.error('Unexpected error during sign up:', error);
-      Alert.alert('Error', 'An unexpected error occurred');
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -128,6 +169,7 @@ export default function LoginScreen() {
               autoCorrect={false}
               keyboardType="email-address"
               editable={!loading}
+              returnKeyType="next"
             />
           </View>
 
@@ -143,6 +185,8 @@ export default function LoginScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               editable={!loading}
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
             />
           </View>
 
@@ -197,7 +241,7 @@ export default function LoginScreen() {
           <Text style={styles.infoText}>
             {isSignUp 
               ? 'After signing up, you\'ll receive a verification email. Please verify your email before signing in.'
-              : 'Sign in to access your personalized studio hub, manage your membership, and view your session details.'
+              : 'Having trouble signing in? Make sure you\'ve verified your email address and are using the correct password.'
             }
           </Text>
         </View>

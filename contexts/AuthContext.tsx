@@ -61,19 +61,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('AuthContext: Attempting sign in');
+    console.log('AuthContext: Attempting sign in for email:', email);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password: password,
       });
 
       if (error) {
-        console.error('AuthContext: Sign in error', error);
+        console.error('AuthContext: Sign in error -', error.message);
         return { error };
       }
 
-      console.log('AuthContext: Sign in successful');
+      console.log('AuthContext: Sign in successful for user:', data.user?.email);
       return { error: null };
     } catch (error) {
       console.error('AuthContext: Unexpected sign in error', error);
@@ -82,10 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string) => {
-    console.log('AuthContext: Attempting sign up');
+    console.log('AuthContext: Attempting sign up for email:', email);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password: password,
         options: {
           emailRedirectTo: 'https://natively.dev/email-confirmed'
@@ -93,11 +93,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        console.error('AuthContext: Sign up error', error);
+        console.error('AuthContext: Sign up error -', error.message);
         return { error };
       }
 
-      console.log('AuthContext: Sign up successful');
+      console.log('AuthContext: Sign up successful. User needs to verify email:', data.user?.email);
       return { error: null };
     } catch (error) {
       console.error('AuthContext: Unexpected sign up error', error);
