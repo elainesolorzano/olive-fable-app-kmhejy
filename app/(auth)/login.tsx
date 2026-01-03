@@ -1,11 +1,10 @@
 
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
-import { IconSymbol } from '@/components/IconSymbol';
-import { Logo } from '@/components/Logo';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components/Logo';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -39,57 +38,57 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Logo size="large" style={styles.logo} />
-      
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <Logo size="large" style={styles.logo} />
+          
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to continue your journey</Text>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="your@email.com"
+            placeholder="Email"
+            placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+            editable={!loading}
           />
-        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="••••••••"
+            placeholder="Password"
+            placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            editable={!loading}
           />
-        </View>
 
-        <Pressable onPress={() => router.push('/(auth)/forgot-password')}>
-          <Text style={styles.forgotPassword}>Forgot Password?</Text>
-        </Pressable>
-
-        <Pressable 
-          style={[buttonStyles.primary, loading && buttonStyles.disabled]} 
-          onPress={handleSignIn}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={buttonStyles.primaryText}>Sign In</Text>
-          )}
-        </Pressable>
-
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Don&apos;t have an account? </Text>
-          <Pressable onPress={() => router.push('/(auth)/sign-up')}>
-            <Text style={styles.signupLink}>Sign Up</Text>
+          <Pressable onPress={() => router.push('/forgot-password')} style={styles.forgotPasswordContainer}>
+            <Text style={styles.forgotPassword}>Forgot password?</Text>
           </Pressable>
+
+          <Pressable
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleSignIn}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
+          </Pressable>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Pressable onPress={() => router.push('/sign-up')}>
+              <Text style={styles.footerLink}>Sign Up</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -97,63 +96,87 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#FAFAF8',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  contentContainer: {
-    padding: 24,
-    paddingTop: 60,
+  card: {
+    maxWidth: 420,
+    width: '100%',
+    alignItems: 'center',
   },
   logo: {
-    marginBottom: 40,
-  },
-  formContainer: {
-    gap: 16,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: colors.text,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#111F0F',
+    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
-    marginBottom: 24,
-  },
-  inputContainer: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 32,
   },
   input: {
+    alignSelf: 'stretch',
+    height: 50,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#DDD',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
+  },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
   },
   forgotPassword: {
-    color: colors.primary,
+    color: '#111F0F',
     fontSize: 14,
-    textAlign: 'right',
   },
-  signupContainer: {
-    flexDirection: 'row',
+  button: {
+    alignSelf: 'stretch',
+    height: 50,
+    backgroundColor: '#111F0F',
+    borderRadius: 8,
+    alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    marginBottom: 24,
   },
-  signupText: {
-    color: colors.textSecondary,
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerText: {
+    color: '#666',
     fontSize: 14,
   },
-  signupLink: {
-    color: colors.primary,
+  footerLink: {
+    color: '#111F0F',
     fontSize: 14,
     fontWeight: '600',
   },

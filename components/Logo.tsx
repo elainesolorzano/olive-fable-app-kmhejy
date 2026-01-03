@@ -1,31 +1,22 @@
 
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 
 interface LogoProps {
-  variant?: 'light' | 'dark';
   size?: 'small' | 'medium' | 'large';
-  style?: any;
+  style?: ViewStyle;
 }
 
-export function Logo({ variant = 'dark', size = 'medium', style }: LogoProps) {
-  const logoSource = variant === 'light' 
-    ? require('@/assets/images/12a1ff25-c564-4ced-9d53-091ac2ef06c4.png')
-    : require('@/assets/images/7fb4a5e6-54d4-453d-82d5-89b21766854f.png');
-
-  const sizeStyles = {
-    small: { width: 120, height: 40 },
-    medium: { width: 200, height: 66 },
-    large: { width: 280, height: 93 }
-  };
+export function Logo({ size = 'medium', style }: LogoProps) {
+  const logoSize = size === 'large' ? 80 : size === 'medium' ? 60 : 40;
+  const fontSize = size === 'large' ? 24 : size === 'medium' ? 18 : 14;
 
   return (
     <View style={[styles.container, style]}>
-      <Image 
-        source={logoSource} 
-        style={[styles.logo, sizeStyles[size]]}
-        resizeMode="contain"
-      />
+      <View style={[styles.logoCircle, { width: logoSize, height: logoSize }]}>
+        <Text style={[styles.logoText, { fontSize }]}>O&F</Text>
+      </View>
+      <Text style={[styles.brandName, { fontSize: fontSize * 0.8 }]}>Olive & Fable Studio</Text>
     </View>
   );
 }
@@ -33,9 +24,21 @@ export function Logo({ variant = 'dark', size = 'medium', style }: LogoProps) {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  logo: {
-    // Aspect ratio maintained by resizeMode="contain"
-  }
+  logoCircle: {
+    backgroundColor: '#111F0F',
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  logoText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  brandName: {
+    color: '#111F0F',
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
 });

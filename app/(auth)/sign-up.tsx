@@ -1,16 +1,15 @@
 
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
-import { IconSymbol } from '@/components/IconSymbol';
-import { Logo } from '@/components/Logo';
-import { router, Stack } from 'expo-router';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { Logo } from '@/components/Logo';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUpWithEmail } = useAuth();
 
@@ -19,7 +18,7 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
+    if (!email || !password || !name) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -34,15 +33,9 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
     setLoading(true);
     try {
-      await signUpWithEmail(email, password);
-      router.replace('/(auth)/verify-email');
+      await signUpWithEmail(email, password, name);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to sign up');
     } finally {
@@ -51,64 +44,63 @@ export default function SignUpScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Logo size="large" style={styles.logo} />
-      
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join Olive & Fable Studio</Text>
+    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <Logo size="large" style={styles.logo} />
+          
+          <Text style={styles.title}>Join Olive & Fable</Text>
+          <Text style={styles.subtitle}>Create your account to get started</Text>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="your@email.com"
+            placeholder="Full Name"
+            placeholderTextColor="#999"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+            editable={!loading}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+            editable={!loading}
           />
-        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="••••••••"
+            placeholder="Password (min. 6 characters)"
+            placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            editable={!loading}
           />
-        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Confirm Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
-        </View>
-
-        <Pressable 
-          style={[buttonStyles.primary, loading && buttonStyles.disabled]} 
-          onPress={handleSignUp}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={buttonStyles.primaryText}>Sign Up</Text>
-          )}
-        </Pressable>
-
-        <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>Already have an account? </Text>
-          <Pressable onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.loginLink}>Sign In</Text>
+          <Pressable
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleSignUp}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Create Account</Text>
+            )}
           </Pressable>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <Pressable onPress={() => router.push('/login')}>
+              <Text style={styles.footerLink}>Sign In</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -116,58 +108,80 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#FAFAF8',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  contentContainer: {
-    padding: 24,
-    paddingTop: 60,
+  card: {
+    maxWidth: 420,
+    width: '100%',
+    alignItems: 'center',
   },
   logo: {
-    marginBottom: 40,
-  },
-  formContainer: {
-    gap: 16,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: colors.text,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#111F0F',
+    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
-    marginBottom: 24,
-  },
-  inputContainer: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 32,
   },
   input: {
+    alignSelf: 'stretch',
+    height: 50,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#DDD',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
   },
-  loginContainer: {
-    flexDirection: 'row',
+  button: {
+    alignSelf: 'stretch',
+    height: 50,
+    backgroundColor: '#111F0F',
+    borderRadius: 8,
+    alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    marginBottom: 24,
+    marginTop: 8,
   },
-  loginText: {
-    color: colors.textSecondary,
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerText: {
+    color: '#666',
     fontSize: 14,
   },
-  loginLink: {
-    color: colors.primary,
+  footerLink: {
+    color: '#111F0F',
     fontSize: 14,
     fontWeight: '600',
   },
