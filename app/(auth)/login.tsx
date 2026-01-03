@@ -166,19 +166,6 @@ export default function LoginScreen() {
             <Text style={buttonStyles.outlineButtonText}>Create Account</Text>
           </Pressable>
         </View>
-
-        {/* Info Card */}
-        <View style={[commonStyles.card, styles.infoCard]}>
-          <IconSymbol 
-            ios_icon_name="info.circle.fill"
-            android_material_icon_name="info"
-            size={24}
-            color={colors.primary}
-          />
-          <Text style={styles.infoText}>
-            Sign in to access all learning resources and educational content. All content is free for registered users!
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -262,18 +249,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.textSecondary,
     marginHorizontal: 16,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.textSecondary,
-    lineHeight: 20,
   },
   pressed: {
     opacity: 0.7,
