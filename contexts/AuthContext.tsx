@@ -1,262 +1,247 @@
 
 /**
- * Authentication Context with Supabase Email Verification
+ * Authentication Context for Olive & Fable Studio
  *
- * Provides authentication state and methods throughout the app.
- * Supports:
- * - Email/password authentication with email verification
- * - Session management
- * - Email verification status tracking
+ * Provides authentication with email verification via deep linking
  */
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { Platform } from "react-native";
+import { authClient, storeWebBearerToken } from "@/lib/auth";
 
-interface UserProfile {
+interface User {
   id: string;
-  user_id: string;
-  membership_status: 'active' | 'inactive' | 'cancelled';
-  stripe_customer_id: string | null;
-  stripe_subscription_id: string | null;
-  created_at: string;
-  updated_at: string;
+  email: string;
+  name?: string;
+  image?: string;
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  profile: UserProfile | null;
   loading: boolean;
   emailVerified: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, name?: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  signInWithGitHub: () => Promise<void>;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  fetchUser: () => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
+function openOAuthPopup(provider: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const popupUrl = `${window.location.origin}/auth-popup?provider=${provider}`;
+    const width = 500;
+    const height = 600;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    const popup = window.open(
+      popupUrl,
+      "oauth-popup",
+      `width=${width},height=${height},left=${left},top=${top},scrollbars=yes`
+    );
+
+    if (!popup) {
+      reject(new Error("Failed to open popup. Please allow popups."));
+      return;
+    }
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "oauth-success" && event.data?.token) {
+        window.removeEventListener("message", handleMessage);
+        clearInterval(checkClosed);
+        resolve(event.data.token);
+      } else if (event.data?.type === "oauth-error") {
+        window.removeEventListener("message", handleMessage);
+        clearInterval(checkClosed);
+        reject(new Error(event.data.error || "OAuth failed"));
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener("message", handleMessage);
+        reject(new Error("Authentication cancelled"));
+      }
+    }, 500);
+  });
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [emailVerified, setEmailVerified] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session ? 'Found' : 'Not found');
-      setSession(session);
-      setUser(session?.user ?? null);
-      setEmailVerified(session?.user?.email_confirmed_at ? true : false);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session ? 'Session exists' : 'No session');
-      setSession(session);
-      setUser(session?.user ?? null);
-      setEmailVerified(session?.user?.email_confirmed_at ? true : false);
-      
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    fetchUser();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchUser = async () => {
     try {
-      console.log('Fetching profile for user:', userId);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        
-        // If profile doesn't exist, create it
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating new profile');
-          await createProfile(userId);
-        }
+      setLoading(true);
+      const session = await authClient.getSession();
+      if (session?.user) {
+        setUser(session.user as User);
       } else {
-        console.log('Profile fetched successfully');
-        setProfile(data);
+        setUser(null);
       }
     } catch (error) {
-      console.error('Unexpected error fetching profile:', error);
+      console.error("Failed to fetch user:", error);
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const createProfile = async (userId: string) => {
+  const signInWithEmail = async (email: string, password: string) => {
     try {
-      console.log('Creating profile for user:', userId);
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            user_id: userId,
-            membership_status: 'inactive',
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating profile:', error);
-      } else {
-        console.log('Profile created successfully');
-        setProfile(data);
-      }
+      await authClient.signIn.email({ email, password });
+      await fetchUser();
     } catch (error) {
-      console.error('Unexpected error creating profile:', error);
+      console.error("Email sign in failed:", error);
+      throw error;
     }
   };
 
-  const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
+  const signUpWithEmail = async (email: string, password: string, name?: string) => {
     try {
-      console.log('Attempting sign in for:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Use deep link for email verification callback
+      const callbackURL = Platform.OS === "web" 
+        ? `${window.location.origin}/auth/callback`
+        : "oliveandfable://auth/callback";
+
+      await authClient.signUp.email({
         email,
         password,
+        name,
+        callbackURL,
       });
-
-      if (error) {
-        console.error('Sign in error:', error);
-        return { error };
-      }
-
-      console.log('Sign in successful');
-      console.log('Email verified:', data.user?.email_confirmed_at ? 'Yes' : 'No');
-      
-      return { error: null };
+      await fetchUser();
     } catch (error) {
-      console.error('Unexpected sign in error:', error);
-      return { error: error as Error };
-    }
-  };
-
-  const signUp = async (email: string, password: string) => {
-    try {
-      console.log('Attempting sign up for:', email);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: undefined, // Will use default redirect
-        },
-      });
-
-      if (error) {
-        console.error('Sign up error:', error);
-        return { error };
-      }
-
-      console.log('Sign up successful');
-      console.log('Verification email sent to:', email);
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Unexpected sign up error:', error);
-      return { error: error as Error };
+      console.error("Email sign up failed:", error);
+      throw error;
     }
   };
 
   const resendVerificationEmail = async () => {
     try {
-      if (!user?.email) {
-        throw new Error('No user email found');
-      }
+      const callbackURL = Platform.OS === "web"
+        ? `${window.location.origin}/auth/callback`
+        : "oliveandfable://auth/callback";
 
-      console.log('Resending verification email to:', user.email);
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user.email,
+      // Better Auth method to resend verification
+      await authClient.sendVerificationEmail({
+        email: user?.email || "",
+        callbackURL,
       });
-
-      if (error) {
-        console.error('Error resending verification email:', error);
-        throw error;
-      }
-
-      console.log('Verification email resent successfully');
     } catch (error) {
-      console.error('Failed to resend verification email:', error);
+      console.error("Failed to resend verification email:", error);
+      throw error;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      if (Platform.OS === "web") {
+        const token = await openOAuthPopup("google");
+        storeWebBearerToken(token);
+        await fetchUser();
+      } else {
+        await authClient.signIn.social({
+          provider: "google",
+          callbackURL: "oliveandfable://auth/callback",
+        });
+        await fetchUser();
+      }
+    } catch (error) {
+      console.error("Google sign in failed:", error);
+      throw error;
+    }
+  };
+
+  const signInWithApple = async () => {
+    try {
+      if (Platform.OS === "web") {
+        const token = await openOAuthPopup("apple");
+        storeWebBearerToken(token);
+        await fetchUser();
+      } else {
+        await authClient.signIn.social({
+          provider: "apple",
+          callbackURL: "oliveandfable://auth/callback",
+        });
+        await fetchUser();
+      }
+    } catch (error) {
+      console.error("Apple sign in failed:", error);
+      throw error;
+    }
+  };
+
+  const signInWithGitHub = async () => {
+    try {
+      if (Platform.OS === "web") {
+        const token = await openOAuthPopup("github");
+        storeWebBearerToken(token);
+        await fetchUser();
+      } else {
+        await authClient.signIn.social({
+          provider: "github",
+          callbackURL: "oliveandfable://auth/callback",
+        });
+        await fetchUser();
+      }
+    } catch (error) {
+      console.error("GitHub sign in failed:", error);
       throw error;
     }
   };
 
   const signOut = async () => {
     try {
-      console.log('Signing out');
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Sign out error:', error);
-        throw error;
-      }
-
-      console.log('Sign out successful');
+      await authClient.signOut();
       setUser(null);
-      setSession(null);
-      setProfile(null);
-      setEmailVerified(false);
     } catch (error) {
-      console.error('Unexpected sign out error:', error);
+      console.error("Sign out failed:", error);
       throw error;
     }
   };
+
+  const emailVerified = user?.emailVerified ?? false;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        session,
-        profile,
         loading,
         emailVerified,
-        signIn,
-        signUp,
+        signInWithEmail,
+        signUpWithEmail,
+        signInWithGoogle,
+        signInWithApple,
+        signInWithGitHub,
         signOut,
-        refreshProfile,
+        fetchUser,
         resendVerificationEmail,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
 }
