@@ -6,9 +6,16 @@ import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from
 import React from 'react';
 import { router } from 'expo-router';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const TAB_BAR_HEIGHT = 60;
 
 export default function MyStudioScreen() {
   const { user, loading, signOut } = useSupabaseAuth();
+  const insets = useSafeAreaInsets();
+
+  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
+  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
 
   const handleEditProfile = () => {
     router.push('/my-studio/edit-profile');
@@ -48,7 +55,10 @@ export default function MyStudioScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: bottomPadding }}
+    >
       <View style={styles.header}>
         <Logo size="small" style={styles.logo} />
         

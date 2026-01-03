@@ -5,6 +5,9 @@ import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const TAB_BAR_HEIGHT = 60;
 
 interface ContentCategory {
   id: string;
@@ -82,9 +85,13 @@ const categories: ContentCategory[] = [
 
 export default function LearnScreen() {
   const { session } = useSupabaseAuth();
+  const insets = useSafeAreaInsets();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const isAuthenticated = !!session;
+
+  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
+  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
 
   const toggleCategory = (categoryId: string) => {
     console.log(`Category ${categoryId} toggled`);
@@ -133,7 +140,10 @@ export default function LearnScreen() {
     <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingBottom: bottomPadding }
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -265,7 +275,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    // paddingBottom handled dynamically
   },
   header: {
     marginBottom: 24,

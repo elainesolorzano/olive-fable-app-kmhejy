@@ -5,6 +5,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const styles = StyleSheet.create({
   loadingContainer: {
@@ -17,6 +18,7 @@ const styles = StyleSheet.create({
 
 export default function TabLayout() {
   const { session, loading } = useSupabaseAuth();
+  const insets = useSafeAreaInsets();
 
   // Show loading while checking auth
   if (loading) {
@@ -42,9 +44,9 @@ export default function TabLayout() {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          paddingBottom: 8,
+          paddingBottom: insets.bottom,
           paddingTop: 8,
-          height: 60,
+          height: 60 + insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -56,35 +58,47 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol name="house.fill" color={color} size={24} />,
+          tabBarIcon: ({ color }) => <IconSymbol ios_icon_name="house.fill" android_material_icon_name="home" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="learn"
         options={{
           title: 'Learn',
-          tabBarIcon: ({ color }) => <IconSymbol name="book.fill" color={color} size={24} />,
+          tabBarIcon: ({ color }) => <IconSymbol ios_icon_name="book.fill" android_material_icon_name="menu-book" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="book"
         options={{
           title: 'Book',
-          tabBarIcon: ({ color }) => <IconSymbol name="calendar" color={color} size={24} />,
+          tabBarIcon: ({ color }) => <IconSymbol ios_icon_name="calendar" android_material_icon_name="event" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="workshops"
         options={{
           title: 'Workshops',
-          tabBarIcon: ({ color }) => <IconSymbol name="star.fill" color={color} size={24} />,
+          tabBarIcon: ({ color }) => <IconSymbol ios_icon_name="star.fill" android_material_icon_name="star" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="my-studio"
         options={{
           title: 'My Studio',
-          tabBarIcon: ({ color }) => <IconSymbol name="person.fill" color={color} size={24} />,
+          tabBarIcon: ({ color }) => <IconSymbol ios_icon_name="person.fill" android_material_icon_name="person" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="(home)"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

@@ -6,6 +6,110 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { router } from 'expo-router';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Logo } from '@/components/Logo';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const TAB_BAR_HEIGHT = 60;
+
+export default function HomeScreen() {
+  const { user } = useSupabaseAuth();
+  const insets = useSafeAreaInsets();
+
+  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
+  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
+
+  return (
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: bottomPadding }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Logo size="medium" />
+        </View>
+
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeTitle}>
+            {user ? `Welcome back!` : 'Welcome to Olive & Fable'}
+          </Text>
+          <Text style={styles.welcomeText}>
+            Hi, I'm Gemma — CEO, treat tester, and quality control. This is where pet parents learn how to pose, prep, and create beautiful portraits.
+          </Text>
+          <Text style={styles.signature}>— Gemma 🐾</Text>
+        </View>
+
+        <View style={styles.featuredTip}>
+          <Text style={styles.tipLabel}>Featured Tip</Text>
+          <Text style={styles.tipTitle}>The Perfect Sit</Text>
+          <Text style={styles.tipText}>
+            Get your pup's attention with a treat held just above eye level. This creates natural engagement and those soulful eyes we love.
+          </Text>
+        </View>
+
+        <View style={styles.ctaSection}>
+          {!user && (
+            <Pressable
+              style={({ pressed }) => [
+                buttonStyles.primary,
+                pressed && buttonStyles.primaryPressed,
+              ]}
+              onPress={() => router.push('/(auth)/sign-up')}
+            >
+              <Text style={buttonStyles.primaryText}>Join The Club</Text>
+            </Pressable>
+          )}
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.ctaButton,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => router.push('/(tabs)/book')}
+          >
+            <Text style={styles.ctaButtonText}>Book a Session</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.quickLinks}>
+          <Text style={styles.sectionTitle}>Quick Links</Text>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.linkCard,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => router.push('/(tabs)/learn')}
+          >
+            <IconSymbol ios_icon_name="book.fill" android_material_icon_name="menu-book" size={24} color={colors.primary} />
+            <View style={styles.linkContent}>
+              <Text style={styles.linkTitle}>Learn</Text>
+              <Text style={styles.linkDescription}>Posing tips & session prep</Text>
+            </View>
+            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.linkCard,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => router.push('/(tabs)/workshops')}
+          >
+            <IconSymbol ios_icon_name="star.fill" android_material_icon_name="star" size={24} color={colors.primary} />
+            <View style={styles.linkContent}>
+              <Text style={styles.linkTitle}>Workshops</Text>
+              <Text style={styles.linkDescription}>Coming soon</Text>
+            </View>
+            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -14,6 +118,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+    // paddingBottom handled dynamically
   },
   header: {
     alignItems: 'center',
@@ -118,93 +223,3 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 });
-
-export default function HomeScreen() {
-  const { user } = useSupabaseAuth();
-
-  return (
-    <View style={styles.container}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Logo size="medium" />
-        </View>
-
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>
-            {user ? `Welcome back!` : 'Welcome to Olive & Fable'}
-          </Text>
-          <Text style={styles.welcomeText}>
-            Hi, I'm Gemma — CEO, treat tester, and quality control. This is where pet parents learn how to pose, prep, and create beautiful portraits.
-          </Text>
-          <Text style={styles.signature}>— Gemma 🐾</Text>
-        </View>
-
-        <View style={styles.featuredTip}>
-          <Text style={styles.tipLabel}>Featured Tip</Text>
-          <Text style={styles.tipTitle}>The Perfect Sit</Text>
-          <Text style={styles.tipText}>
-            Get your pup's attention with a treat held just above eye level. This creates natural engagement and those soulful eyes we love.
-          </Text>
-        </View>
-
-        <View style={styles.ctaSection}>
-          {!user && (
-            <Pressable
-              style={({ pressed }) => [
-                buttonStyles.primary,
-                pressed && buttonStyles.primaryPressed,
-              ]}
-              onPress={() => router.push('/(auth)/sign-up')}
-            >
-              <Text style={buttonStyles.primaryText}>Join The Club</Text>
-            </Pressable>
-          )}
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.ctaButton,
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => router.push('/(tabs)/book')}
-          >
-            <Text style={styles.ctaButtonText}>Book a Session</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.quickLinks}>
-          <Text style={styles.sectionTitle}>Quick Links</Text>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.linkCard,
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => router.push('/(tabs)/learn')}
-          >
-            <IconSymbol ios_icon_name="book.fill" android_material_icon_name="menu-book" size={24} color={colors.primary} />
-            <View style={styles.linkContent}>
-              <Text style={styles.linkTitle}>Learn</Text>
-              <Text style={styles.linkDescription}>Posing tips & session prep</Text>
-            </View>
-            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.linkCard,
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => router.push('/(tabs)/workshops')}
-          >
-            <IconSymbol ios_icon_name="star.fill" android_material_icon_name="star" size={24} color={colors.primary} />
-            <View style={styles.linkContent}>
-              <Text style={styles.linkTitle}>Workshops</Text>
-              <Text style={styles.linkDescription}>Coming soon</Text>
-            </View>
-            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
-          </Pressable>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}

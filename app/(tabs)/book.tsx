@@ -3,6 +3,9 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const TAB_BAR_HEIGHT = 60;
 
 interface SessionType {
   id: string;
@@ -57,6 +60,11 @@ const sessionTypes: SessionType[] = [
 ];
 
 export default function BookScreen() {
+  const insets = useSafeAreaInsets();
+
+  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
+  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
+
   const handleBooking = () => {
     console.log('Book with Olive & Fable button pressed - opening external URL');
     Linking.openURL('https://example.com');
@@ -66,7 +74,10 @@ export default function BookScreen() {
     <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingBottom: bottomPadding }
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -202,7 +213,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    // paddingBottom handled dynamically
   },
   header: {
     marginBottom: 24,

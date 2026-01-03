@@ -5,6 +5,9 @@ import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const TAB_BAR_HEIGHT = 60;
 
 interface WorkshopFeature {
   id: string;
@@ -47,8 +50,12 @@ const workshopFeatures: WorkshopFeature[] = [
 
 export default function WorkshopsScreen() {
   const { user } = useSupabaseAuth();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState(user?.email || '');
   const [loading, setLoading] = useState(false);
+
+  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
+  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
 
   const handleJoinWaitlist = async () => {
     console.log('Join Workshop Waitlist button pressed');
@@ -100,7 +107,10 @@ export default function WorkshopsScreen() {
     <View style={commonStyles.container} pointerEvents="auto">
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingBottom: bottomPadding }
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Coming Soon Badge */}
@@ -225,8 +235,8 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 40,
     alignItems: 'center',
+    // paddingBottom handled dynamically
   },
   comingSoonBadge: {
     backgroundColor: colors.secondary,
