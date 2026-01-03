@@ -3,14 +3,14 @@
  * Auth Callback Handler
  * 
  * Handles deep link callbacks from email verification and OAuth flows
- * Route: oliveandfable://auth/callback
+ * Route: olivefable://auth/callback
  */
 
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/integrations/supabase/client";
-import { colors, commonStyles } from "@/styles/commonStyles";
+import { colors } from "@/styles/commonStyles";
 
 export default function AuthCallbackScreen() {
   const params = useLocalSearchParams();
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    ...commonStyles.bodyText,
+    fontSize: 16,
     color: colors.textSecondary,
     textAlign: "center",
   },
@@ -98,15 +98,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    ...commonStyles.bodyText,
+    fontSize: 16,
     color: colors.error,
     textAlign: "center",
-    fontSize: 16,
   },
   redirectText: {
-    ...commonStyles.bodyText,
+    fontSize: 14,
     color: colors.textSecondary,
     textAlign: "center",
-    fontSize: 14,
   },
 });

@@ -2,7 +2,7 @@
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -17,13 +17,65 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
-import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
+import { SupabaseAuthProvider, useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
+
+function RootLayoutNav() {
+  const { session, loading } = useSupabaseAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!session && !inAuthGroup) {
+      // Redirect to login if not authenticated
+      router.replace("/(auth)/login");
+    } else if (session && inAuthGroup) {
+      // Redirect to tabs if authenticated
+      router.replace("/(tabs)");
+    }
+  }, [session, loading, segments]);
+
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="my-studio" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="modal"
+        options={{
+          presentation: "modal",
+          title: "Standard Modal",
+        }}
+      />
+      <Stack.Screen
+        name="formsheet"
+        options={{
+          presentation: "formSheet",
+          title: "Form Sheet Modal",
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.5, 0.8, 1.0],
+          sheetCornerRadius: 20,
+        }}
+      />
+      <Stack.Screen
+        name="transparent-modal"
+        options={{
+          presentation: "transparentModal",
+          headerShown: false,
+        }}
+      />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -89,34 +141,7 @@ export default function RootLayout() {
           <SupabaseAuthProvider>
             <WidgetProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
-                <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="modal"
-                    options={{
-                      presentation: "modal",
-                      title: "Standard Modal",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="formsheet"
-                    options={{
-                      presentation: "formSheet",
-                      title: "Form Sheet Modal",
-                      sheetGrabberVisible: true,
-                      sheetAllowedDetents: [0.5, 0.8, 1.0],
-                      sheetCornerRadius: 20,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="transparent-modal"
-                    options={{
-                      presentation: "transparentModal",
-                      headerShown: false,
-                    }}
-                  />
-                </Stack>
+                <RootLayoutNav />
                 <SystemBars style={"auto"} />
               </GestureHandlerRootView>
             </WidgetProvider>

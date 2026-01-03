@@ -8,6 +8,7 @@ export const colors = {
   background: '#FAF8F5',   // Off-white background
   backgroundAlt: '#F5F2ED', // Slightly darker off-white
   highlight: '#F5F2ED',    // Highlight color (same as backgroundAlt)
+  surface: '#FFFFFF',      // Surface color (same as card)
   text: '#1A1A1A',         // Dark text for accessibility
   textSecondary: '#4A4A4A', // Secondary dark text
   grey: '#8B8B8B',         // Medium grey
@@ -29,6 +30,9 @@ export const buttonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+  },
+  primaryPressed: {
+    opacity: 0.8,
   },
   primaryText: {
     color: '#FFFFFF',

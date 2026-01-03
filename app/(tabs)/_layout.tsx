@@ -89,18 +89,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol ios_icon_name="person.fill" android_material_icon_name="person" size={24} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="(home)"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }
