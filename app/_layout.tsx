@@ -19,7 +19,6 @@ import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
@@ -84,14 +83,15 @@ export default function RootLayout() {
     <>
       <StatusBar style="auto" animated />
       <SafeAreaProvider>
-        <SupabaseAuthProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-          >
+        <ThemeProvider
+          value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+        >
+          <SupabaseAuthProvider>
             <WidgetProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <Stack>
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                   <Stack.Screen
                     name="modal"
                     options={{
@@ -120,8 +120,8 @@ export default function RootLayout() {
                 <SystemBars style={"auto"} />
               </GestureHandlerRootView>
             </WidgetProvider>
-          </ThemeProvider>
-        </SupabaseAuthProvider>
+          </SupabaseAuthProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </>
   );

@@ -3,16 +3,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 
-interface AuthContextType {
+interface SupabaseAuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
-const SupabaseAuthContext = createContext<AuthContextType | undefined>(undefined);
+const SupabaseAuthContext = createContext<SupabaseAuthContextType | undefined>(undefined);
 
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -36,24 +36,13 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({ email, password });
     return { error };
   };
 
-  const signUp = async (email: string, password: string, name?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name || '',
-        },
-      },
-    });
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
@@ -62,16 +51,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SupabaseAuthContext.Provider
-      value={{
-        session,
-        user,
-        loading,
-        signIn,
-        signUp,
-        signOut,
-      }}
-    >
+    <SupabaseAuthContext.Provider value={{ session, user, loading, signUp, signIn, signOut }}>
       {children}
     </SupabaseAuthContext.Provider>
   );
