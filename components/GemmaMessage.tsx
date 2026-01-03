@@ -1,27 +1,31 @@
 
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { IconSymbol } from './IconSymbol';
+import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
 import { colors } from '@/styles/commonStyles';
 
 interface GemmaMessageProps {
-  children: React.ReactNode;
+  message?: string;
+  showAvatar?: boolean;
   style?: ViewStyle;
 }
 
-export function GemmaMessage({ children, style }: GemmaMessageProps) {
+const DEFAULT_MESSAGE = "Welcome to your Client Lounge! I've gathered everything you need to prepare for your session. — Gemma 🐾";
+
+export function GemmaMessage({ message, showAvatar = true, style }: GemmaMessageProps) {
+  const displayMessage = message || DEFAULT_MESSAGE;
+
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.avatarCircle}>
-        <IconSymbol 
-          ios_icon_name="pawprint.fill" 
-          android_material_icon_name="pets" 
-          size={24} 
-          color={colors.brand} 
-        />
-      </View>
+      {showAvatar && (
+        <View style={styles.avatarContainer}>
+          <Image
+            source={require('@/assets/images/bb700b49-eac8-433e-a8be-ad5057bdb80c.jpeg')}
+            style={styles.avatar}
+          />
+        </View>
+      )}
       <View style={styles.bubble}>
-        {children}
+        <Text style={styles.messageText}>{displayMessage}</Text>
       </View>
     </View>
   );
@@ -33,18 +37,32 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
   },
-  avatarCircle: {
+  avatarContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F5F1E8',
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#E8E3DC',
+    backgroundColor: '#FFFFFF',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   bubble: {
     flex: 1,
     backgroundColor: '#F5F1E8',
     borderRadius: 16,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#E8E3DC',
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#1A1A1A',
+    fontWeight: '400',
   },
 });
