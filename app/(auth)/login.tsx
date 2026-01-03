@@ -23,13 +23,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
+    marginTop: 0,
     marginBottom: 8,
   },
   subtitle: {
@@ -120,7 +121,7 @@ export default function LoginScreen() {
     >
       <View style={styles.card}>
         <View style={styles.logo}>
-          <Logo size="medium" />
+          <Logo size="large" />
         </View>
 
         <Text style={styles.title}>Welcome Back</Text>
