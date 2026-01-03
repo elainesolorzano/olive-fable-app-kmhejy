@@ -1,47 +1,29 @@
 
+import React from 'react';
 import { Stack } from 'expo-router';
-import { colors } from '@/styles/commonStyles';
 
 export default function HomeLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-        headerTintColor: colors.primary,
-        headerTitleStyle: {
-          fontWeight: '600',
-        },
-        headerBackTitle: 'Back',
+        headerShown: false,
       }}
     >
       <Stack.Screen 
         name="index" 
-        options={{ 
-          headerShown: false 
-        }} 
+        options={{ title: 'Client Lounge' }} 
       />
       <Stack.Screen 
         name="getting-to-studio" 
-        options={{ 
-          title: 'Getting to the Studio',
-          headerShown: true,
-        }} 
+        options={{ title: 'Getting to the Studio' }} 
       />
       <Stack.Screen 
         name="session-prep" 
-        options={{ 
-          title: 'Session Preparation',
-          headerShown: true,
-        }} 
+        options={{ title: 'Session Preparation' }} 
       />
       <Stack.Screen 
         name="reveal-prep" 
-        options={{ 
-          title: 'Reveal Preparation',
-          headerShown: true,
-        }} 
+        options={{ title: 'Reveal Preparation' }} 
       />
     </Stack>
   );
