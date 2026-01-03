@@ -10,7 +10,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#111F0F',
-        tabBarInactiveTintColor: '#6B6B6B',
+        tabBarInactiveTintColor: '#2B2B2B',
         tabBarStyle: {
           backgroundColor: '#F7F2EA',
           borderTopWidth: 1,
@@ -26,7 +26,12 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+          marginBottom: 2,
         },
+        tabBarIconStyle: {
+          marginTop: 2,
+        },
+        tabBarShowLabel: true,
       }}
     >
       {/* Hide index route */}

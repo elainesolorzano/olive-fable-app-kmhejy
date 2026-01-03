@@ -116,27 +116,21 @@ export default function FloatingTabBar({
     };
   });
 
-  // Dynamic styles based on theme
+  // Dynamic styles with improved contrast for readability
   const dynamicStyles = {
     blurContainer: {
       ...styles.blurContainer,
       borderWidth: 1.2,
-      borderColor: 'rgba(255, 255, 255, 1)',
+      borderColor: 'rgba(229, 222, 213, 0.8)', // Subtle border matching light theme
       ...Platform.select({
         ios: {
-          backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.8)'
-            : 'rgba(255, 255, 255, 0.6)',
+          backgroundColor: 'rgba(247, 242, 234, 0.95)', // Light beige with high opacity
         },
         android: {
-          backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.95)'
-            : 'rgba(255, 255, 255, 0.6)',
+          backgroundColor: 'rgba(247, 242, 234, 0.98)',
         },
         web: {
-          backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.95)'
-            : 'rgba(255, 255, 255, 0.6)',
+          backgroundColor: 'rgba(247, 242, 234, 0.98)',
           backdropFilter: 'blur(10px)',
         },
       }),
@@ -146,9 +140,7 @@ export default function FloatingTabBar({
     },
     indicator: {
       ...styles.indicator,
-      backgroundColor: theme.dark
-        ? 'rgba(255, 255, 255, 0.08)'
-        : 'rgba(0, 0, 0, 0.04)',
+      backgroundColor: 'rgba(17, 31, 15, 0.08)', // Subtle brand color overlay
       width: `${tabWidthPercent}%` as `${number}%`,
     },
   };
@@ -173,30 +165,32 @@ export default function FloatingTabBar({
               const isActive = activeTabIndex === index;
 
               return (
+                <React.Fragment key={index}>
                 <TouchableOpacity
-                  key={`tab-${tab.name}-${index}`}
+                  key={index}
                   style={styles.tab}
                   onPress={() => handleTabPress(tab.route)}
                   activeOpacity={0.7}
                 >
-                  <View style={styles.tabContent}>
+                  <View key={index} style={styles.tabContent}>
                     <IconSymbol
                       android_material_icon_name={tab.icon}
                       ios_icon_name={tab.icon}
                       size={24}
-                      color={isActive ? theme.colors.primary : (theme.dark ? '#98989D' : '#000000')}
+                      color={isActive ? '#111F0F' : '#2B2B2B'} // High contrast: brand green vs dark gray
                     />
                     <Text
                       style={[
                         styles.tabLabel,
-                        { color: theme.dark ? '#98989D' : '#8E8E93' },
-                        isActive && { color: theme.colors.primary, fontWeight: '600' },
+                        { color: '#2B2B2B' }, // Dark gray for readability
+                        isActive && { color: '#111F0F', fontWeight: '600' }, // Brand green when active
                       ]}
                     >
                       {tab.label}
                     </Text>
                   </View>
                 </TouchableOpacity>
+                </React.Fragment>
               );
             })}
           </View>
@@ -251,8 +245,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   tabLabel: {
-    fontSize: 9,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
     marginTop: 2,
+    marginBottom: 2,
   },
 });
