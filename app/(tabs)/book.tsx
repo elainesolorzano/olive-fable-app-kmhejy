@@ -122,17 +122,15 @@ export default function BookScreen() {
 
             <View style={styles.featuresContainer}>
               {session.features.map((feature, featureIndex) => (
-                <React.Fragment key={`session-${session.id}-feature-${featureIndex}`}>
-                  <View style={styles.featureItem}>
-                    <IconSymbol 
-                      ios_icon_name="checkmark.circle.fill"
-                      android_material_icon_name="check-circle"
-                      size={18}
-                      color={colors.secondary}
-                    />
-                    <Text style={styles.featureText}>{feature}</Text>
-                  </View>
-                </React.Fragment>
+                <View key={`session-${session.id}-feature-${featureIndex}`} style={styles.featureItem}>
+                  <IconSymbol 
+                    ios_icon_name="checkmark.circle.fill"
+                    android_material_icon_name="check-circle"
+                    size={18}
+                    color={colors.secondary}
+                  />
+                  <Text style={styles.featureText}>{feature}</Text>
+                </View>
               ))}
             </View>
           </View>
