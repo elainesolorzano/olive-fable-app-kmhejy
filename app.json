@@ -1,8 +1,7 @@
-
 {
   "expo": {
-    "name": "Olive & Fable Studio",
-    "slug": "olive-fable-studio",
+    "name": "Olive & Fable",
+    "slug": "Olive & Fable",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -45,5 +44,6 @@
       "router": {},
       "backendUrl": "https://your-backend-url.com"
     }
-  }
+  },
+  "scheme": "Olive & Fable"
 }
