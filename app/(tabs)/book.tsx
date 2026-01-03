@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-na
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GemmaMessage } from '@/components/GemmaMessage';
 
 const TAB_BAR_HEIGHT = 60;
 
@@ -89,20 +90,12 @@ export default function BookScreen() {
         </View>
 
         {/* Gemma Quote */}
-        <View style={[commonStyles.card, styles.quoteCard]}>
-          <View style={styles.gemmaAvatar}>
-            <IconSymbol 
-              ios_icon_name="pawprint.fill"
-              android_material_icon_name="pets"
-              size={24}
-              color={colors.primary}
-            />
-          </View>
+        <GemmaMessage style={styles.gemmaMessage}>
           <Text style={styles.quoteText}>
             I don&apos;t take bookings myself (paws, no thumbs), but my humans do.
           </Text>
           <Text style={styles.quoteAuthor}>— Gemma, CEO</Text>
-        </View>
+        </GemmaMessage>
 
         {/* Session Types */}
         {sessionTypes.map((session, sessionIndex) => (
@@ -225,25 +218,13 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginTop: 8,
   },
-  quoteCard: {
-    backgroundColor: colors.highlight,
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  gemmaAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+  gemmaMessage: {
+    marginBottom: 24,
   },
   quoteText: {
     fontSize: 16,
     fontWeight: '500',
-    color: colors.text,
-    textAlign: 'center',
+    color: '#111F0F',
     fontStyle: 'italic',
     lineHeight: 24,
     marginBottom: 8,
@@ -251,7 +232,7 @@ const styles = StyleSheet.create({
   quoteAuthor: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: '#111F0F',
   },
   sessionHeader: {
     flexDirection: 'row',

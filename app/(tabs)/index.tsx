@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Logo } from '@/components/Logo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GemmaMessage } from '@/components/GemmaMessage';
 
 const TAB_BAR_HEIGHT = 60;
 
@@ -35,17 +36,19 @@ export default function HomeScreen() {
           <Text style={styles.welcomeTitle}>
             {user ? `Welcome back!` : 'Welcome to Olive & Fable'}
           </Text>
-          <Text style={styles.welcomeText}>
-            Hi, I'm Gemma — CEO, treat tester, and quality control. This is where pet parents learn how to pose, prep, and create beautiful portraits.
-          </Text>
-          <Text style={styles.signature}>— Gemma 🐾</Text>
+          <GemmaMessage>
+            <Text style={styles.welcomeText}>
+              Hi, I&apos;m Gemma — CEO, treat tester, and quality control. This is where pet parents learn how to pose, prep, and create beautiful portraits.
+            </Text>
+            <Text style={styles.signature}>— Gemma 🐾</Text>
+          </GemmaMessage>
         </View>
 
         <View style={styles.featuredTip}>
           <Text style={styles.tipLabel}>Featured Tip</Text>
           <Text style={styles.tipTitle}>The Perfect Sit</Text>
           <Text style={styles.tipText}>
-            Get your pup's attention with a treat held just above eye level. This creates natural engagement and those soulful eyes we love.
+            Get your pup&apos;s attention with a treat held just above eye level. This creates natural engagement and those soulful eyes we love.
           </Text>
         </View>
 
@@ -126,28 +129,23 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   welcomeSection: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 24,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   welcomeTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.text,
-    marginBottom: 12,
+    color: '#111F0F',
+    marginBottom: 16,
   },
   welcomeText: {
     fontSize: 16,
     lineHeight: 24,
-    color: colors.textSecondary,
+    color: '#111F0F',
   },
   signature: {
     fontSize: 14,
     fontStyle: 'italic',
-    color: colors.textSecondary,
+    color: '#111F0F',
     marginTop: 12,
   },
   featuredTip: {
