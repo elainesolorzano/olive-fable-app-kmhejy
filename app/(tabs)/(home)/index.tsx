@@ -6,199 +6,10 @@ import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { router } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { GemmaMessage } from '@/components/GemmaMessage';
 
-const TAB_BAR_HEIGHT = 60;
-
-export default function ClientLoungeScreen() {
-  const { user } = useSupabaseAuth();
-  const insets = useSafeAreaInsets();
-
-  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
-  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
-
-  return (
-    <View style={styles.container}>
-      <ScrollView 
-        style={styles.container} 
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: bottomPadding }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Logo size="medium" />
-        </View>
-
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>
-            Welcome to the Olive & Fable Client Lounge
-          </Text>
-          <Text style={styles.introText}>
-            Your exclusive space for session preparation, studio information, and everything you need to create beautiful portraits with your pet.
-          </Text>
-        </View>
-
-        <GemmaMessage style={styles.gemmaSection}>
-          <Text style={styles.gemmaText}>
-            Welcome to your Client Lounge! I&apos;ve gathered everything you need to prepare for your session. From finding the studio to getting your pup camera-ready, it&apos;s all here.
-          </Text>
-          <Text style={styles.signature}>— Gemma 🐾</Text>
-        </GemmaMessage>
-
-        <View style={styles.startHereSection}>
-          <Text style={styles.sectionTitle}>Start Here</Text>
-          <Text style={styles.sectionSubtitle}>
-            Essential guides to prepare for your Olive & Fable experience
-          </Text>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryCard,
-              pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-            ]}
-            onPress={() => router.push('/(tabs)/(home)/getting-to-studio')}
-          >
-            <View style={styles.cardIconContainer}>
-              <IconSymbol 
-                ios_icon_name="map.fill" 
-                android_material_icon_name="place" 
-                size={28} 
-                color={colors.primary} 
-              />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Getting to the Studio</Text>
-              <Text style={styles.cardDescription}>
-                Location, parking, and what to expect when you arrive
-              </Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right" 
-              android_material_icon_name="chevron-right" 
-              size={24} 
-              color={colors.textSecondary} 
-            />
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryCard,
-              pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-            ]}
-            onPress={() => router.push('/(tabs)/(home)/session-prep')}
-          >
-            <View style={styles.cardIconContainer}>
-              <IconSymbol 
-                ios_icon_name="camera.fill" 
-                android_material_icon_name="camera" 
-                size={28} 
-                color={colors.primary} 
-              />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Session Preparation Guide</Text>
-              <Text style={styles.cardDescription}>
-                How to prepare your pet for a successful photo session
-              </Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right" 
-              android_material_icon_name="chevron-right" 
-              size={24} 
-              color={colors.textSecondary} 
-            />
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryCard,
-              pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-            ]}
-            onPress={() => router.push('/(tabs)/(home)/reveal-prep')}
-          >
-            <View style={styles.cardIconContainer}>
-              <IconSymbol 
-                ios_icon_name="photo.fill" 
-                android_material_icon_name="image" 
-                size={28} 
-                color={colors.primary} 
-              />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Reveal Preparation Guide</Text>
-              <Text style={styles.cardDescription}>
-                What to expect at your gallery reveal appointment
-              </Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right" 
-              android_material_icon_name="chevron-right" 
-              size={24} 
-              color={colors.textSecondary} 
-            />
-          </Pressable>
-        </View>
-
-        <View style={styles.quickAccessSection}>
-          <Text style={styles.sectionTitle}>Quick Access</Text>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.secondaryCard,
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => router.push('/(tabs)/learn')}
-          >
-            <IconSymbol 
-              ios_icon_name="book.fill" 
-              android_material_icon_name="menu-book" 
-              size={24} 
-              color={colors.primary} 
-            />
-            <View style={styles.linkContent}>
-              <Text style={styles.linkTitle}>Learn</Text>
-              <Text style={styles.linkDescription}>Posing tips & photography guides</Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right" 
-              android_material_icon_name="chevron-right" 
-              size={20} 
-              color={colors.textSecondary} 
-            />
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.secondaryCard,
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => router.push('/(tabs)/book')}
-          >
-            <IconSymbol 
-              ios_icon_name="calendar" 
-              android_material_icon_name="event" 
-              size={24} 
-              color={colors.primary} 
-            />
-            <View style={styles.linkContent}>
-              <Text style={styles.linkTitle}>Book a Session</Text>
-              <Text style={styles.linkDescription}>Schedule your portrait session</Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right" 
-              android_material_icon_name="chevron-right" 
-              size={20} 
-              color={colors.textSecondary} 
-            />
-          </Pressable>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
 const styles = StyleSheet.create({
   container: {
@@ -206,121 +17,231 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    padding: 20,
-    // paddingBottom handled dynamically
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 60,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
-    paddingTop: 20,
+    marginBottom: 30,
   },
-  welcomeSection: {
-    marginBottom: 24,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 12,
-    lineHeight: 36,
-  },
-  introText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.text,
-  },
-  gemmaSection: {
-    marginBottom: 32,
-  },
-  gemmaText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#111F0F',
-  },
-  signature: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#111F0F',
-    marginTop: 12,
-  },
-  startHereSection: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.textSecondary,
+  logoContainer: {
     marginBottom: 20,
   },
-  primaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  card: {
+    backgroundColor: colors.backgroundAlt,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
   },
-  cardIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.backgroundAlt,
+  cardHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
+    marginBottom: 12,
   },
-  cardContent: {
-    flex: 1,
+  cardIcon: {
+    marginRight: 12,
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+    flex: 1,
   },
   cardDescription: {
     fontSize: 14,
-    lineHeight: 20,
     color: colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 16,
   },
-  quickAccessSection: {
+  cardButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cardButtonText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  gemmaContainer: {
     marginBottom: 24,
   },
-  secondaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  linkContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  linkTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  linkDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
 });
+
+export default function ClientLoungeScreen() {
+  const { session } = useSupabaseAuth();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 16 }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Logo width={120} height={120} />
+          </View>
+          <Text style={styles.welcomeText}>
+            Welcome to Olive & Fable
+          </Text>
+          <Text style={styles.subtitle}>
+            Luxury pet portraits, guided by Gemma 🐾
+          </Text>
+        </View>
+
+        {/* Gemma's Welcome Message */}
+        <View style={styles.gemmaContainer}>
+          <GemmaMessage
+            message="Hi, I'm Gemma — CEO, treat tester, and quality control. This is where pet parents learn how to pose, prep, and create beautiful portraits."
+            showAvatar={true}
+          />
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          
+          {/* Session Prep Card */}
+          <Pressable 
+            style={styles.card}
+            onPress={() => router.push('/(tabs)/(home)/session-prep')}
+          >
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="camera.fill"
+                android_material_icon_name="camera"
+                size={24}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>Session Preparation</Text>
+            </View>
+            <Text style={styles.cardDescription}>
+              Get your pet ready for their portrait session with our step-by-step guide.
+            </Text>
+            <View style={styles.cardButton}>
+              <Text style={styles.cardButtonText}>View Guide</Text>
+            </View>
+          </Pressable>
+
+          {/* Getting to Studio Card */}
+          <Pressable 
+            style={styles.card}
+            onPress={() => router.push('/(tabs)/(home)/getting-to-studio')}
+          >
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="map.fill"
+                android_material_icon_name="map"
+                size={24}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>Getting to the Studio</Text>
+            </View>
+            <Text style={styles.cardDescription}>
+              Find directions, parking information, and what to expect when you arrive.
+            </Text>
+            <View style={styles.cardButton}>
+              <Text style={styles.cardButtonText}>View Details</Text>
+            </View>
+          </Pressable>
+
+          {/* Reveal Prep Card */}
+          <Pressable 
+            style={styles.card}
+            onPress={() => router.push('/(tabs)/(home)/reveal-prep')}
+          >
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="star.fill"
+                android_material_icon_name="star"
+                size={24}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>Reveal Preparation</Text>
+            </View>
+            <Text style={styles.cardDescription}>
+              Prepare for your portrait reveal and learn about our selection process.
+            </Text>
+            <View style={styles.cardButton}>
+              <Text style={styles.cardButtonText}>Learn More</Text>
+            </View>
+          </Pressable>
+        </View>
+
+        {/* Featured Tip */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Featured Posing Tip</Text>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="lightbulb.fill"
+                android_material_icon_name="lightbulb"
+                size={24}
+                color={colors.accent}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>Natural Light is Your Friend</Text>
+            </View>
+            <Text style={styles.cardDescription}>
+              Position your pet near a window for soft, flattering light. Avoid harsh overhead lighting and direct sunlight for the best results.
+            </Text>
+          </View>
+        </View>
+
+        {/* Call to Action */}
+        {!session && (
+          <View style={styles.section}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Ready to Get Started?</Text>
+              <Text style={styles.cardDescription}>
+                Sign in to access your client portal, book sessions, and unlock exclusive content.
+              </Text>
+              <Pressable 
+                style={[styles.cardButton, { marginTop: 8 }]}
+                onPress={() => router.push('/(auth)/login')}
+              >
+                <Text style={styles.cardButtonText}>Sign In</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}

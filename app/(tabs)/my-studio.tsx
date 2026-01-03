@@ -1,21 +1,132 @@
 
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
-import { IconSymbol } from '@/components/IconSymbol';
-import { Logo } from '@/components/Logo';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import React from 'react';
-import { router } from 'expo-router';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { Logo } from '@/components/Logo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { router } from 'expo-router';
+import { IconSymbol } from '@/components/IconSymbol';
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform } from 'react-native';
 
-const TAB_BAR_HEIGHT = 60;
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoContainer: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  menuIcon: {
+    marginRight: 16,
+  },
+  menuContent: {
+    flex: 1,
+  },
+  menuTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  menuDescription: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  chevron: {
+    marginLeft: 8,
+  },
+  signOutButton: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
+  },
+  signInPrompt: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  signInTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  signInDescription: {
+    fontSize: 14,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  signInButton: {
+    backgroundColor: colors.text,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  signInButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default function MyStudioScreen() {
-  const { user, loading, signOut } = useSupabaseAuth();
+  const { session, signOut, loading } = useSupabaseAuth();
   const insets = useSafeAreaInsets();
-
-  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
-  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
 
   const handleEditProfile = () => {
     router.push('/my-studio/edit-profile');
@@ -43,152 +154,203 @@ export default function MyStudioScreen() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace('/(auth)/login');
+    router.replace('/(tabs)/(home)');
   };
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: bottomPadding }}
-    >
-      <View style={styles.header}>
-        <Logo size="small" style={styles.logo} />
-        
-        <View style={styles.profileSection}>
-          <View style={styles.avatar}>
-            <IconSymbol ios_icon_name="person.circle" android_material_icon_name="account-circle" size={40} color={colors.primary} />
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 16 }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Logo width={80} height={80} />
           </View>
-          <Text style={styles.userName}>{user?.email}</Text>
-          <Pressable style={buttonStyles.secondary} onPress={handleEditProfile}>
-            <Text style={buttonStyles.secondaryText}>Edit Profile</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>My Content</Text>
-          
-          <Pressable style={styles.menuItem} onPress={handleSavedContent}>
-            <IconSymbol ios_icon_name="bookmark" android_material_icon_name="bookmark" size={24} color={colors.text} />
-            <Text style={styles.menuItemText}>Saved Content</Text>
-            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
-          </Pressable>
-
-          <Pressable style={styles.menuItem} onPress={handlePurchases}>
-            <IconSymbol ios_icon_name="bag" android_material_icon_name="shopping-bag" size={24} color={colors.text} />
-            <Text style={styles.menuItemText}>Purchases</Text>
-            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
-          </Pressable>
+          <Text style={styles.title}>My Studio</Text>
+          {session && (
+            <Text style={styles.subtitle}>
+              {session.user?.email || 'Welcome back!'}
+            </Text>
+          )}
         </View>
 
+        {/* Sign In Prompt for non-authenticated users */}
+        {!session && (
+          <View style={styles.signInPrompt}>
+            <Text style={styles.signInTitle}>Sign In to Your Studio</Text>
+            <Text style={styles.signInDescription}>
+              Access your profile, saved content, and manage your account
+            </Text>
+            <Pressable
+              style={styles.signInButton}
+              onPress={() => router.push('/(auth)/login')}
+            >
+              <Text style={styles.signInButtonText}>Sign In</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* Account Section */}
+        {session && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Account</Text>
+            
+            <Pressable style={styles.menuItem} onPress={handleEditProfile}>
+              <IconSymbol
+                ios_icon_name="person.circle.fill"
+                android_material_icon_name="account-circle"
+                size={24}
+                color={colors.primary}
+                style={styles.menuIcon}
+              />
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Edit Profile</Text>
+                <Text style={styles.menuDescription}>Update your information</Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron-right"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.chevron}
+              />
+            </Pressable>
+
+            <Pressable style={styles.menuItem} onPress={handleSavedContent}>
+              <IconSymbol
+                ios_icon_name="bookmark.fill"
+                android_material_icon_name="bookmark"
+                size={24}
+                color={colors.primary}
+                style={styles.menuIcon}
+              />
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Saved Content</Text>
+                <Text style={styles.menuDescription}>Your bookmarked guides</Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron-right"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.chevron}
+              />
+            </Pressable>
+
+            <Pressable style={styles.menuItem} onPress={handlePurchases}>
+              <IconSymbol
+                ios_icon_name="cart.fill"
+                android_material_icon_name="shopping-cart"
+                size={24}
+                color={colors.primary}
+                style={styles.menuIcon}
+              />
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Purchases</Text>
+                <Text style={styles.menuDescription}>View your orders</Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron-right"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.chevron}
+              />
+            </Pressable>
+          </View>
+        )}
+
+        {/* Settings Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Settings</Text>
           
-          <Pressable style={styles.menuItem} onPress={handleNotifications}>
-            <IconSymbol ios_icon_name="bell" android_material_icon_name="notifications" size={24} color={colors.text} />
-            <Text style={styles.menuItemText}>Notifications</Text>
-            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
-          </Pressable>
+          {session && (
+            <Pressable style={styles.menuItem} onPress={handleNotifications}>
+              <IconSymbol
+                ios_icon_name="bell.fill"
+                android_material_icon_name="notifications"
+                size={24}
+                color={colors.primary}
+                style={styles.menuIcon}
+              />
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Notifications</Text>
+                <Text style={styles.menuDescription}>Manage your alerts</Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron-right"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.chevron}
+              />
+            </Pressable>
+          )}
 
           <Pressable style={styles.menuItem} onPress={handlePrivacy}>
-            <IconSymbol ios_icon_name="lock.shield" android_material_icon_name="lock" size={24} color={colors.text} />
-            <Text style={styles.menuItemText}>Privacy & Security</Text>
-            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
+            <IconSymbol
+              ios_icon_name="lock.fill"
+              android_material_icon_name="lock"
+              size={24}
+              color={colors.primary}
+              style={styles.menuIcon}
+            />
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>Privacy & Security</Text>
+              <Text style={styles.menuDescription}>Manage your data</Text>
+            </View>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron-right"
+              size={20}
+              color={colors.textSecondary}
+              style={styles.chevron}
+            />
           </Pressable>
 
           <Pressable style={styles.menuItem} onPress={handleHelp}>
-            <IconSymbol ios_icon_name="questionmark.circle" android_material_icon_name="help" size={24} color={colors.text} />
-            <Text style={styles.menuItemText}>Help & Support</Text>
-            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
+            <IconSymbol
+              ios_icon_name="questionmark.circle.fill"
+              android_material_icon_name="help"
+              size={24}
+              color={colors.primary}
+              style={styles.menuIcon}
+            />
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>Help & Support</Text>
+              <Text style={styles.menuDescription}>Get assistance</Text>
+            </View>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron-right"
+              size={20}
+              color={colors.textSecondary}
+              style={styles.chevron}
+            />
           </Pressable>
         </View>
 
-        <Pressable style={[buttonStyles.secondary, styles.signOutButton]} onPress={handleSignOut}>
-          <Text style={buttonStyles.secondaryText}>Sign Out</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+        {/* Sign Out Button */}
+        {session && (
+          <Pressable style={styles.signOutButton} onPress={handleSignOut}>
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </Pressable>
+        )}
+      </ScrollView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    backgroundColor: '#fff',
-    paddingTop: 60,
-    paddingBottom: 32,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    alignItems: 'center',
-  },
-  logo: {
-    marginBottom: 24,
-  },
-  profileSection: {
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  content: {
-    padding: 24,
-    gap: 32,
-  },
-  section: {
-    gap: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  menuItemText: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.text,
-  },
-  signOutButton: {
-    marginTop: 16,
-  },
-});
