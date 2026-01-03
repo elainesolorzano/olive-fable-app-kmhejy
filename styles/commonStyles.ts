@@ -2,16 +2,16 @@
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 export const colors = {
-  primary: '#162456',    // Material Blue
-  secondary: '#193cb8',  // Darker Blue
-  accent: '#64B5F6',     // Light Blue
-  background: '#101824',  // Keeping dark background
-  backgroundAlt: '#162133',  // Keeping dark background
-  text: '#e3e3e3',       // Keeping light text
-  textSecondary: '#98989D', // Secondary text color
-  grey: '#90CAF9',       // Light Blue Grey
-  card: '#193cb8',       // Keeping dark card background
-  border: '#2a2a2a',     // Border color
+  primary: '#111F0F',        // Olive & Fable brand color
+  secondary: '#8B7355',      // Warm brown accent
+  accent: '#D4C5B0',         // Soft taupe
+  background: '#FAF8F5',     // Warm cream/off-white
+  backgroundAlt: '#FFFFFF',  // Pure white for cards
+  text: '#2C2C2C',           // Dark gray/near black
+  textLight: '#6B6B6B',      // Medium gray for secondary text
+  grey: '#E8E3DC',           // Light warm gray
+  card: '#FFFFFF',           // White card background
+  border: '#E8E3DC',         // Subtle border color
 };
 
 export const buttonStyles = StyleSheet.create({
@@ -74,19 +74,22 @@ export const commonStyles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   card: {
-    backgroundColor: colors.backgroundAlt,
-    borderColor: colors.grey,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 12,
+    padding: 16,
     marginVertical: 8,
     width: '100%',
-    boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
     elevation: 2,
   },
   icon: {
     width: 60,
     height: 60,
-    tintColor: "white",
+    tintColor: colors.primary,
   },
 });
