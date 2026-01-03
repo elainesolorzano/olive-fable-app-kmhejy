@@ -1,6 +1,8 @@
 
 import React from 'react';
-import { View, Image, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle } from 'react-native';
+import { IconSymbol } from './IconSymbol';
+import { colors } from '@/styles/commonStyles';
 
 interface GemmaMessageProps {
   children: React.ReactNode;
@@ -10,10 +12,14 @@ interface GemmaMessageProps {
 export function GemmaMessage({ children, style }: GemmaMessageProps) {
   return (
     <View style={[styles.container, style]}>
-      <Image 
-        source={require('../assets/gemma.jpg')} 
-        style={styles.avatar}
-      />
+      <View style={styles.avatarCircle}>
+        <IconSymbol 
+          ios_icon_name="pawprint.fill" 
+          android_material_icon_name="pets" 
+          size={24} 
+          color={colors.brand} 
+        />
+      </View>
       <View style={styles.bubble}>
         {children}
       </View>
@@ -27,14 +33,17 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
   },
-  avatar: {
+  avatarCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: '#F5F1E8',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bubble: {
     flex: 1,
-    backgroundColor: '#F5F1E8', // Beige
+    backgroundColor: '#F5F1E8',
     borderRadius: 16,
     padding: 16,
   },
