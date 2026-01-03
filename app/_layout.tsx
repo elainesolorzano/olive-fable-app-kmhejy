@@ -42,7 +42,7 @@ function RootLayoutNav() {
       // Redirect to tabs if authenticated
       router.replace("/(tabs)");
     }
-  }, [session, loading, segments]);
+  }, [session, loading, segments, router]);
 
   return (
     <Stack>
