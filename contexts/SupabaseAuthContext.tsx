@@ -1,18 +1,18 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User, AuthError } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
 
-interface SupabaseAuthContextType {
+interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: AuthError | null; requiresVerification: boolean }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
-const SupabaseAuthContext = createContext<SupabaseAuthContextType | undefined>(undefined);
+const SupabaseAuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -22,7 +22,6 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session ? 'Found' : 'None');
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -30,10 +29,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', _event, session ? 'Session exists' : 'No session');
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -44,48 +41,24 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
     });
-    
-    if (error) {
-      console.error('Sign in error:', error);
-    }
-    
     return { error };
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
-    const { data, error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, name?: string) => {
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          name,
+          name: name || '',
         },
       },
     });
-    
-    if (error) {
-      console.error('Sign up error:', error);
-      return { error, requiresVerification: false };
-    }
-
-    // Check if email confirmation is required
-    // If session is null but user exists, email confirmation is enabled
-    const requiresVerification = data.user !== null && data.session === null;
-    
-    console.log('Sign up result:', {
-      hasUser: !!data.user,
-      hasSession: !!data.session,
-      requiresVerification,
-    });
-
-    return { error: null, requiresVerification };
+    return { error };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Sign out error:', error);
-    }
+    await supabase.auth.signOut();
   };
 
   return (
