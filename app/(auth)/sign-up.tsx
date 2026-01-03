@@ -1,20 +1,30 @@
 
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TextInput, 
+  Pressable, 
+  ScrollView, 
+  Alert, 
+  ActivityIndicator, 
+  useWindowDimensions 
+} from 'react-native';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUpWithEmail } = useAuth();
-  
-  // Responsive spacing based on screen height
+  const [successMessage, setSuccessMessage] = useState('');
   const { height } = useWindowDimensions();
+  const { signUpWithEmail } = useAuth();
+
   const isSmallPhone = height < 750;
   const logoToTitleGap = isSmallPhone ? 14 : 28;
   const topPadding = isSmallPhone ? 22 : 40;
@@ -24,185 +34,240 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+    // Validate inputs
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password.');
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert('Error', 'Please enter a valid email address.');
       return;
     }
 
-    if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters.');
       return;
     }
 
     setLoading(true);
+    setSuccessMessage('');
+
     try {
-      await signUpWithEmail(email, password);
+      console.log('Attempting sign up with email:', email);
+      await signUpWithEmail(email, password, name || undefined);
+      
+      console.log('Sign up successful - showing verification message');
+      // Success - show message
+      setSuccessMessage('Check your email to verify your account, then come back and sign in.');
+      
+      // Clear form
+      setEmail('');
+      setPassword('');
+      setName('');
+      
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to sign up');
+      console.error('Sign up error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      // Extract meaningful error message
+      let errorMessage = 'An error occurred during sign up. Please try again.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.error) {
+        errorMessage = error.error;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      Alert.alert('Sign up failed', errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScrollView 
-      style={styles.scrollView}
-      contentContainerStyle={[styles.scrollContent, { paddingTop: topPadding }]}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.contentContainer, { paddingTop: topPadding }]}
+      keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       bounces={false}
-      keyboardShouldPersistTaps="handled"
     >
       <View style={styles.card}>
-        <View style={[styles.logo, { marginBottom: logoToTitleGap }]}>
+        <View style={[styles.logoContainer, { marginBottom: logoToTitleGap }]}>
           <Logo size="large" />
         </View>
 
         <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join the Olive & Fable community</Text>
+        <Text style={styles.subtitle}>Join Olive & Fable Studio</Text>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!loading}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!loading}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            placeholderTextColor={colors.textSecondary}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            editable={!loading}
-          />
-        </View>
+        {successMessage ? (
+          <View style={styles.successContainer}>
+            <Text style={styles.successText}>{successMessage}</Text>
+            <Pressable
+              style={[buttonStyles.primary, styles.button]}
+              onPress={() => router.replace('/(auth)/login')}
+            >
+              <Text style={buttonStyles.primaryText}>Go to Sign In</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Name (optional)"
+              placeholderTextColor={colors.textSecondary}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              editable={!loading}
+            />
 
-        <Pressable 
-          style={styles.button}
-          onPress={handleSignUp}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.buttonText}>Sign Up</Text>
-          )}
-        </Pressable>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={colors.textSecondary}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <Pressable onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.footerLink}>Sign In</Text>
-          </Pressable>
-        </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              editable={!loading}
+            />
+
+            <Pressable
+              style={[
+                buttonStyles.primary,
+                styles.button,
+                loading && styles.buttonDisabled
+              ]}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              {loading ? (
+                <View style={styles.buttonContent}>
+                  <ActivityIndicator color="#fff" />
+                  <Text style={[buttonStyles.primaryText, styles.loadingText]}>
+                    Creating account...
+                  </Text>
+                </View>
+              ) : (
+                <Text style={buttonStyles.primaryText}>Sign Up</Text>
+              )}
+            </Pressable>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Already have an account? </Text>
+              <Pressable onPress={() => router.replace('/(auth)/login')} disabled={loading}>
+                <Text style={styles.link}>Sign In</Text>
+              </Pressable>
+            </View>
+          </>
+        )}
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  scrollContent: {
+  contentContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
+    paddingBottom: 40,
   },
   card: {
-    maxWidth: 420,
     width: '100%',
+    maxWidth: 400,
     alignSelf: 'center',
   },
-  logo: {
-    alignSelf: 'center',
+  logoContainer: {
+    alignItems: 'center',
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
-    textAlign: 'center',
     marginTop: 0,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: colors.textSecondary,
-    textAlign: 'center',
     marginBottom: 32,
-  },
-  inputContainer: {
-    width: '100%',
-    gap: 16,
-    marginBottom: 24,
+    textAlign: 'center',
   },
   input: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
+    width: '100%',
+    height: 50,
     borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: 12,
-    paddingVertical: 14,
     paddingHorizontal: 16,
+    marginBottom: 16,
     fontSize: 16,
     color: colors.text,
-    width: '100%',
-    alignSelf: 'stretch',
+    backgroundColor: colors.surface,
   },
   button: {
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    width: '100%',
+    height: 50,
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    alignSelf: 'stretch',
-    height: 52,
-    marginBottom: 24,
+    gap: 8,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+  loadingText: {
+    marginLeft: 8,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginTop: 24,
     alignItems: 'center',
   },
   footerText: {
+    fontSize: 14,
     color: colors.textSecondary,
-    fontSize: 14,
   },
-  footerLink: {
-    color: colors.primary,
+  link: {
     fontSize: 14,
+    color: colors.primary,
     fontWeight: '600',
+  },
+  successContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  successText: {
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
   },
 });
