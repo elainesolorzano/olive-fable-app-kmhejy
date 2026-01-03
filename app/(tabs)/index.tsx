@@ -19,13 +19,8 @@ export default function HomeScreen() {
   };
 
   const handleBookSession = () => {
-    console.log('Book Session card pressed - opening external URL');
-    Linking.openURL('https://example.com');
-  };
-
-  const handleBecomeMember = () => {
-    console.log('Become a Member button pressed');
-    // TODO: Navigate to membership signup
+    console.log('Book Session card pressed - navigating to Book screen');
+    router.push('/book');
   };
 
   const handleBookWithOliveAndFable = () => {
@@ -123,20 +118,27 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* Membership CTA */}
-        <View style={[commonStyles.card, styles.membershipCard]}>
-          <Text style={commonStyles.cardTitle}>Join The Olive & Fable Club</Text>
+        {/* Free Learning CTA */}
+        <View style={[commonStyles.card, styles.freeCard]}>
+          <IconSymbol 
+            ios_icon_name="checkmark.seal.fill"
+            android_material_icon_name="verified"
+            size={32}
+            color={colors.secondary}
+            style={styles.freeIcon}
+          />
+          <Text style={commonStyles.cardTitle}>Free Learning Resources</Text>
           <Text style={commonStyles.cardText}>
-            Think of this as the VIP lounge. More tips. More access. Fewer &apos;why won&apos;t my dog sit still&apos; moments.
+            Sign up for free access to all our educational content. Learn posing techniques, preparation tips, and more!
           </Text>
           <Pressable 
             style={({ pressed }) => [
               buttonStyles.primaryButton,
               pressed && styles.pressed
             ]}
-            onPress={handleBecomeMember}
+            onPress={handleExploreGuides}
           >
-            <Text style={buttonStyles.buttonText}>Become a Member</Text>
+            <Text style={buttonStyles.buttonText}>Start Learning</Text>
           </Pressable>
         </View>
 
@@ -246,9 +248,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  membershipCard: {
+  freeCard: {
     backgroundColor: colors.highlight,
     marginBottom: 16,
+    alignItems: 'center',
+  },
+  freeIcon: {
+    marginBottom: 12,
   },
   pressed: {
     opacity: 0.7,

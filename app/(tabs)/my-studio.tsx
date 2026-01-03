@@ -6,24 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
-type UserRole = 'visitor' | 'registered' | 'member' | 'client';
-
-interface MembershipBenefit {
-  id: string;
-  text: string;
-}
-
-const membershipBenefits: MembershipBenefit[] = [
-  { id: 'library', text: 'Full Learn library access' },
-  { id: 'workshops', text: 'Early workshop access' },
-  { id: 'announcements', text: 'Exclusive announcements' },
-];
-
 export default function MyStudioScreen() {
-  const { user, session, profile, loading, signOut, refreshProfile } = useAuth();
-  const [isClient, setIsClient] = useState(false);
-
-  const isMember = profile?.membership_status === 'active';
+  const { user, session, profile, loading, signOut } = useAuth();
 
   useEffect(() => {
     console.log('MyStudioScreen: Checking authentication state');
@@ -40,16 +24,6 @@ export default function MyStudioScreen() {
     router.push('/my-studio/edit-profile');
   };
 
-  const handleBecomeMember = () => {
-    console.log('Become a Member button pressed');
-    router.push('/my-studio/membership');
-  };
-
-  const handleManageMembership = () => {
-    console.log('Manage Membership button pressed');
-    router.push('/my-studio/membership');
-  };
-
   const handleSavedContent = () => {
     console.log('Saved Content button pressed');
     router.push('/my-studio/saved');
@@ -58,16 +32,6 @@ export default function MyStudioScreen() {
   const handlePurchases = () => {
     console.log('Purchases button pressed');
     router.push('/my-studio/purchases');
-  };
-
-  const handleViewSessionDetails = () => {
-    console.log('View Session Details button pressed');
-    // TODO: Navigate to session details
-  };
-
-  const handleAccessGallery = () => {
-    console.log('Access Gallery button pressed');
-    // TODO: Open gallery
   };
 
   const handleNotifications = () => {
@@ -155,59 +119,21 @@ export default function MyStudioScreen() {
           </View>
         </View>
 
-        {/* Membership Status */}
-        <Pressable
-          style={({ pressed }) => [
-            commonStyles.card,
-            isMember ? styles.memberCard : null,
-            pressed && styles.pressed
-          ]}
-          onPress={isMember ? handleManageMembership : handleBecomeMember}
-        >
-          <View style={styles.membershipHeader}>
+        {/* Welcome Card - Replaces Membership Card */}
+        <View style={[commonStyles.card, styles.welcomeCard]}>
+          <View style={styles.welcomeHeader}>
             <IconSymbol 
-              ios_icon_name={isMember ? 'crown.fill' : 'crown'}
-              android_material_icon_name="workspace-premium"
-              size={24}
-              color={isMember ? colors.secondary : colors.textSecondary}
+              ios_icon_name="checkmark.circle.fill"
+              android_material_icon_name="check-circle"
+              size={28}
+              color={colors.secondary}
             />
-            <Text style={commonStyles.cardTitle}>
-              {isMember ? 'Membership Active' : 'Membership'}
-            </Text>
+            <Text style={commonStyles.cardTitle}>You&apos;re Signed In!</Text>
           </View>
-          {isMember ? (
-            <>
-              <Text style={commonStyles.cardText}>
-                You&apos;re part of The Olive & Fable Club! Enjoy full access to all educational content.
-              </Text>
-              <View style={styles.membershipBenefits}>
-                {membershipBenefits.map((benefit, index) => (
-                  <View key={`${benefit.id}-${index}`} style={styles.benefitItem}>
-                    <IconSymbol 
-                      ios_icon_name="checkmark.circle.fill"
-                      android_material_icon_name="check-circle"
-                      size={18}
-                      color={colors.secondary}
-                    />
-                    <Text style={styles.benefitText}>{benefit.text}</Text>
-                  </View>
-                ))}
-              </View>
-              <View style={styles.manageMembershipButton}>
-                <Text style={buttonStyles.outlineButtonText}>Manage Membership</Text>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={commonStyles.cardText}>
-                Join The Olive & Fable Club for full access to educational content and early workshop access.
-              </Text>
-              <View style={styles.becomeMemberButton}>
-                <Text style={buttonStyles.buttonText}>Become a Member</Text>
-              </View>
-            </>
-          )}
-        </Pressable>
+          <Text style={commonStyles.cardText}>
+            Enjoy free learning resources and explore all our educational content. Workshops are coming soon!
+          </Text>
+        </View>
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
@@ -243,54 +169,6 @@ export default function MyStudioScreen() {
             <Text style={styles.actionButtonText}>Purchases</Text>
           </Pressable>
         </View>
-
-        {/* Client Portal (conditional) */}
-        {isClient && (
-          <View style={[commonStyles.card, styles.clientPortalCard]}>
-            <View style={styles.clientPortalHeader}>
-              <IconSymbol 
-                ios_icon_name="calendar.badge.clock"
-                android_material_icon_name="event"
-                size={28}
-                color={colors.primary}
-              />
-              <Text style={commonStyles.cardTitle}>Your Session</Text>
-            </View>
-            <View style={styles.sessionDetails}>
-              <View style={styles.sessionDetailRow}>
-                <Text style={styles.sessionDetailLabel}>Date:</Text>
-                <Text style={styles.sessionDetailValue}>March 15, 2025</Text>
-              </View>
-              <View style={styles.sessionDetailRow}>
-                <Text style={styles.sessionDetailLabel}>Time:</Text>
-                <Text style={styles.sessionDetailValue}>2:00 PM</Text>
-              </View>
-              <View style={styles.sessionDetailRow}>
-                <Text style={styles.sessionDetailLabel}>Location:</Text>
-                <Text style={styles.sessionDetailValue}>Central Park</Text>
-              </View>
-            </View>
-            <Pressable 
-              style={({ pressed }) => [
-                buttonStyles.primaryButton,
-                pressed && styles.pressed
-              ]}
-              onPress={handleViewSessionDetails}
-            >
-              <Text style={buttonStyles.buttonText}>View Session Details</Text>
-            </Pressable>
-            <Pressable 
-              style={({ pressed }) => [
-                buttonStyles.outlineButton,
-                styles.galleryButton,
-                pressed && styles.pressed
-              ]}
-              onPress={handleAccessGallery}
-            >
-              <Text style={buttonStyles.outlineButtonText}>Access Gallery</Text>
-            </Pressable>
-          </View>
-        )}
 
         {/* Settings */}
         <View style={commonStyles.card}>
@@ -435,48 +313,14 @@ const styles = StyleSheet.create({
   editButton: {
     padding: 8,
   },
-  memberCard: {
+  welcomeCard: {
     backgroundColor: colors.highlight,
   },
-  membershipHeader: {
+  welcomeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-  },
-  membershipBenefits: {
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  benefitItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  benefitText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.text,
-    marginLeft: 10,
-  },
-  manageMembershipButton: {
-    marginTop: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  becomeMemberButton: {
-    marginTop: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
+    gap: 12,
   },
   quickActions: {
     flexDirection: 'row',
@@ -499,35 +343,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: 8,
     textAlign: 'center',
-  },
-  clientPortalCard: {
-    backgroundColor: colors.accent,
-  },
-  clientPortalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sessionDetails: {
-    marginBottom: 16,
-  },
-  sessionDetailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  sessionDetailLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  sessionDetailValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  galleryButton: {
-    marginTop: 8,
   },
   settingItem: {
     flexDirection: 'row',

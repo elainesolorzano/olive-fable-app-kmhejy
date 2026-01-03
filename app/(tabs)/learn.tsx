@@ -12,7 +12,6 @@ interface ContentCategory {
   description: string;
   icon: string;
   items: ContentItem[];
-  isFree: boolean;
 }
 
 interface ContentItem {
@@ -20,7 +19,6 @@ interface ContentItem {
   title: string;
   type: 'video' | 'guide' | 'checklist';
   duration?: string;
-  isFree: boolean;
 }
 
 const categories: ContentCategory[] = [
@@ -29,12 +27,11 @@ const categories: ContentCategory[] = [
     title: 'Posing Your Pet',
     description: 'Master the art of getting your pet camera-ready',
     icon: 'pets',
-    isFree: true,
     items: [
-      { id: '1-1', title: 'The Perfect Sit', type: 'video', duration: '3 min', isFree: true },
-      { id: '1-2', title: 'Natural Poses', type: 'guide', isFree: true },
-      { id: '1-3', title: 'Working with Treats', type: 'video', duration: '5 min', isFree: false },
-      { id: '1-4', title: 'Advanced Positioning', type: 'guide', isFree: false },
+      { id: '1-1', title: 'The Perfect Sit', type: 'video', duration: '3 min' },
+      { id: '1-2', title: 'Natural Poses', type: 'guide' },
+      { id: '1-3', title: 'Working with Treats', type: 'video', duration: '5 min' },
+      { id: '1-4', title: 'Advanced Positioning', type: 'guide' },
     ],
   },
   {
@@ -42,11 +39,10 @@ const categories: ContentCategory[] = [
     title: 'Preparing for Your Session',
     description: 'Everything you need to know before the big day',
     icon: 'checklist',
-    isFree: true,
     items: [
-      { id: '2-1', title: 'What to Bring', type: 'checklist', isFree: true },
-      { id: '2-2', title: 'Grooming Tips', type: 'guide', isFree: false },
-      { id: '2-3', title: 'Day-Of Preparation', type: 'video', duration: '4 min', isFree: false },
+      { id: '2-1', title: 'What to Bring', type: 'checklist' },
+      { id: '2-2', title: 'Grooming Tips', type: 'guide' },
+      { id: '2-3', title: 'Day-Of Preparation', type: 'video', duration: '4 min' },
     ],
   },
   {
@@ -54,11 +50,10 @@ const categories: ContentCategory[] = [
     title: 'Phone Photography Tips',
     description: 'Capture great photos between sessions',
     icon: 'camera-alt',
-    isFree: false,
     items: [
-      { id: '3-1', title: 'Lighting Basics', type: 'video', duration: '6 min', isFree: false },
-      { id: '3-2', title: 'Composition Guide', type: 'guide', isFree: false },
-      { id: '3-3', title: 'Editing Your Photos', type: 'video', duration: '8 min', isFree: false },
+      { id: '3-1', title: 'Lighting Basics', type: 'video', duration: '6 min' },
+      { id: '3-2', title: 'Composition Guide', type: 'guide' },
+      { id: '3-3', title: 'Editing Your Photos', type: 'video', duration: '8 min' },
     ],
   },
   {
@@ -66,11 +61,10 @@ const categories: ContentCategory[] = [
     title: 'Locations & Looks',
     description: 'Choose the perfect setting for your portrait',
     icon: 'location-on',
-    isFree: false,
     items: [
-      { id: '4-1', title: 'Indoor vs Outdoor', type: 'guide', isFree: false },
-      { id: '4-2', title: 'Seasonal Considerations', type: 'guide', isFree: false },
-      { id: '4-3', title: 'Outfit Coordination', type: 'video', duration: '5 min', isFree: false },
+      { id: '4-1', title: 'Indoor vs Outdoor', type: 'guide' },
+      { id: '4-2', title: 'Seasonal Considerations', type: 'guide' },
+      { id: '4-3', title: 'Outfit Coordination', type: 'video', duration: '5 min' },
     ],
   },
   {
@@ -78,20 +72,19 @@ const categories: ContentCategory[] = [
     title: 'What to Expect at Olive & Fable',
     description: 'Your session walkthrough',
     icon: 'info',
-    isFree: true,
     items: [
-      { id: '5-1', title: 'Session Overview', type: 'video', duration: '7 min', isFree: true },
-      { id: '5-2', title: 'Meet the Team', type: 'guide', isFree: true },
-      { id: '5-3', title: 'After Your Session', type: 'guide', isFree: false },
+      { id: '5-1', title: 'Session Overview', type: 'video', duration: '7 min' },
+      { id: '5-2', title: 'Meet the Team', type: 'guide' },
+      { id: '5-3', title: 'After Your Session', type: 'guide' },
     ],
   },
 ];
 
 export default function LearnScreen() {
-  const { profile } = useAuth();
+  const { session } = useAuth();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  const isMember = profile?.membership_status === 'active';
+  const isAuthenticated = !!session;
 
   const toggleCategory = (categoryId: string) => {
     console.log(`Category ${categoryId} toggled`);
@@ -101,14 +94,14 @@ export default function LearnScreen() {
   const handleContentItemPress = (item: ContentItem, itemTitle: string) => {
     console.log(`Content item pressed: ${itemTitle} (${item.id})`);
     
-    // Check if content is locked and user is not a member
-    if (!item.isFree && !isMember) {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
       Alert.alert(
-        'Premium Content',
-        'This content is available to members only. Join The Olive & Fable Club to unlock all educational content.',
+        'Sign In Required',
+        'Please sign in to access full learning content.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Join Membership', onPress: () => router.push('/my-studio/membership') }
+          { text: 'Sign In', onPress: () => router.push('/(auth)/login') }
         ]
       );
       return;
@@ -118,9 +111,9 @@ export default function LearnScreen() {
     Alert.alert('Coming Soon', `${itemTitle} will be available soon!`);
   };
 
-  const handleJoinMembership = () => {
-    console.log('Join Membership button pressed');
-    router.push('/my-studio/membership');
+  const handleSignIn = () => {
+    console.log('Sign In button pressed');
+    router.push('/(auth)/login');
   };
 
   const getTypeIcon = (type: string) => {
@@ -150,6 +143,32 @@ export default function LearnScreen() {
             Educational content to help you create beautiful portraits
           </Text>
         </View>
+
+        {/* Sign In CTA - Only show if not authenticated */}
+        {!isAuthenticated && (
+          <View style={[commonStyles.card, styles.signInCard]}>
+            <IconSymbol 
+              ios_icon_name="person.circle.fill"
+              android_material_icon_name="account-circle"
+              size={32}
+              color={colors.primary}
+              style={styles.signInIcon}
+            />
+            <Text style={commonStyles.cardTitle}>Sign In for Full Access</Text>
+            <Text style={commonStyles.cardText}>
+              Create a free account to access all learning resources and educational content.
+            </Text>
+            <Pressable 
+              style={({ pressed }) => [
+                buttonStyles.primaryButton,
+                pressed && styles.pressed
+              ]}
+              onPress={handleSignIn}
+            >
+              <Text style={buttonStyles.buttonText}>Sign In / Create Account</Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Categories */}
         {categories.map((category, categoryIndex) => (
@@ -198,13 +217,10 @@ export default function LearnScreen() {
                             ios_icon_name="play.circle.fill"
                             android_material_icon_name={getTypeIcon(item.type) as any}
                             size={20}
-                            color={item.isFree || isMember ? colors.primary : colors.textSecondary}
+                            color={colors.primary}
                           />
                           <View style={styles.contentItemText}>
-                            <Text style={[
-                              styles.contentItemTitle,
-                              !item.isFree && !isMember && styles.lockedText
-                            ]}>
+                            <Text style={styles.contentItemTitle}>
                               {item.title}
                             </Text>
                             {item.duration && (
@@ -212,16 +228,6 @@ export default function LearnScreen() {
                             )}
                           </View>
                         </View>
-                        {!item.isFree && !isMember && (
-                          <View style={styles.lockBadge}>
-                            <IconSymbol 
-                              ios_icon_name="lock.fill"
-                              android_material_icon_name="lock"
-                              size={16}
-                              color={colors.textSecondary}
-                            />
-                          </View>
-                        )}
                       </Pressable>
                     </React.Fragment>
                   ))}
@@ -231,29 +237,20 @@ export default function LearnScreen() {
           </React.Fragment>
         ))}
 
-        {/* Membership CTA - Only show if not a member */}
-        {!isMember && (
-          <View style={[commonStyles.card, styles.ctaCard]}>
+        {/* Free Access Message for Authenticated Users */}
+        {isAuthenticated && (
+          <View style={[commonStyles.card, styles.freeAccessCard]}>
             <IconSymbol 
-              ios_icon_name="star.fill"
-              android_material_icon_name="star"
+              ios_icon_name="checkmark.seal.fill"
+              android_material_icon_name="verified"
               size={32}
               color={colors.secondary}
-              style={styles.ctaIcon}
+              style={styles.freeAccessIcon}
             />
-            <Text style={commonStyles.cardTitle}>Unlock All Guides</Text>
+            <Text style={commonStyles.cardTitle}>All Content is Free!</Text>
             <Text style={commonStyles.cardText}>
-              Get full access to our complete library of educational content with membership.
+              Enjoy unlimited access to all our educational resources. Workshops coming soon!
             </Text>
-            <Pressable 
-              style={({ pressed }) => [
-                buttonStyles.primaryButton,
-                pressed && styles.pressed
-              ]}
-              onPress={handleJoinMembership}
-            >
-              <Text style={buttonStyles.buttonText}>Join Membership</Text>
-            </Pressable>
           </View>
         )}
       </ScrollView>
@@ -279,6 +276,20 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
     marginTop: 8,
+  },
+  signInCard: {
+    alignItems: 'center',
+    backgroundColor: colors.highlight,
+  },
+  signInIcon: {
+    marginBottom: 12,
+  },
+  freeAccessCard: {
+    alignItems: 'center',
+    backgroundColor: colors.highlight,
+  },
+  freeAccessIcon: {
+    marginBottom: 12,
   },
   categoryHeader: {
     flexDirection: 'row',
@@ -321,28 +332,10 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 2,
   },
-  lockedText: {
-    color: colors.textSecondary,
-  },
   contentItemDuration: {
     fontSize: 12,
     fontWeight: '400',
     color: colors.textSecondary,
-  },
-  lockBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaCard: {
-    alignItems: 'center',
-    backgroundColor: colors.highlight,
-  },
-  ctaIcon: {
-    marginBottom: 12,
   },
   pressed: {
     opacity: 0.7,

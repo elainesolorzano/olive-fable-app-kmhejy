@@ -1,10 +1,10 @@
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WorkshopFeature {
   id: string;
@@ -46,21 +46,54 @@ const workshopFeatures: WorkshopFeature[] = [
 ];
 
 export default function WorkshopsScreen() {
-  const { profile } = useAuth();
-  const isMember = profile?.membership_status === 'active';
+  const { user } = useAuth();
+  const [email, setEmail] = useState(user?.email || '');
+  const [loading, setLoading] = useState(false);
 
-  const handleNotifyMe = () => {
-    console.log('Notify Me When Workshops Launch button pressed');
-    Alert.alert(
-      'Stay Tuned!',
-      'We\'ll notify you as soon as workshops are available. Make sure notifications are enabled in your settings.',
-      [{ text: 'OK' }]
-    );
-  };
+  const handleJoinWaitlist = async () => {
+    console.log('Join Workshop Waitlist button pressed');
+    
+    if (!email || !email.includes('@')) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
 
-  const handleJoinMembership = () => {
-    console.log('Join Membership for Early Access button pressed');
-    router.push('/my-studio/membership');
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('workshop_waitlist')
+        .insert({
+          email: email.trim().toLowerCase(),
+          user_id: user?.id || null,
+        });
+
+      if (error) {
+        // Check if email already exists
+        if (error.code === '23505') {
+          Alert.alert(
+            'Already on Waitlist',
+            'This email is already registered for workshop updates!',
+            [{ text: 'OK' }]
+          );
+        } else {
+          console.error('Error joining waitlist:', error);
+          Alert.alert('Error', 'Failed to join waitlist. Please try again.');
+        }
+      } else {
+        Alert.alert(
+          'Success!',
+          'You\'re on the waitlist! We\'ll notify you as soon as workshops are available.',
+          [{ text: 'OK' }]
+        );
+        setEmail('');
+      }
+    } catch (error) {
+      console.error('Unexpected error joining waitlist:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -130,61 +163,56 @@ export default function WorkshopsScreen() {
           <Text style={styles.quoteAuthor}>— Gemma, CEO</Text>
         </View>
 
-        {/* CTAs */}
+        {/* Waitlist CTA */}
         <View style={commonStyles.card}>
-          <Text style={commonStyles.cardTitle}>Be the First to Know</Text>
+          <Text style={commonStyles.cardTitle}>Join the Workshop Waitlist</Text>
           <Text style={commonStyles.cardText}>
-            Get notified when workshops launch and secure your spot early.
+            Be the first to know when workshops launch and secure your spot early.
           </Text>
+          
+          <TextInput
+            style={styles.emailInput}
+            placeholder="Enter your email"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+          />
+
           <Pressable 
             style={({ pressed }) => [
               buttonStyles.primaryButton,
+              loading && styles.disabledButton,
               pressed && styles.pressed
             ]}
-            onPress={handleNotifyMe}
+            onPress={handleJoinWaitlist}
+            disabled={loading}
           >
-            <Text style={buttonStyles.buttonText}>Notify Me When Workshops Launch</Text>
+            {loading ? (
+              <ActivityIndicator color={colors.card} />
+            ) : (
+              <Text style={buttonStyles.buttonText}>Join Workshop Waitlist</Text>
+            )}
           </Pressable>
         </View>
 
-        {isMember ? (
-          <View style={[commonStyles.card, styles.memberCard]}>
-            <IconSymbol 
-              ios_icon_name="checkmark.circle.fill"
-              android_material_icon_name="check-circle"
-              size={32}
-              color={colors.secondary}
-              style={styles.membershipIcon}
-            />
-            <Text style={commonStyles.cardTitle}>You&apos;re All Set!</Text>
-            <Text style={commonStyles.cardText}>
-              As a member of The Olive & Fable Club, you&apos;ll get priority registration and exclusive member pricing when workshops launch.
-            </Text>
-          </View>
-        ) : (
-          <View style={[commonStyles.card, styles.membershipCard]}>
-            <IconSymbol 
-              ios_icon_name="crown.fill"
-              android_material_icon_name="workspace-premium"
-              size={32}
-              color={colors.secondary}
-              style={styles.membershipIcon}
-            />
-            <Text style={commonStyles.cardTitle}>Members Get Early Access</Text>
-            <Text style={commonStyles.cardText}>
-              Join The Olive & Fable Club for priority registration and exclusive member pricing on all workshops.
-            </Text>
-            <Pressable 
-              style={({ pressed }) => [
-                buttonStyles.secondaryButton,
-                pressed && styles.pressed
-              ]}
-              onPress={handleJoinMembership}
-            >
-              <Text style={buttonStyles.buttonText}>Join Membership for Early Access</Text>
-            </Pressable>
-          </View>
-        )}
+        {/* Info Card */}
+        <View style={[commonStyles.card, styles.infoCard]}>
+          <IconSymbol 
+            ios_icon_name="info.circle.fill"
+            android_material_icon_name="info"
+            size={32}
+            color={colors.primary}
+            style={styles.infoIcon}
+          />
+          <Text style={commonStyles.cardTitle}>Workshops Are Free to Explore</Text>
+          <Text style={commonStyles.cardText}>
+            When workshops launch, you&apos;ll be able to browse and book them directly. Pricing will be announced closer to launch.
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -277,16 +305,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textSecondary,
   },
-  membershipCard: {
-    alignItems: 'center',
-    backgroundColor: colors.accent,
+  emailInput: {
+    width: '100%',
+    height: 50,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: colors.text,
+    backgroundColor: colors.background,
+    marginTop: 16,
+    marginBottom: 16,
   },
-  memberCard: {
+  infoCard: {
     alignItems: 'center',
     backgroundColor: colors.highlight,
   },
-  membershipIcon: {
+  infoIcon: {
     marginBottom: 12,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   pressed: {
     opacity: 0.7,
