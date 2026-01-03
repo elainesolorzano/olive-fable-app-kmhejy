@@ -1,29 +1,40 @@
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '@/styles/commonStyles';
+import { Image, StyleSheet, useColorScheme, ImageStyle, StyleProp } from 'react-native';
 
 interface LogoProps {
   size?: 'small' | 'medium' | 'large';
+  style?: StyleProp<ImageStyle>;
 }
 
-export function Logo({ size = 'medium' }: LogoProps) {
-  const fontSize = size === 'small' ? 20 : size === 'large' ? 36 : 28;
-  
+export const Logo: React.FC<LogoProps> = ({ size = 'medium', style }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  // Use the dark logo for dark mode, light logo for light mode
+  const logoSource = isDark
+    ? require('../assets/images/3ddfe683-98c2-4e84-814e-ace81e30b295.png')
+    : require('../assets/images/e6233161-f521-4dc0-877d-65f3c1340176.png');
+
+  const sizeMap = {
+    small: { width: 120, height: 40 },
+    medium: { width: 200, height: 67 },
+    large: { width: 280, height: 93 },
+  };
+
+  const dimensions = sizeMap[size];
+
   return (
-    <View style={styles.container}>
-      <Text style={[styles.text, { fontSize }]}>🐾 Olive & Fable</Text>
-    </View>
+    <Image
+      source={logoSource}
+      style={[styles.logo, dimensions, style]}
+      resizeMode="contain"
+    />
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  text: {
-    fontWeight: '700',
-    color: colors.text,
+  logo: {
+    alignSelf: 'center',
   },
 });
