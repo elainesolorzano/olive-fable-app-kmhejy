@@ -6,10 +6,75 @@ import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
 
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  card: {
+    maxWidth: 420,
+    width: '100%',
+    alignSelf: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  inputContainer: {
+    width: '100%',
+    gap: 16,
+    marginBottom: 24,
+  },
+  input: {
+    ...commonStyles.input,
+    width: '100%',
+  },
+  button: {
+    ...buttonStyles.primary,
+    width: '100%',
+    marginBottom: 24,
+  },
+  buttonText: {
+    ...buttonStyles.primaryText,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
+  footerLink: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
+
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUpWithEmail } = useAuth();
 
@@ -18,7 +83,7 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
-    if (!email || !password || !name) {
+    if (!email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -28,14 +93,19 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+    if (password.length < 8) {
+      Alert.alert('Error', 'Password must be at least 8 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
     setLoading(true);
     try {
-      await signUpWithEmail(email, password, name);
+      await signUpWithEmail(email, password);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to sign up');
     } finally {
@@ -45,149 +115,70 @@ export default function SignUpScreen() {
 
   return (
     <ScrollView 
-      style={styles.scrollView} 
+      style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
       bounces={false}
+      keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.container}>
-        <View style={styles.card}>
-          <Logo size="large" style={styles.logo} />
-          
-          <Text style={styles.title}>Join Olive & Fable</Text>
-          <Text style={styles.subtitle}>Create your account to get started</Text>
+      <View style={styles.card}>
+        <View style={styles.logo}>
+          <Logo size="medium" />
+        </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Full Name"
-            placeholderTextColor="#999"
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-            editable={!loading}
-          />
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>Join the Olive & Fable community</Text>
 
+        <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textSecondary}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
             editable={!loading}
           />
-
           <TextInput
             style={styles.input}
-            placeholder="Password (min. 6 characters)"
-            placeholderTextColor="#999"
+            placeholder="Password"
+            placeholderTextColor={colors.textSecondary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             editable={!loading}
           />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor={colors.textSecondary}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            editable={!loading}
+          />
+        </View>
 
-          <Pressable
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSignUp}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Create Account</Text>
-            )}
+        <Pressable 
+          style={styles.button}
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>Sign Up</Text>
+          )}
+        </Pressable>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <Pressable onPress={() => router.push('/(auth)/login')}>
+            <Text style={styles.footerLink}>Sign In</Text>
           </Pressable>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <Pressable onPress={() => router.push('/login')}>
-              <Text style={styles.footerLink}>Sign In</Text>
-            </Pressable>
-          </View>
         </View>
       </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#FAFAF8',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  container: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  card: {
-    maxWidth: 420,
-    width: '100%',
-    alignItems: 'center',
-  },
-  logo: {
-    marginBottom: 14,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#111F0F',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  input: {
-    alignSelf: 'stretch',
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    backgroundColor: '#FFF',
-  },
-  button: {
-    alignSelf: 'stretch',
-    height: 50,
-    backgroundColor: '#111F0F',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  footerText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  footerLink: {
-    color: '#111F0F',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
