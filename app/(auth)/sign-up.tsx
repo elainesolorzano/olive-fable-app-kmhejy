@@ -1,300 +1,174 @@
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { router, Stack } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import React, { useState } from 'react';
 import { IconSymbol } from '@/components/IconSymbol';
+import { Logo } from '@/components/Logo';
+import { router, Stack } from 'expo-router';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUpWithEmail } = useAuth();
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleSignUp = async () => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPassword = password.trim();
-    const trimmedConfirmPassword = confirmPassword.trim();
-
-    if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
+    if (!email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    if (!validateEmail(trimmedEmail)) {
+    if (!validateEmail(email)) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
-    if (trimmedPassword.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
       return;
     }
 
-    if (trimmedPassword !== trimmedConfirmPassword) {
+    if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
-    console.log('Attempting to sign up with email:', trimmedEmail);
     setLoading(true);
-
     try {
-      const { error } = await signUp(trimmedEmail, trimmedPassword);
-
-      if (error) {
-        console.error('Sign up error:', error);
-        
-        let errorMessage = error.message || 'An error occurred during sign up';
-        
-        if (errorMessage.includes('User already registered')) {
-          errorMessage = 'This email is already registered. Please sign in instead or use a different email.';
-        }
-        
-        Alert.alert('Sign Up Failed', errorMessage);
-      } else {
-        console.log('Sign up successful');
-        // User will be automatically redirected to verify-email screen by the auth state listener
-        Alert.alert(
-          'Check Your Email! 📧', 
-          `We've sent a verification email to ${trimmedEmail}.\n\nPlease click the link in the email to verify your account.`,
-          [
-            {
-              text: 'OK',
-            }
-          ]
-        );
-      }
-    } catch (error) {
-      console.error('Unexpected error during sign up:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      await signUpWithEmail(email, password);
+      router.replace('/(auth)/verify-email');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to sign up');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={commonStyles.container}>
-      <Stack.Screen 
-        options={{
-          headerShown: true,
-          title: 'Create Account',
-          headerBackTitle: 'Back',
-        }}
-      />
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <IconSymbol 
-              ios_icon_name="pawprint.fill"
-              android_material_icon_name="pets"
-              size={60}
-              color={colors.primary}
-            />
-          </View>
-          <Text style={styles.title}>Join Olive & Fable Studio</Text>
-          <Text style={styles.subtitle}>
-            Create your free account to access all learning resources
-          </Text>
-        </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <Logo size="large" style={styles.logo} />
+      
+      <View style={styles.formContainer}>
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>Join Olive & Fable Studio</Text>
 
-        {/* Form */}
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="your@email.com"
-              placeholderTextColor={colors.textSecondary}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              editable={!loading}
-              returnKeyType="next"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="At least 6 characters"
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-              returnKeyType="next"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Re-enter your password"
-              placeholderTextColor={colors.textSecondary}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-              returnKeyType="done"
-              onSubmitEditing={handleSignUp}
-            />
-          </View>
-
-          {/* Submit Button */}
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.primaryButton,
-              styles.submitButton,
-              pressed && styles.pressed,
-              loading && styles.disabled
-            ]}
-            onPress={handleSignUp}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={buttonStyles.buttonText}>Create Account</Text>
-            )}
-          </Pressable>
-
-          {/* Sign In Link */}
-          <View style={styles.toggleContainer}>
-            <Text style={styles.toggleText}>Already have an account?</Text>
-            <Pressable 
-              onPress={() => router.back()}
-              disabled={loading}
-            >
-              <Text style={styles.toggleLink}>Sign In</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Info Card */}
-        <View style={[commonStyles.card, styles.infoCard]}>
-          <IconSymbol 
-            ios_icon_name="info.circle.fill"
-            android_material_icon_name="info"
-            size={24}
-            color={colors.primary}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="your@email.com"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
-          <Text style={styles.infoText}>
-            After signing up, you&apos;ll receive a verification email. Please verify your email to access the app.
-          </Text>
         </View>
-      </ScrollView>
-    </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Confirm Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+        </View>
+
+        <Pressable 
+          style={[buttonStyles.primary, loading && buttonStyles.disabled]} 
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={buttonStyles.primaryText}>Sign Up</Text>
+          )}
+        </Pressable>
+
+        <View style={styles.loginContainer}>
+          <Text style={styles.loginText}>Already have an account? </Text>
+          <Pressable onPress={() => router.push('/(auth)/login')}>
+            <Text style={styles.loginLink}>Sign In</Text>
+          </Pressable>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   contentContainer: {
-    paddingTop: 40,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    padding: 24,
+    paddingTop: 60,
   },
-  header: {
-    alignItems: 'center',
+  logo: {
     marginBottom: 40,
   },
-  iconContainer: {
-    marginBottom: 20,
+  formContainer: {
+    gap: 16,
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
-    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    fontWeight: '400',
     color: colors.textSecondary,
-    textAlign: 'center',
+    marginBottom: 24,
   },
-  form: {
-    marginBottom: 32,
-  },
-  inputGroup: {
-    marginBottom: 20,
+  inputContainer: {
+    gap: 8,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.text,
-    marginBottom: 8,
   },
   input: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: colors.text,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#fff',
   },
-  submitButton: {
-    marginTop: 12,
-  },
-  toggleContainer: {
+  loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 24,
-    gap: 6,
+    marginTop: 16,
   },
-  toggleText: {
-    fontSize: 14,
-    fontWeight: '400',
+  loginText: {
     color: colors.textSecondary,
+    fontSize: 14,
   },
-  toggleLink: {
+  loginLink: {
+    color: colors.primary,
     fontSize: 14,
     fontWeight: '600',
-    color: colors.primary,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  disabled: {
-    opacity: 0.5,
   },
 });

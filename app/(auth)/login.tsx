@@ -1,259 +1,160 @@
 
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
+import { IconSymbol } from '@/components/IconSymbol';
+import { Logo } from '@/components/Logo';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
-import { IconSymbol } from '@/components/IconSymbol';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signInWithEmail } = useAuth();
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleSignIn = async () => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPassword = password.trim();
-
-    if (!trimmedEmail || !trimmedPassword) {
-      Alert.alert('Error', 'Please enter both email and password');
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    if (!validateEmail(trimmedEmail)) {
+    if (!validateEmail(email)) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
-    console.log('Attempting to sign in with email:', trimmedEmail);
     setLoading(true);
-
     try {
-      const { error } = await signIn(trimmedEmail, trimmedPassword);
-
-      if (error) {
-        console.error('Sign in error:', error);
-        
-        // Provide more specific error messages
-        let errorMessage = error.message || 'An error occurred during sign in';
-        
-        if (errorMessage.includes('Invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-        } else if (errorMessage.includes('Email not confirmed')) {
-          errorMessage = 'Please verify your email address before signing in. Check your inbox for the confirmation email.';
-        }
-        
-        Alert.alert('Sign In Failed', errorMessage);
-      } else {
-        console.log('Sign in successful, navigation will be handled by auth state change');
-        // Navigation is handled automatically by the auth state change in _layout.tsx
-        // If email is not verified, user will be redirected to verify-email screen
-      }
-    } catch (error) {
-      console.error('Unexpected error during sign in:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      await signInWithEmail(email, password);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to sign in');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={commonStyles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <IconSymbol 
-              ios_icon_name="pawprint.fill"
-              android_material_icon_name="pets"
-              size={60}
-              color={colors.primary}
-            />
-          </View>
-          <Text style={styles.title}>Olive & Fable Studio</Text>
-          <Text style={styles.subtitle}>Welcome back</Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <Logo size="large" style={styles.logo} />
+      
+      <View style={styles.formContainer}>
+        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={styles.subtitle}>Sign in to continue</Text>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="your@email.com"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
         </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="your@email.com"
-              placeholderTextColor={colors.textSecondary}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              editable={!loading}
-              returnKeyType="next"
-            />
-          </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
 
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.label}>Password</Text>
-              <Pressable 
-                onPress={() => router.push('/(auth)/forgot-password')}
-                disabled={loading}
-              >
-                <Text style={styles.forgotLink}>Forgot?</Text>
-              </Pressable>
-            </View>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-              returnKeyType="done"
-              onSubmitEditing={handleSignIn}
-            />
-          </View>
+        <Pressable onPress={() => router.push('/(auth)/forgot-password')}>
+          <Text style={styles.forgotPassword}>Forgot Password?</Text>
+        </Pressable>
 
-          {/* Sign In Button */}
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.primaryButton,
-              styles.submitButton,
-              pressed && styles.pressed,
-              loading && styles.disabled
-            ]}
-            onPress={handleSignIn}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={buttonStyles.buttonText}>Sign In</Text>
-            )}
-          </Pressable>
+        <Pressable 
+          style={[buttonStyles.primary, loading && buttonStyles.disabled]} 
+          onPress={handleSignIn}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={buttonStyles.primaryText}>Sign In</Text>
+          )}
+        </Pressable>
 
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Create Account Button */}
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.outlineButton,
-              pressed && styles.pressed,
-              loading && styles.disabled
-            ]}
-            onPress={() => router.push('/(auth)/sign-up')}
-            disabled={loading}
-          >
-            <Text style={buttonStyles.outlineButtonText}>Create Account</Text>
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>Don&apos;t have an account? </Text>
+          <Pressable onPress={() => router.push('/(auth)/sign-up')}>
+            <Text style={styles.signupLink}>Sign Up</Text>
           </Pressable>
         </View>
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   contentContainer: {
-    paddingTop: 80,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    padding: 24,
+    paddingTop: 60,
   },
-  header: {
-    alignItems: 'center',
+  logo: {
     marginBottom: 40,
   },
-  iconContainer: {
-    marginBottom: 20,
+  formContainer: {
+    gap: 16,
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
-    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    fontWeight: '400',
     color: colors.textSecondary,
-    textAlign: 'center',
+    marginBottom: 24,
   },
-  form: {
-    marginBottom: 32,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+  inputContainer: {
+    gap: 8,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.text,
-  },
-  forgotLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
   },
   input: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: colors.text,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#fff',
   },
-  submitButton: {
-    marginTop: 12,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.accent,
-  },
-  dividerText: {
+  forgotPassword: {
+    color: colors.primary,
     fontSize: 14,
-    fontWeight: '500',
+    textAlign: 'right',
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  signupText: {
     color: colors.textSecondary,
-    marginHorizontal: 16,
+    fontSize: 14,
   },
-  pressed: {
-    opacity: 0.7,
-  },
-  disabled: {
-    opacity: 0.5,
+  signupLink: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

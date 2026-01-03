@@ -1,366 +1,184 @@
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { Logo } from '@/components/Logo';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { router } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function MyStudioScreen() {
-  const { user, session, profile, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
 
   const handleEditProfile = () => {
-    console.log('Edit Profile button pressed');
     router.push('/my-studio/edit-profile');
   };
 
   const handleSavedContent = () => {
-    console.log('Saved Content button pressed');
     router.push('/my-studio/saved');
   };
 
   const handlePurchases = () => {
-    console.log('Purchases button pressed');
     router.push('/my-studio/purchases');
   };
 
   const handleNotifications = () => {
-    console.log('Notifications setting pressed');
     router.push('/my-studio/notifications');
   };
 
   const handlePrivacy = () => {
-    console.log('Privacy setting pressed');
     router.push('/my-studio/privacy');
   };
 
   const handleHelp = () => {
-    console.log('Help & Support pressed');
     router.push('/my-studio/support');
   };
 
   const handleSignOut = async () => {
-    console.log('Sign Out button pressed');
-    try {
-      await signOut();
-      console.log('User signed out successfully');
-      // Navigation to auth screen is handled automatically by root layout
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+    await signOut();
+    router.replace('/(auth)/login');
   };
 
-  // Show loading state while checking authentication
   if (loading) {
     return (
-      <View style={[commonStyles.container, styles.loadingContainer]}>
+      <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
 
-  // User is authenticated, show My Studio content
   return (
-    <View style={commonStyles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Profile Section */}
-        <View style={commonStyles.card}>
-          <View style={styles.profileHeader}>
-            <View style={styles.profileAvatar}>
-              <IconSymbol 
-                ios_icon_name="person.fill"
-                android_material_icon_name="person"
-                size={40}
-                color={colors.primary}
-              />
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>
-                {user?.user_metadata?.full_name || 'User'}
-              </Text>
-              <Text style={styles.profileEmail}>
-                {user?.email || 'No email'}
-              </Text>
-            </View>
-            <Pressable 
-              style={({ pressed }) => [
-                styles.editButton,
-                pressed && styles.pressed
-              ]}
-              onPress={handleEditProfile}
-            >
-              <IconSymbol 
-                ios_icon_name="pencil"
-                android_material_icon_name="edit"
-                size={20}
-                color={colors.primary}
-              />
-            </Pressable>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Logo size="small" style={styles.logo} />
+        
+        <View style={styles.profileSection}>
+          <View style={styles.avatar}>
+            <IconSymbol ios_icon_name="person.circle" android_material_icon_name="account-circle" size={40} color={colors.primary} />
           </View>
+          <Text style={styles.userName}>{user?.email}</Text>
+          <Pressable style={buttonStyles.secondary} onPress={handleEditProfile}>
+            <Text style={buttonStyles.secondaryText}>Edit Profile</Text>
+          </Pressable>
         </View>
+      </View>
 
-        {/* Welcome Card - Replaces Membership Card */}
-        <View style={[commonStyles.card, styles.welcomeCard]}>
-          <View style={styles.welcomeHeader}>
-            <IconSymbol 
-              ios_icon_name="checkmark.circle.fill"
-              android_material_icon_name="check-circle"
-              size={28}
-              color={colors.secondary}
-            />
-            <Text style={commonStyles.cardTitle}>You&apos;re Signed In!</Text>
-          </View>
-          <Text style={commonStyles.cardText}>
-            Enjoy free learning resources and explore all our educational content. Workshops are coming soon!
-          </Text>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.actionButton,
-              pressed && styles.pressed
-            ]}
-            onPress={handleSavedContent}
-          >
-            <IconSymbol 
-              ios_icon_name="bookmark.fill"
-              android_material_icon_name="bookmark"
-              size={24}
-              color={colors.primary}
-            />
-            <Text style={styles.actionButtonText}>Saved Content</Text>
+      <View style={styles.content}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>My Content</Text>
+          
+          <Pressable style={styles.menuItem} onPress={handleSavedContent}>
+            <IconSymbol ios_icon_name="bookmark" android_material_icon_name="bookmark" size={24} color={colors.text} />
+            <Text style={styles.menuItemText}>Saved Content</Text>
+            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
           </Pressable>
 
-          <Pressable 
-            style={({ pressed }) => [
-              styles.actionButton,
-              pressed && styles.pressed
-            ]}
-            onPress={handlePurchases}
-          >
-            <IconSymbol 
-              ios_icon_name="bag.fill"
-              android_material_icon_name="shopping-bag"
-              size={24}
-              color={colors.primary}
-            />
-            <Text style={styles.actionButtonText}>Purchases</Text>
+          <Pressable style={styles.menuItem} onPress={handlePurchases}>
+            <IconSymbol ios_icon_name="bag" android_material_icon_name="shopping-bag" size={24} color={colors.text} />
+            <Text style={styles.menuItemText}>Purchases</Text>
+            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
           </Pressable>
         </View>
 
-        {/* Settings */}
-        <View style={commonStyles.card}>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.settingItem,
-              pressed && styles.pressed
-            ]}
-            onPress={handleNotifications}
-          >
-            <View style={styles.settingItemLeft}>
-              <IconSymbol 
-                ios_icon_name="bell.fill"
-                android_material_icon_name="notifications"
-                size={20}
-                color={colors.textSecondary}
-              />
-              <Text style={styles.settingItemText}>Notifications</Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron-right"
-              size={20}
-              color={colors.textSecondary}
-            />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Settings</Text>
+          
+          <Pressable style={styles.menuItem} onPress={handleNotifications}>
+            <IconSymbol ios_icon_name="bell" android_material_icon_name="notifications" size={24} color={colors.text} />
+            <Text style={styles.menuItemText}>Notifications</Text>
+            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
           </Pressable>
 
-          <View style={commonStyles.divider} />
-
-          <Pressable 
-            style={({ pressed }) => [
-              styles.settingItem,
-              pressed && styles.pressed
-            ]}
-            onPress={handlePrivacy}
-          >
-            <View style={styles.settingItemLeft}>
-              <IconSymbol 
-                ios_icon_name="lock.fill"
-                android_material_icon_name="lock"
-                size={20}
-                color={colors.textSecondary}
-              />
-              <Text style={styles.settingItemText}>Privacy</Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron-right"
-              size={20}
-              color={colors.textSecondary}
-            />
+          <Pressable style={styles.menuItem} onPress={handlePrivacy}>
+            <IconSymbol ios_icon_name="lock.shield" android_material_icon_name="lock" size={24} color={colors.text} />
+            <Text style={styles.menuItemText}>Privacy & Security</Text>
+            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
           </Pressable>
 
-          <View style={commonStyles.divider} />
-
-          <Pressable 
-            style={({ pressed }) => [
-              styles.settingItem,
-              pressed && styles.pressed
-            ]}
-            onPress={handleHelp}
-          >
-            <View style={styles.settingItemLeft}>
-              <IconSymbol 
-                ios_icon_name="questionmark.circle.fill"
-                android_material_icon_name="help"
-                size={20}
-                color={colors.textSecondary}
-              />
-              <Text style={styles.settingItemText}>Help & Support</Text>
-            </View>
-            <IconSymbol 
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron-right"
-              size={20}
-              color={colors.textSecondary}
-            />
+          <Pressable style={styles.menuItem} onPress={handleHelp}>
+            <IconSymbol ios_icon_name="questionmark.circle" android_material_icon_name="help" size={24} color={colors.text} />
+            <Text style={styles.menuItemText}>Help & Support</Text>
+            <IconSymbol ios_icon_name="chevron.right" android_material_icon_name="chevron-right" size={20} color={colors.textSecondary} />
           </Pressable>
         </View>
 
-        {/* Sign Out */}
-        <Pressable 
-          style={({ pressed }) => [
-            styles.signOutButton,
-            pressed && styles.pressed
-          ]}
-          onPress={handleSignOut}
-        >
-          <Text style={styles.signOutText}>Sign Out</Text>
+        <Pressable style={[buttonStyles.secondary, styles.signOutButton]} onPress={handleSignOut}>
+          <Text style={buttonStyles.secondaryText}>Sign Out</Text>
         </Pressable>
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
-  contentContainer: {
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    backgroundColor: '#fff',
     paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    alignItems: 'center',
   },
-  loadingContainer: {
+  logo: {
+    marginBottom: 24,
+  },
+  profileSection: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
   },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
+  userName: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
   },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  content: {
+    padding: 24,
+    gap: 32,
   },
-  profileAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.highlight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
+  section: {
+    gap: 16,
   },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  profileEmail: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.textSecondary,
-  },
-  editButton: {
-    padding: 8,
-  },
-  welcomeCard: {
-    backgroundColor: colors.highlight,
-  },
-  welcomeHeader: {
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
-  },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 16,
-  },
-  actionButton: {
-    flex: 1,
-    backgroundColor: colors.card,
+    padding: 16,
+    backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    elevation: 2,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-  settingItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settingItemText: {
+  menuItemText: {
+    flex: 1,
     fontSize: 16,
-    fontWeight: '500',
     color: colors.text,
-    marginLeft: 12,
   },
   signOutButton: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-    elevation: 2,
-  },
-  signOutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#DC3545',
-  },
-  pressed: {
-    opacity: 0.7,
+    marginTop: 16,
   },
 });
