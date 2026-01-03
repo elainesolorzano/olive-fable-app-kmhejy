@@ -1,91 +1,54 @@
-import React from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextStyle,
-  useColorScheme,
-  ViewStyle,
-} from "react-native";
-import { appleBlue, zincColors } from "@/constants/Colors";
 
-type ButtonVariant = "filled" | "outline" | "ghost";
-type ButtonSize = "sm" | "md" | "lg";
+import React from 'react';
+import { Pressable, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
+import { colors, buttonStyles } from '@/styles/commonStyles';
 
 interface ButtonProps {
-  onPress?: () => void;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'outline' | 'link';
   disabled?: boolean;
   loading?: boolean;
-  children: React.ReactNode;
   style?: ViewStyle;
   textStyle?: TextStyle;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+export default function Button({
+  title,
   onPress,
-  variant = "filled",
-  size = "md",
+  variant = 'primary',
   disabled = false,
   loading = false,
-  children,
   style,
   textStyle,
-}) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  const sizeStyles: Record<
-    ButtonSize,
-    { height: number; fontSize: number; padding: number }
-  > = {
-    sm: { height: 36, fontSize: 14, padding: 12 },
-    md: { height: 44, fontSize: 16, padding: 16 },
-    lg: { height: 55, fontSize: 18, padding: 20 },
-  };
-
-  const getVariantStyle = () => {
-    const baseStyle: ViewStyle = {
-      borderRadius: 12,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-    };
-
+}: ButtonProps) {
+  const getButtonStyle = () => {
     switch (variant) {
-      case "filled":
-        return {
-          ...baseStyle,
-          backgroundColor: isDark ? zincColors[50] : zincColors[900],
-        };
-      case "outline":
-        return {
-          ...baseStyle,
-          backgroundColor: "transparent",
-          borderWidth: 1,
-          borderColor: isDark ? zincColors[700] : zincColors[300],
-        };
-      case "ghost":
-        return {
-          ...baseStyle,
-          backgroundColor: "transparent",
-        };
+      case 'primary':
+        return buttonStyles.instructionsButton;
+      case 'secondary':
+        return buttonStyles.secondaryButton;
+      case 'outline':
+        return buttonStyles.backButton;
+      case 'link':
+        return buttonStyles.linkButton;
+      default:
+        return buttonStyles.instructionsButton;
     }
   };
 
-  const getTextColor = () => {
-    if (disabled) {
-      return isDark ? zincColors[500] : zincColors[400];
-    }
-
+  const getTextStyle = () => {
     switch (variant) {
-      case "filled":
-        return isDark ? zincColors[900] : zincColors[50];
-      case "outline":
-      case "ghost":
-        return appleBlue;
+      case 'primary':
+        return buttonStyles.instructionsButtonText;
+      case 'secondary':
+        return buttonStyles.secondaryButtonText;
+      case 'outline':
+        return buttonStyles.backButtonText;
+      case 'link':
+        return buttonStyles.linkButtonText;
+      default:
+        return buttonStyles.instructionsButtonText;
     }
   };
 
@@ -93,36 +56,32 @@ export const Button: React.FC<ButtonProps> = ({
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      style={[
-        getVariantStyle(),
-        {
-          height: sizeStyles[size].height,
-          paddingHorizontal: sizeStyles[size].padding,
-          opacity: disabled ? 0.5 : 1,
-        },
+      style={({ pressed }) => [
+        getButtonStyle(),
         style,
+        (disabled || loading) && styles.disabled,
+        pressed && styles.pressed,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={getTextColor()} />
+        <ActivityIndicator color={variant === 'primary' ? '#FFFFFF' : colors.text} />
       ) : (
-        <Text
-          style={StyleSheet.flatten([
-            {
-              fontSize: sizeStyles[size].fontSize,
-              color: getTextColor(),
-              textAlign: "center",
-              marginBottom: 0,
-              fontWeight: "700",
-            },
-            textStyle,
-          ])}
-        >
-          {children}
+        <Text style={[getTextStyle(), textStyle, (disabled || loading) && styles.disabledText]}>
+          {title}
         </Text>
       )}
     </Pressable>
   );
-};
+}
 
-export default Button;
+const styles = StyleSheet.create({
+  disabled: {
+    opacity: 0.5,
+  },
+  disabledText: {
+    opacity: 0.7,
+  },
+  pressed: {
+    opacity: 0.8,
+  },
+});

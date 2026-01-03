@@ -155,7 +155,7 @@ export default function HomeScreen() {
             ]}
             onPress={handleBookWithOliveAndFable}
           >
-            <Text style={buttonStyles.buttonText}>Book with Olive & Fable</Text>
+            <Text style={buttonStyles.secondaryButtonText}>Book with Olive & Fable</Text>
           </Pressable>
         </View>
       </ScrollView>
