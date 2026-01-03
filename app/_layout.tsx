@@ -8,6 +8,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SupabaseAuthProvider, useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { useFonts } from "expo-font";
 import "react-native-reanimated";
 import {
@@ -17,10 +18,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useColorScheme, Alert, View, ActivityIndicator, StyleSheet } from "react-native";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { SupabaseAuthProvider, useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
-// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 const styles = StyleSheet.create({
@@ -37,29 +35,28 @@ function RootLayoutNav() {
   const { session, loading } = useSupabaseAuth();
   const networkState = useNetworkState();
 
-  // Handle navigation based on auth state
   useEffect(() => {
     if (loading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const inTabsGroup = segments[0] === '(tabs)';
 
     if (!session && !inAuthGroup) {
-      // User is not signed in and not on auth screen, redirect to login
+      // Redirect to login if not authenticated
       router.replace('/(auth)/login');
     } else if (session && inAuthGroup) {
-      // User is signed in but on auth screen, redirect to tabs
-      router.replace('/(tabs)/');
+      // Redirect to tabs if authenticated
+      router.replace('/(tabs)');
     }
   }, [session, loading, segments]);
 
-  // Network connectivity check
   useEffect(() => {
-    if (networkState.isConnected === false || networkState.isInternetReachable === false) {
+    if (
+      !networkState.isConnected &&
+      networkState.isInternetReachable === false
+    ) {
       Alert.alert(
-        "No Internet Connection",
-        "Please check your internet connection and try again.",
-        [{ text: "OK" }]
+        "🔌 You are offline",
+        "You can keep using the app! Your changes will be saved locally and synced when you are back online."
       );
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
@@ -73,9 +70,33 @@ function RootLayoutNav() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack>
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="modal"
+        options={{
+          presentation: "modal",
+          title: "Standard Modal",
+        }}
+      />
+      <Stack.Screen
+        name="formsheet"
+        options={{
+          presentation: "formSheet",
+          title: "Form Sheet Modal",
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.5, 0.8, 1.0],
+          sheetCornerRadius: 20,
+        }}
+      />
+      <Stack.Screen
+        name="transparent-modal"
+        options={{
+          presentation: "transparentModal",
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
@@ -96,43 +117,46 @@ export default function RootLayout() {
     return null;
   }
 
-  const customDarkTheme: Theme = {
-    ...DarkTheme,
+  const CustomDefaultTheme: Theme = {
+    ...DefaultTheme,
+    dark: false,
     colors: {
-      ...DarkTheme.colors,
-      background: colors.background,
-      card: colors.card,
-      text: colors.text,
-      border: colors.border,
-      primary: colors.primary,
+      primary: "rgb(0, 122, 255)",
+      background: "rgb(242, 242, 247)",
+      card: "rgb(255, 255, 255)",
+      text: "rgb(0, 0, 0)",
+      border: "rgb(216, 216, 220)",
+      notification: "rgb(255, 59, 48)",
     },
   };
 
-  const customLightTheme: Theme = {
-    ...DefaultTheme,
+  const CustomDarkTheme: Theme = {
+    ...DarkTheme,
     colors: {
-      ...DefaultTheme.colors,
-      background: colors.background,
-      card: colors.card,
-      text: colors.text,
-      border: colors.border,
-      primary: colors.primary,
+      primary: "rgb(10, 132, 255)",
+      background: "rgb(1, 1, 1)",
+      card: "rgb(28, 28, 30)",
+      text: "rgb(255, 255, 255)",
+      border: "rgb(44, 44, 46)",
+      notification: "rgb(255, 69, 58)",
     },
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? customDarkTheme : customLightTheme}>
-        <SystemBars style={colorScheme === "dark" ? "light" : "dark"} />
-        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+    <>
+      <StatusBar style="auto" animated />
+      <ThemeProvider
+        value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+      >
         <SupabaseAuthProvider>
-          <AuthProvider>
-            <WidgetProvider>
+          <WidgetProvider>
+            <GestureHandlerRootView>
               <RootLayoutNav />
-            </WidgetProvider>
-          </AuthProvider>
+              <SystemBars style={"auto"} />
+            </GestureHandlerRootView>
+          </WidgetProvider>
         </SupabaseAuthProvider>
       </ThemeProvider>
-    </GestureHandlerRootView>
+    </>
   );
 }

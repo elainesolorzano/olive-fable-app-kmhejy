@@ -10,24 +10,39 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors, commonStyles, buttonStyles } from "@/styles/commonStyles";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function VerifyEmailScreen() {
-  const { user, emailVerified, resendVerificationEmail, signOut } = useAuth();
+  const { user, signOut } = useSupabaseAuth();
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
 
   const handleResendEmail = async () => {
     try {
       setResending(true);
-      await resendVerificationEmail();
-      Alert.alert(
-        "Email Sent",
-        "A new verification email has been sent. Please check your inbox and spam folder."
-      );
+      
+      if (!user?.email) {
+        Alert.alert("Error", "No email address found");
+        return;
+      }
+
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+      });
+
+      if (error) {
+        console.error('Resend error:', error);
+        Alert.alert("Error", error.message || "Failed to resend verification email");
+      } else {
+        Alert.alert(
+          "Email Sent",
+          "A new verification email has been sent. Please check your inbox and spam folder."
+        );
+      }
     } catch (error: any) {
       console.error('Resend error:', error);
       Alert.alert("Error", error.message || "Failed to resend verification email");

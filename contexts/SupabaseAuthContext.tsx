@@ -7,20 +7,12 @@ interface SupabaseAuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<{ requiresVerification: boolean }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: AuthError | null; requiresVerification: boolean }>;
   signOut: () => Promise<void>;
 }
 
 const SupabaseAuthContext = createContext<SupabaseAuthContextType | undefined>(undefined);
-
-export function useSupabaseAuth() {
-  const context = useContext(SupabaseAuthContext);
-  if (!context) {
-    throw new Error('useSupabaseAuth must be used within SupabaseAuthProvider');
-  }
-  return context;
-}
 
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -30,6 +22,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session ? 'Found' : 'None');
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -37,6 +30,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event, session ? 'Session exists' : 'No session');
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -46,22 +40,16 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
+    
     if (error) {
-      // Check if email is not verified
-      if (error.message.includes('Email not confirmed')) {
-        throw new Error('Please verify your email before signing in. Check your inbox for the verification link.');
-      }
-      throw error;
+      console.error('Sign in error:', error);
     }
-
-    if (!data.session) {
-      throw new Error('Sign in failed. Please try again.');
-    }
+    
+    return { error };
   };
 
   const signUp = async (email: string, password: string, name: string) => {
@@ -74,21 +62,29 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         },
       },
     });
-
+    
     if (error) {
-      throw error;
+      console.error('Sign up error:', error);
+      return { error, requiresVerification: false };
     }
 
     // Check if email confirmation is required
-    const requiresVerification = !data.session;
+    // If session is null but user exists, email confirmation is enabled
+    const requiresVerification = data.user !== null && data.session === null;
+    
+    console.log('Sign up result:', {
+      hasUser: !!data.user,
+      hasSession: !!data.session,
+      requiresVerification,
+    });
 
-    return { requiresVerification };
+    return { error: null, requiresVerification };
   };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      throw error;
+      console.error('Sign out error:', error);
     }
   };
 
@@ -106,4 +102,12 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       {children}
     </SupabaseAuthContext.Provider>
   );
+}
+
+export function useSupabaseAuth() {
+  const context = useContext(SupabaseAuthContext);
+  if (context === undefined) {
+    throw new Error('useSupabaseAuth must be used within SupabaseAuthProvider');
+  }
+  return context;
 }

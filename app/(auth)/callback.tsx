@@ -9,7 +9,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { authClient } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { colors, commonStyles } from "@/styles/commonStyles";
 
 export default function AuthCallbackScreen() {
@@ -22,15 +22,29 @@ export default function AuthCallbackScreen() {
 
   const handleCallback = async () => {
     try {
-      // Better Auth automatically handles the callback via deep linking
-      // We just need to verify the session was established
-      const session = await authClient.getSession();
+      // Get the current session to check if email verification succeeded
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        setError("Failed to verify email. Please try again.");
+        setTimeout(() => {
+          router.replace("/(auth)/login");
+        }, 3000);
+        return;
+      }
+
       if (session?.user) {
-        // Session restored successfully, navigate to main app
-        router.replace("/(tabs)");
+        // Check if email is verified
+        if (session.user.email_confirmed_at) {
+          // Email verified successfully, navigate to main app
+          router.replace("/(tabs)");
+        } else {
+          // Session exists but email not verified yet
+          router.replace("/(auth)/verify-email");
+        }
       } else {
-        // No session found, might be an error
+        // No session found
         setError("Failed to verify email. Please try again.");
         setTimeout(() => {
           router.replace("/(auth)/login");
