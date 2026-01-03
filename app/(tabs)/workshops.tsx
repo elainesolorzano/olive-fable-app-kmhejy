@@ -95,7 +95,10 @@ export default function WorkshopsScreen() {
       <View style={styles.featuresSection}>
         <Text style={styles.sectionTitle}>What to Expect</Text>
         {workshopFeatures.map((feature) => (
-          <View key={feature.id} style={styles.featureCard}>
+          <View 
+            key={feature.id ?? feature.title ?? `${feature.title}-${feature.icon}-${feature.description}`} 
+            style={styles.featureCard}
+          >
             <View style={styles.featureHeader}>
               <IconSymbol 
                 name={Platform.OS === 'ios' ? feature.iosIcon : feature.icon}

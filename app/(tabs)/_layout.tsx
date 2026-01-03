@@ -10,7 +10,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#111F0F',
-        tabBarInactiveTintColor: '#8E8E93',
+        tabBarInactiveTintColor: '#2B2B2B',
         tabBarStyle: {
           backgroundColor: '#F7F2EA',
           borderTopColor: '#E2DDD5',
@@ -35,11 +35,11 @@ export default function TabLayout() {
         name="(home)"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <IconSymbol
               ios_icon_name="house.fill"
               android_material_icon_name="home"
-              size={size}
+              size={24}
               color={color}
             />
           ),
@@ -49,11 +49,11 @@ export default function TabLayout() {
         name="learn"
         options={{
           title: 'Learn',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <IconSymbol
               ios_icon_name="book.fill"
               android_material_icon_name="menu_book"
-              size={size}
+              size={24}
               color={color}
             />
           ),
@@ -69,11 +69,11 @@ export default function TabLayout() {
         name="workshops"
         options={{
           title: 'Workshops',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <IconSymbol
               ios_icon_name="sparkles"
               android_material_icon_name="auto_awesome"
-              size={size}
+              size={24}
               color={color}
             />
           ),
@@ -83,11 +83,11 @@ export default function TabLayout() {
         name="my-studio"
         options={{
           title: 'My Studio',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <IconSymbol
               ios_icon_name="person.fill"
               android_material_icon_name="person"
-              size={size}
+              size={24}
               color={color}
             />
           ),

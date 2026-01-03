@@ -8,32 +8,32 @@ export default function TabLayout() {
       <NativeTabs.Trigger key="home" name="(home)">
         <Icon 
           sf="house.fill" 
-          size={26} 
-          color={{ light: '#000000', dark: '#FFFFFF' }} 
+          size={24} 
+          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
         />
         <Label>Home</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="learn" name="learn">
         <Icon 
           sf="book.fill" 
-          size={26} 
-          color={{ light: '#000000', dark: '#FFFFFF' }} 
+          size={24} 
+          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
         />
         <Label>Learn</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="workshops" name="workshops">
         <Icon 
           sf="sparkles" 
-          size={26} 
-          color={{ light: '#000000', dark: '#FFFFFF' }} 
+          size={24} 
+          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
         />
         <Label>Workshops</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="my-studio" name="my-studio">
         <Icon 
           sf="person.fill" 
-          size={26} 
-          color={{ light: '#000000', dark: '#FFFFFF' }} 
+          size={24} 
+          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
         />
         <Label>My Studio</Label>
       </NativeTabs.Trigger>
