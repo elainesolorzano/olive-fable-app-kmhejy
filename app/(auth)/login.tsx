@@ -1,10 +1,115 @@
 
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
+
+export default function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signInWithEmail } = useAuth();
+  
+  // Responsive spacing based on screen height
+  const { height } = useWindowDimensions();
+  const isSmallPhone = height < 750;
+  const logoToTitleGap = isSmallPhone ? 14 : 28;
+  const topPadding = isSmallPhone ? 22 : 40;
+
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signInWithEmail(email, password);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to sign in');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={[styles.scrollContent, { paddingTop: topPadding }]}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.card}>
+        <View style={[styles.logo, { marginBottom: logoToTitleGap }]}>
+          <Logo size="large" />
+        </View>
+
+        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={styles.subtitle}>Sign in to continue your journey</Text>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            editable={!loading}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor={colors.textSecondary}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            editable={!loading}
+          />
+        </View>
+
+        <Pressable 
+          style={styles.forgotPassword}
+          onPress={() => router.push('/(auth)/forgot-password')}
+        >
+          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+        </Pressable>
+
+        <Pressable 
+          style={styles.button}
+          onPress={handleSignIn}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>Sign In</Text>
+          )}
+        </Pressable>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Pressable onPress={() => router.push('/(auth)/sign-up')}>
+            <Text style={styles.footerLink}>Sign Up</Text>
+          </Pressable>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -22,7 +127,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   logo: {
-    marginBottom: 8,
     alignSelf: 'center',
   },
   title: {
@@ -97,102 +201,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { signInWithEmail } = useAuth();
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const handleSignIn = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await signInWithEmail(email, password);
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to sign in');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <ScrollView 
-      style={styles.scrollView}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.card}>
-        <View style={styles.logo}>
-          <Logo size="large" />
-        </View>
-
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue your journey</Text>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!loading}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!loading}
-          />
-        </View>
-
-        <Pressable 
-          style={styles.forgotPassword}
-          onPress={() => router.push('/(auth)/forgot-password')}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </Pressable>
-
-        <Pressable 
-          style={styles.button}
-          onPress={handleSignIn}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.buttonText}>Sign In</Text>
-          )}
-        </Pressable>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <Pressable onPress={() => router.push('/(auth)/sign-up')}>
-            <Text style={styles.footerLink}>Sign Up</Text>
-          </Pressable>
-        </View>
-      </View>
-    </ScrollView>
-  );
-}
