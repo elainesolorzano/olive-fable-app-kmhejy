@@ -44,7 +44,12 @@ export default function SignUpScreen() {
   };
 
   return (
-    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+    <ScrollView 
+      style={styles.scrollView} 
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <View style={styles.container}>
         <View style={styles.card}>
           <Logo size="large" style={styles.logo} />
@@ -114,12 +119,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: 'center',
   },
   container: {
-    flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   card: {
     maxWidth: 420,
