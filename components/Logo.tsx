@@ -4,12 +4,10 @@ import { Image, StyleSheet, useColorScheme, ImageStyle, StyleProp } from 'react-
 
 interface LogoProps {
   size?: 'small' | 'medium' | 'large';
-  width?: number;
-  height?: number;
   style?: StyleProp<ImageStyle>;
 }
 
-export const Logo: React.FC<LogoProps> = ({ size = 'medium', width, height, style }) => {
+export const Logo: React.FC<LogoProps> = ({ size = 'medium', style }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -24,10 +22,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'medium', width, height, styl
     large: { width: 280, height: 93 },
   };
 
-  // Use custom dimensions if provided, otherwise use size map
-  const dimensions = width && height 
-    ? { width, height }
-    : sizeMap[size];
+  const dimensions = sizeMap[size];
 
   return (
     <Image

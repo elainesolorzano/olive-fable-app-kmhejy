@@ -35,10 +35,11 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === "(auth)";
 
-    // Allow access to tabs without authentication for now
-    // Users can still sign in from the home screen
-    if (session && inAuthGroup) {
-      // Redirect to tabs if authenticated and in auth screens
+    if (!session && !inAuthGroup) {
+      // Redirect to login if not authenticated
+      router.replace("/(auth)/login");
+    } else if (session && inAuthGroup) {
+      // Redirect to tabs if authenticated
       router.replace("/(tabs)");
     }
   }, [session, loading, segments, router]);
@@ -105,30 +106,28 @@ export default function RootLayout() {
     return null;
   }
 
-  // Olive & Fable Light Theme
-  const OliveFableTheme: Theme = {
+  const CustomDefaultTheme: Theme = {
     ...DefaultTheme,
     dark: false,
     colors: {
-      primary: "#111F0F",
-      background: "#F7F2EA",
-      card: "#FFFFFF",
-      text: "#111F0F",
-      border: "#E2DDD5",
-      notification: "#FF3B30",
+      primary: "rgb(0, 122, 255)",
+      background: "rgb(242, 242, 247)",
+      card: "rgb(255, 255, 255)",
+      text: "rgb(0, 0, 0)",
+      border: "rgb(216, 216, 220)",
+      notification: "rgb(255, 59, 48)",
     },
   };
 
-  // Olive & Fable Dark Theme
-  const OliveFableDarkTheme: Theme = {
+  const CustomDarkTheme: Theme = {
     ...DarkTheme,
     colors: {
-      primary: "#F7F2EA",
-      background: "#1A1A1A",
-      card: "#2B2B2B",
-      text: "#F7F2EA",
-      border: "#3A3A3A",
-      notification: "#FF6B6B",
+      primary: "rgb(10, 132, 255)",
+      background: "rgb(1, 1, 1)",
+      card: "rgb(28, 28, 30)",
+      text: "rgb(255, 255, 255)",
+      border: "rgb(44, 44, 46)",
+      notification: "rgb(255, 69, 58)",
     },
   };
 
@@ -137,7 +136,7 @@ export default function RootLayout() {
       <StatusBar style="auto" animated />
       <SafeAreaProvider>
         <ThemeProvider
-          value={colorScheme === "dark" ? OliveFableDarkTheme : OliveFableTheme}
+          value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
         >
           <SupabaseAuthProvider>
             <WidgetProvider>
