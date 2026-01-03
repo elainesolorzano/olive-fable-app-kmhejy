@@ -55,9 +55,9 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(home)"
         options={{
-          title: 'Home',
+          title: 'Client Lounge',
           tabBarIcon: ({ color }) => <IconSymbol ios_icon_name="house.fill" android_material_icon_name="home" size={24} color={color} />,
         }}
       />
