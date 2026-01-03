@@ -6,7 +6,7 @@ import { Stack, router, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme, Alert, View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { useColorScheme, Alert, View, ActivityIndicator, StyleSheet } from "react-native";
 import { useNetworkState } from "expo-network";
 import {
   DarkTheme,
@@ -19,54 +19,20 @@ import { WidgetProvider } from "@/contexts/WidgetContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { colors } from "@/styles/commonStyles";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  initialRouteName: "(auth)", // Start with auth by default
+  initialRouteName: "(tabs)",
 };
 
-// Protected route wrapper that handles auth routing
 function RootLayoutNav() {
-  const { session, loading } = useAuth();
+  const { user, loading, emailVerified } = useAuth();
   const segments = useSegments();
-  const colorScheme = useColorScheme();
   const networkState = useNetworkState();
 
-  // Handle auth routing
+  // Handle network state
   useEffect(() => {
-    if (loading) {
-      console.log('RootLayoutNav: Auth state is loading...');
-      return;
-    }
-
-    const inAuthGroup = segments[0] === '(auth)';
-    const inTabsGroup = segments[0] === '(tabs)';
-
-    console.log('RootLayoutNav: Auth state changed', {
-      hasSession: !!session,
-      inAuthGroup,
-      inTabsGroup,
-      segments
-    });
-
-    if (!session && !inAuthGroup) {
-      // User is not signed in and not in auth group, redirect to login
-      console.log('RootLayoutNav: No session, redirecting to login');
-      router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
-      // User is signed in but still in auth group, redirect to tabs
-      console.log('RootLayoutNav: Session exists, redirecting to tabs');
-      router.replace('/(tabs)');
-    }
-  }, [session, loading, segments]);
-
-  // Network state alert
-  useEffect(() => {
-    if (
-      !networkState.isConnected &&
-      networkState.isInternetReachable === false
-    ) {
+    if (!networkState.isConnected && networkState.isInternetReachable === false) {
       Alert.alert(
         "🔌 You are offline",
         "You can keep using the app! Your changes will be saved locally and synced when you are back online."
@@ -74,89 +40,88 @@ function RootLayoutNav() {
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
 
-  // Show loading screen while checking auth state
+  // Handle navigation based on auth state
+  useEffect(() => {
+    if (loading) {
+      console.log('Auth loading...');
+      return;
+    }
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const inTabsGroup = segments[0] === "(tabs)";
+
+    console.log('Navigation check:', {
+      user: user ? 'exists' : 'null',
+      emailVerified,
+      segments,
+      inAuthGroup,
+      inTabsGroup
+    });
+
+    if (!user) {
+      // Not authenticated - redirect to login
+      if (!inAuthGroup) {
+        console.log('Redirecting to login - no user');
+        router.replace("/(auth)/login");
+      }
+    } else if (!emailVerified) {
+      // Authenticated but email not verified - redirect to verification screen
+      if (segments[1] !== "verify-email") {
+        console.log('Redirecting to verify-email - email not verified');
+        router.replace("/(auth)/verify-email");
+      }
+    } else {
+      // Authenticated and verified - redirect to main app
+      if (!inTabsGroup) {
+        console.log('Redirecting to tabs - user authenticated and verified');
+        router.replace("/(tabs)");
+      }
+    }
+  }, [user, loading, emailVerified, segments]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
 
-  const CustomDefaultTheme: Theme = {
-    ...DefaultTheme,
-    dark: false,
-    colors: {
-      primary: "rgb(0, 122, 255)", // System Blue
-      background: "rgb(242, 242, 247)", // Light mode background
-      card: "rgb(255, 255, 255)", // White cards/surfaces
-      text: "rgb(0, 0, 0)", // Black text for light mode
-      border: "rgb(216, 216, 220)", // Light gray for separators/borders
-      notification: "rgb(255, 59, 48)", // System Red
-    },
-  };
-
-  const CustomDarkTheme: Theme = {
-    ...DarkTheme,
-    colors: {
-      primary: "rgb(10, 132, 255)", // System Blue (Dark Mode)
-      background: "rgb(1, 1, 1)", // True black background for OLED displays
-      card: "rgb(28, 28, 30)", // Dark card/surface color
-      text: "rgb(255, 255, 255)", // White text for dark mode
-      border: "rgb(44, 44, 46)", // Dark gray for separators/borders
-      notification: "rgb(255, 69, 58)", // System Red (Dark Mode)
-    },
-  };
-
   return (
-    <ThemeProvider
-      value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-    >
-      <GestureHandlerRootView>
-        <Stack>
-          {/* Auth screens */}
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-
-          {/* Main app with tabs */}
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-          {/* My Studio sub-screens */}
-          <Stack.Screen name="my-studio" options={{ headerShown: false }} />
-
-          {/* Modal Demo Screens */}
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: "modal",
-              title: "Standard Modal",
-            }}
-          />
-          <Stack.Screen
-            name="formsheet"
-            options={{
-              presentation: "formSheet",
-              title: "Form Sheet Modal",
-              sheetGrabberVisible: true,
-              sheetAllowedDetents: [0.5, 0.8, 1.0],
-              sheetCornerRadius: 20,
-            }}
-          />
-          <Stack.Screen
-            name="transparent-modal"
-            options={{
-              presentation: "transparentModal",
-              headerShown: false,
-            }}
-          />
-        </Stack>
-        <SystemBars style={"auto"} />
-      </GestureHandlerRootView>
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="my-studio" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="modal"
+        options={{
+          presentation: "modal",
+          title: "Standard Modal",
+        }}
+      />
+      <Stack.Screen
+        name="formsheet"
+        options={{
+          presentation: "formSheet",
+          title: "Form Sheet Modal",
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.5, 0.8, 1.0],
+          sheetCornerRadius: 20,
+        }}
+      />
+      <Stack.Screen
+        name="transparent-modal"
+        options={{
+          presentation: "transparentModal",
+          headerShown: false,
+        }}
+      />
+    </Stack>
   );
 }
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -171,14 +136,44 @@ export default function RootLayout() {
     return null;
   }
 
+  const CustomDefaultTheme: Theme = {
+    ...DefaultTheme,
+    dark: false,
+    colors: {
+      primary: "rgb(0, 122, 255)",
+      background: "rgb(242, 242, 247)",
+      card: "rgb(255, 255, 255)",
+      text: "rgb(0, 0, 0)",
+      border: "rgb(216, 216, 220)",
+      notification: "rgb(255, 59, 48)",
+    },
+  };
+
+  const CustomDarkTheme: Theme = {
+    ...DarkTheme,
+    colors: {
+      primary: "rgb(10, 132, 255)",
+      background: "rgb(1, 1, 1)",
+      card: "rgb(28, 28, 30)",
+      text: "rgb(255, 255, 255)",
+      border: "rgb(44, 44, 46)",
+      notification: "rgb(255, 69, 58)",
+    },
+  };
+
   return (
     <>
       <StatusBar style="auto" animated />
-      <AuthProvider>
-        <WidgetProvider>
-          <RootLayoutNav />
-        </WidgetProvider>
-      </AuthProvider>
+      <ThemeProvider value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}>
+        <AuthProvider>
+          <WidgetProvider>
+            <GestureHandlerRootView>
+              <RootLayoutNav />
+              <SystemBars style={"auto"} />
+            </GestureHandlerRootView>
+          </WidgetProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </>
   );
 }
@@ -186,14 +181,8 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: colors.background,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
   },
 });

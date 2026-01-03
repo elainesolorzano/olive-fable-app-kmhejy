@@ -44,7 +44,7 @@ export default function LoginScreen() {
         let errorMessage = error.message || 'An error occurred during sign in';
         
         if (errorMessage.includes('Invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.\n\nIf you just signed up, make sure you verified your email address.';
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
         } else if (errorMessage.includes('Email not confirmed')) {
           errorMessage = 'Please verify your email address before signing in. Check your inbox for the confirmation email.';
         }
@@ -53,6 +53,7 @@ export default function LoginScreen() {
       } else {
         console.log('Sign in successful, navigation will be handled by auth state change');
         // Navigation is handled automatically by the auth state change in _layout.tsx
+        // If email is not verified, user will be redirected to verify-email screen
       }
     } catch (error) {
       console.error('Unexpected error during sign in:', error);

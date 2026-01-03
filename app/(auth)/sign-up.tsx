@@ -61,15 +61,13 @@ export default function SignUpScreen() {
         Alert.alert('Sign Up Failed', errorMessage);
       } else {
         console.log('Sign up successful');
+        // User will be automatically redirected to verify-email screen by the auth state listener
         Alert.alert(
-          'Check Your Email!', 
-          `We've sent a verification email to ${trimmedEmail}.\n\nPlease click the link in the email to verify your account before signing in.`,
+          'Check Your Email! 📧', 
+          `We've sent a verification email to ${trimmedEmail}.\n\nPlease click the link in the email to verify your account.`,
           [
             {
               text: 'OK',
-              onPress: () => {
-                router.replace('/(auth)/login');
-              }
             }
           ]
         );
@@ -203,7 +201,7 @@ export default function SignUpScreen() {
             color={colors.primary}
           />
           <Text style={styles.infoText}>
-            After signing up, you&apos;ll receive a verification email. Please verify your email before signing in.
+            After signing up, you&apos;ll receive a verification email. Please verify your email to access the app.
           </Text>
         </View>
       </ScrollView>
