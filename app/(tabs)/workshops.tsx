@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface WorkshopFeature {
@@ -46,7 +46,7 @@ const workshopFeatures: WorkshopFeature[] = [
 ];
 
 export default function WorkshopsScreen() {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const [email, setEmail] = useState(user?.email || '');
   const [loading, setLoading] = useState(false);
 

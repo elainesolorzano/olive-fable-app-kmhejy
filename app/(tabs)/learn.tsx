@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-nati
 import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 
 interface ContentCategory {
   id: string;
@@ -81,7 +81,7 @@ const categories: ContentCategory[] = [
 ];
 
 export default function LearnScreen() {
-  const { session } = useAuth();
+  const { session } = useSupabaseAuth();
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const isAuthenticated = !!session;

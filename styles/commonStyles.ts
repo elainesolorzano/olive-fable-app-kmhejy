@@ -21,6 +21,21 @@ export const colors = {
 
 export const buttonStyles = StyleSheet.create({
   // Primary button - deep green background
+  primary: {
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  primaryText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
   primaryButton: {
     backgroundColor: colors.primary,
     paddingVertical: 16,

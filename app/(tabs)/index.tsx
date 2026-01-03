@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import React from 'react';
 import { IconSymbol } from '@/components/IconSymbol';
 import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Logo } from '@/components/Logo';
 
 const styles = StyleSheet.create({
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
 
   return (
     <View style={styles.container}>

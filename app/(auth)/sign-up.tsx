@@ -1,9 +1,6 @@
 
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
-import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import { Logo } from '@/components/Logo';
 import { 
   View, 
   Text, 
@@ -15,259 +12,362 @@ import {
   ActivityIndicator, 
   useWindowDimensions 
 } from 'react-native';
-
-export default function SignUpScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const { height } = useWindowDimensions();
-  const { signUpWithEmail } = useAuth();
-
-  const isSmallPhone = height < 750;
-  const logoToTitleGap = isSmallPhone ? 14 : 28;
-  const topPadding = isSmallPhone ? 22 : 40;
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const handleSignUp = async () => {
-    // Validate inputs
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password.');
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      Alert.alert('Error', 'Please enter a valid email address.');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters.');
-      return;
-    }
-
-    setLoading(true);
-    setSuccessMessage('');
-
-    try {
-      console.log('Attempting sign up with email:', email);
-      await signUpWithEmail(email, password, name || undefined);
-      
-      console.log('Sign up successful - showing verification message');
-      // Success - show message
-      setSuccessMessage('Check your email to verify your account, then come back and sign in.');
-      
-      // Clear form
-      setEmail('');
-      setPassword('');
-      setName('');
-      
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      
-      // Extract meaningful error message
-      let errorMessage = 'An error occurred during sign up. Please try again.';
-      
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.error) {
-        errorMessage = error.error;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-      
-      Alert.alert('Sign up failed', errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.contentContainer, { paddingTop: topPadding }]}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      <View style={styles.card}>
-        <View style={[styles.logoContainer, { marginBottom: logoToTitleGap }]}>
-          <Logo size="large" />
-        </View>
-
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join Olive & Fable Studio</Text>
-
-        {successMessage ? (
-          <View style={styles.successContainer}>
-            <Text style={styles.successText}>{successMessage}</Text>
-            <Pressable
-              style={[buttonStyles.primary, styles.button]}
-              onPress={() => router.replace('/(auth)/login')}
-            >
-              <Text style={buttonStyles.primaryText}>Go to Sign In</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <>
-            <TextInput
-              style={styles.input}
-              placeholder="Name (optional)"
-              placeholderTextColor={colors.textSecondary}
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              editable={!loading}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor={colors.textSecondary}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              editable={!loading}
-            />
-
-            <Pressable
-              style={[
-                buttonStyles.primary,
-                styles.button,
-                loading && styles.buttonDisabled
-              ]}
-              onPress={handleSignUp}
-              disabled={loading}
-            >
-              {loading ? (
-                <View style={styles.buttonContent}>
-                  <ActivityIndicator color="#fff" />
-                  <Text style={[buttonStyles.primaryText, styles.loadingText]}>
-                    Creating account...
-                  </Text>
-                </View>
-              ) : (
-                <Text style={buttonStyles.primaryText}>Sign Up</Text>
-              )}
-            </Pressable>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account? </Text>
-              <Pressable onPress={() => router.replace('/(auth)/login')} disabled={loading}>
-                <Text style={styles.link}>Sign In</Text>
-              </Pressable>
-            </View>
-          </>
-        )}
-      </View>
-    </ScrollView>
-  );
-}
+import { router } from 'expo-router';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { Logo } from '@/components/Logo';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  contentContainer: {
+  scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 40,
   },
-  card: {
+  logoWrapper: {
+    alignItems: 'center',
+  },
+  formContainer: {
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
   },
-  logoContainer: {
-    alignItems: 'center',
-  },
   title: {
     fontSize: 28,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
     marginTop: 0,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: colors.textSecondary,
     marginBottom: 32,
     textAlign: 'center',
   },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
   input: {
-    width: '100%',
     height: 50,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
-    marginBottom: 16,
     fontSize: 16,
     color: colors.text,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
   },
-  button: {
-    width: '100%',
-    height: 50,
+  inputError: {
+    borderColor: colors.error,
+  },
+  errorText: {
+    fontSize: 13,
+    color: colors.error,
+    marginTop: 6,
+  },
+  signUpButton: {
+    ...buttonStyles.primary,
     marginTop: 8,
+    marginBottom: 16,
   },
-  buttonDisabled: {
+  signUpButtonDisabled: {
     opacity: 0.6,
   },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+  signUpButtonText: {
+    ...buttonStyles.primaryText,
   },
-  loadingText: {
-    marginLeft: 8,
+  successMessage: {
+    backgroundColor: colors.success + '20',
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  link: {
-    fontSize: 14,
-    color: colors.primary,
+  successTitle: {
+    fontSize: 16,
     fontWeight: '600',
-  },
-  successContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
+    color: colors.success,
+    marginBottom: 8,
   },
   successText: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.text,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
+    lineHeight: 20,
+  },
+  signInContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  signInText: {
+    fontSize: 15,
+    color: colors.textSecondary,
+  },
+  signInLink: {
+    fontSize: 15,
+    color: colors.primary,
+    fontWeight: '600',
+    marginLeft: 4,
   },
 });
+
+export default function SignUpScreen() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    general?: string;
+  }>({});
+
+  const { signUp } = useSupabaseAuth();
+  const { height } = useWindowDimensions();
+
+  const isSmallPhone = height < 750;
+  const logoToTitleGap = isSmallPhone ? 14 : 28;
+  const topPadding = isSmallPhone ? 22 : 40;
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: typeof errors = {};
+
+    if (!name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    if (!email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignUp = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      const { requiresVerification } = await signUp(email, password, name);
+
+      if (requiresVerification) {
+        setShowSuccess(true);
+      } else {
+        // Auto sign-in successful, router will redirect
+        Alert.alert('Success', 'Account created successfully!');
+      }
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      
+      let errorMessage = 'Failed to create account. Please try again.';
+      
+      if (error.message) {
+        if (error.message.includes('already registered')) {
+          errorMessage = 'This email is already registered. Please sign in instead.';
+        } else if (error.message.includes('Password')) {
+          errorMessage = error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      setErrors({ general: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (showSuccess) {
+    return (
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={[styles.scrollContent, { paddingTop: topPadding }]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={[styles.logoWrapper, { marginBottom: logoToTitleGap }]}>
+            <Logo size="large" />
+          </View>
+
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Check Your Email</Text>
+            
+            <View style={styles.successMessage}>
+              <Text style={styles.successTitle}>✓ Account Created</Text>
+              <Text style={styles.successText}>
+                Check your email to verify your account, then return and sign in.
+              </Text>
+            </View>
+
+            <Pressable
+              style={styles.signUpButton}
+              onPress={() => router.replace('/(auth)/login')}
+            >
+              <Text style={styles.signUpButtonText}>Go to Sign In</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingTop: topPadding }]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={[styles.logoWrapper, { marginBottom: logoToTitleGap }]}>
+          <Logo size="large" />
+        </View>
+
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join Olive & Fable Studio</Text>
+
+          {errors.general && (
+            <View style={[styles.successMessage, { backgroundColor: colors.error + '20', borderColor: colors.error }]}>
+              <Text style={[styles.successTitle, { color: colors.error }]}>Error</Text>
+              <Text style={styles.successText}>{errors.general}</Text>
+            </View>
+          )}
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Name *</Text>
+            <TextInput
+              style={[styles.input, errors.name && styles.inputError]}
+              placeholder="Your name"
+              placeholderTextColor={colors.textSecondary}
+              value={name}
+              onChangeText={(text) => {
+                setName(text);
+                if (errors.name) setErrors({ ...errors, name: undefined });
+              }}
+              autoCapitalize="words"
+              editable={!loading}
+            />
+            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email *</Text>
+            <TextInput
+              style={[styles.input, errors.email && styles.inputError]}
+              placeholder="your@email.com"
+              placeholderTextColor={colors.textSecondary}
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (errors.email) setErrors({ ...errors, email: undefined });
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
+            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password *</Text>
+            <TextInput
+              style={[styles.input, errors.password && styles.inputError]}
+              placeholder="Minimum 8 characters"
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (errors.password) setErrors({ ...errors, password: undefined });
+              }}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
+            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Confirm Password *</Text>
+            <TextInput
+              style={[styles.input, errors.confirmPassword && styles.inputError]}
+              placeholder="Re-enter your password"
+              placeholderTextColor={colors.textSecondary}
+              value={confirmPassword}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
+                if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+              }}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
+            {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+          </View>
+
+          <Pressable
+            style={[styles.signUpButton, loading && styles.signUpButtonDisabled]}
+            onPress={handleSignUp}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.signUpButtonText}>Sign Up</Text>
+            )}
+          </Pressable>
+
+          <View style={styles.signInContainer}>
+            <Text style={styles.signInText}>Already have an account?</Text>
+            <Pressable onPress={() => router.push('/(auth)/login')} disabled={loading}>
+              <Text style={styles.signInLink}>Sign In</Text>
+            </Pressable>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}

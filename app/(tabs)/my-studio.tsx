@@ -5,10 +5,10 @@ import { Logo } from '@/components/Logo';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 
 export default function MyStudioScreen() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useSupabaseAuth();
 
   const handleEditProfile = () => {
     router.push('/my-studio/edit-profile');
