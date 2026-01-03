@@ -6,9 +6,6 @@ import type { User, Session } from '@supabase/supabase-js';
 interface UserProfile {
   id: string;
   user_id: string;
-  membership_status: 'active' | 'inactive' | 'cancelled';
-  stripe_customer_id: string | null;
-  stripe_subscription_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,7 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .insert({
           user_id: userId,
-          membership_status: 'inactive'
         })
         .select()
         .single();

@@ -1,28 +1,30 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleSignIn = async () => {
+  const handleSignUp = async () => {
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
-      Alert.alert('Error', 'Please enter both email and password');
+    if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
@@ -31,31 +33,49 @@ export default function LoginScreen() {
       return;
     }
 
-    console.log('Attempting to sign in with email:', trimmedEmail);
+    if (trimmedPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    console.log('Attempting to sign up with email:', trimmedEmail);
     setLoading(true);
 
     try {
-      const { error } = await signIn(trimmedEmail, trimmedPassword);
+      const { error } = await signUp(trimmedEmail, trimmedPassword);
 
       if (error) {
-        console.error('Sign in error:', error);
+        console.error('Sign up error:', error);
         
-        // Provide more specific error messages
-        let errorMessage = error.message || 'An error occurred during sign in';
+        let errorMessage = error.message || 'An error occurred during sign up';
         
-        if (errorMessage.includes('Invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.\n\nIf you just signed up, make sure you verified your email address.';
-        } else if (errorMessage.includes('Email not confirmed')) {
-          errorMessage = 'Please verify your email address before signing in. Check your inbox for the confirmation email.';
+        if (errorMessage.includes('User already registered')) {
+          errorMessage = 'This email is already registered. Please sign in instead or use a different email.';
         }
         
-        Alert.alert('Sign In Failed', errorMessage);
+        Alert.alert('Sign Up Failed', errorMessage);
       } else {
-        console.log('Sign in successful, navigation will be handled by auth state change');
-        // Navigation is handled automatically by the auth state change in _layout.tsx
+        console.log('Sign up successful');
+        Alert.alert(
+          'Check Your Email!', 
+          `We've sent a verification email to ${trimmedEmail}.\n\nPlease click the link in the email to verify your account before signing in.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.replace('/(auth)/login');
+              }
+            }
+          ]
+        );
       }
     } catch (error) {
-      console.error('Unexpected error during sign in:', error);
+      console.error('Unexpected error during sign up:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -64,6 +84,13 @@ export default function LoginScreen() {
 
   return (
     <View style={commonStyles.container}>
+      <Stack.Screen 
+        options={{
+          headerShown: true,
+          title: 'Create Account',
+          headerBackTitle: 'Back',
+        }}
+      />
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -80,8 +107,10 @@ export default function LoginScreen() {
               color={colors.primary}
             />
           </View>
-          <Text style={styles.title}>Olive & Fable Studio</Text>
-          <Text style={styles.subtitle}>Welcome back</Text>
+          <Text style={styles.title}>Join Olive & Fable Studio</Text>
+          <Text style={styles.subtitle}>
+            Create your free account to access all learning resources
+          </Text>
         </View>
 
         {/* Form */}
@@ -103,18 +132,10 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.label}>Password</Text>
-              <Pressable 
-                onPress={() => router.push('/(auth)/forgot-password')}
-                disabled={loading}
-              >
-                <Text style={styles.forgotLink}>Forgot?</Text>
-              </Pressable>
-            </View>
+            <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your password"
+              placeholder="At least 6 characters"
               placeholderTextColor={colors.textSecondary}
               value={password}
               onChangeText={setPassword}
@@ -122,12 +143,28 @@ export default function LoginScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               editable={!loading}
-              returnKeyType="done"
-              onSubmitEditing={handleSignIn}
+              returnKeyType="next"
             />
           </View>
 
-          {/* Sign In Button */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Re-enter your password"
+              placeholderTextColor={colors.textSecondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+              returnKeyType="done"
+              onSubmitEditing={handleSignUp}
+            />
+          </View>
+
+          {/* Submit Button */}
           <Pressable 
             style={({ pressed }) => [
               buttonStyles.primaryButton,
@@ -135,35 +172,26 @@ export default function LoginScreen() {
               pressed && styles.pressed,
               loading && styles.disabled
             ]}
-            onPress={handleSignIn}
+            onPress={handleSignUp}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={buttonStyles.buttonText}>Sign In</Text>
+              <Text style={buttonStyles.buttonText}>Create Account</Text>
             )}
           </Pressable>
 
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
+          {/* Sign In Link */}
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleText}>Already have an account?</Text>
+            <Pressable 
+              onPress={() => router.back()}
+              disabled={loading}
+            >
+              <Text style={styles.toggleLink}>Sign In</Text>
+            </Pressable>
           </View>
-
-          {/* Create Account Button */}
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.outlineButton,
-              pressed && styles.pressed,
-              loading && styles.disabled
-            ]}
-            onPress={() => router.push('/(auth)/sign-up')}
-            disabled={loading}
-          >
-            <Text style={buttonStyles.outlineButtonText}>Create Account</Text>
-          </Pressable>
         </View>
 
         {/* Info Card */}
@@ -175,7 +203,7 @@ export default function LoginScreen() {
             color={colors.primary}
           />
           <Text style={styles.infoText}>
-            Sign in to access all learning resources and educational content. All content is free for registered users!
+            After signing up, you&apos;ll receive a verification email. Please verify your email before signing in.
           </Text>
         </View>
       </ScrollView>
@@ -188,7 +216,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 80,
+    paddingTop: 40,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
@@ -218,21 +246,11 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 20,
   },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-  },
-  forgotLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
+    marginBottom: 8,
   },
   input: {
     backgroundColor: colors.card,
@@ -246,21 +264,22 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: 12,
   },
-  divider: {
+  toggleContainer: {
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 24,
+    marginTop: 24,
+    gap: 6,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.accent,
-  },
-  dividerText: {
+  toggleText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '400',
     color: colors.textSecondary,
-    marginHorizontal: 16,
+  },
+  toggleLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
   infoCard: {
     flexDirection: 'row',

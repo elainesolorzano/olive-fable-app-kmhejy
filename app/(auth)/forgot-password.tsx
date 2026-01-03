@@ -1,28 +1,25 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
+import { router, Stack } from 'expo-router';
+import { supabase } from '@/integrations/supabase/client';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleSignIn = async () => {
+  const handleResetPassword = async () => {
     const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPassword = password.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
-      Alert.alert('Error', 'Please enter both email and password');
+    if (!trimmedEmail) {
+      Alert.alert('Error', 'Please enter your email address');
       return;
     }
 
@@ -31,31 +28,32 @@ export default function LoginScreen() {
       return;
     }
 
-    console.log('Attempting to sign in with email:', trimmedEmail);
+    console.log('Attempting to send password reset email to:', trimmedEmail);
     setLoading(true);
 
     try {
-      const { error } = await signIn(trimmedEmail, trimmedPassword);
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+        redirectTo: 'https://natively.dev/reset-password',
+      });
 
       if (error) {
-        console.error('Sign in error:', error);
-        
-        // Provide more specific error messages
-        let errorMessage = error.message || 'An error occurred during sign in';
-        
-        if (errorMessage.includes('Invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.\n\nIf you just signed up, make sure you verified your email address.';
-        } else if (errorMessage.includes('Email not confirmed')) {
-          errorMessage = 'Please verify your email address before signing in. Check your inbox for the confirmation email.';
-        }
-        
-        Alert.alert('Sign In Failed', errorMessage);
+        console.error('Password reset error:', error);
+        Alert.alert('Error', error.message || 'Failed to send password reset email');
       } else {
-        console.log('Sign in successful, navigation will be handled by auth state change');
-        // Navigation is handled automatically by the auth state change in _layout.tsx
+        console.log('Password reset email sent successfully');
+        Alert.alert(
+          'Check Your Email',
+          `We've sent a password reset link to ${trimmedEmail}.\n\nPlease check your email and follow the instructions to reset your password.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => router.back()
+            }
+          ]
+        );
       }
     } catch (error) {
-      console.error('Unexpected error during sign in:', error);
+      console.error('Unexpected error during password reset:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -64,6 +62,13 @@ export default function LoginScreen() {
 
   return (
     <View style={commonStyles.container}>
+      <Stack.Screen 
+        options={{
+          headerShown: true,
+          title: 'Reset Password',
+          headerBackTitle: 'Back',
+        }}
+      />
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
@@ -74,14 +79,16 @@ export default function LoginScreen() {
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <IconSymbol 
-              ios_icon_name="pawprint.fill"
-              android_material_icon_name="pets"
+              ios_icon_name="lock.fill"
+              android_material_icon_name="lock"
               size={60}
               color={colors.primary}
             />
           </View>
-          <Text style={styles.title}>Olive & Fable Studio</Text>
-          <Text style={styles.subtitle}>Welcome back</Text>
+          <Text style={styles.title}>Forgot Password?</Text>
+          <Text style={styles.subtitle}>
+            Enter your email address and we&apos;ll send you a link to reset your password
+          </Text>
         </View>
 
         {/* Form */}
@@ -98,36 +105,12 @@ export default function LoginScreen() {
               autoCorrect={false}
               keyboardType="email-address"
               editable={!loading}
-              returnKeyType="next"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.label}>Password</Text>
-              <Pressable 
-                onPress={() => router.push('/(auth)/forgot-password')}
-                disabled={loading}
-              >
-                <Text style={styles.forgotLink}>Forgot?</Text>
-              </Pressable>
-            </View>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
               returnKeyType="done"
-              onSubmitEditing={handleSignIn}
+              onSubmitEditing={handleResetPassword}
             />
           </View>
 
-          {/* Sign In Button */}
+          {/* Submit Button */}
           <Pressable 
             style={({ pressed }) => [
               buttonStyles.primaryButton,
@@ -135,35 +118,26 @@ export default function LoginScreen() {
               pressed && styles.pressed,
               loading && styles.disabled
             ]}
-            onPress={handleSignIn}
+            onPress={handleResetPassword}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={buttonStyles.buttonText}>Sign In</Text>
+              <Text style={buttonStyles.buttonText}>Send Reset Link</Text>
             )}
           </Pressable>
 
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
+          {/* Back to Sign In */}
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleText}>Remember your password?</Text>
+            <Pressable 
+              onPress={() => router.back()}
+              disabled={loading}
+            >
+              <Text style={styles.toggleLink}>Sign In</Text>
+            </Pressable>
           </View>
-
-          {/* Create Account Button */}
-          <Pressable 
-            style={({ pressed }) => [
-              buttonStyles.outlineButton,
-              pressed && styles.pressed,
-              loading && styles.disabled
-            ]}
-            onPress={() => router.push('/(auth)/sign-up')}
-            disabled={loading}
-          >
-            <Text style={buttonStyles.outlineButtonText}>Create Account</Text>
-          </Pressable>
         </View>
 
         {/* Info Card */}
@@ -175,7 +149,7 @@ export default function LoginScreen() {
             color={colors.primary}
           />
           <Text style={styles.infoText}>
-            Sign in to access all learning resources and educational content. All content is free for registered users!
+            If you don&apos;t receive an email within a few minutes, please check your spam folder or try again.
           </Text>
         </View>
       </ScrollView>
@@ -188,7 +162,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 80,
+    paddingTop: 40,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
@@ -211,6 +185,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: colors.textSecondary,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   form: {
     marginBottom: 32,
@@ -218,21 +193,11 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 20,
   },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-  },
-  forgotLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
+    marginBottom: 8,
   },
   input: {
     backgroundColor: colors.card,
@@ -246,21 +211,22 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: 12,
   },
-  divider: {
+  toggleContainer: {
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 24,
+    marginTop: 24,
+    gap: 6,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.accent,
-  },
-  dividerText: {
+  toggleText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '400',
     color: colors.textSecondary,
-    marginHorizontal: 16,
+  },
+  toggleLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
   infoCard: {
     flexDirection: 'row',

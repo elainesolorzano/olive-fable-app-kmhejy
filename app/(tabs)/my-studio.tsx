@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,16 +8,6 @@ import { IconSymbol } from '@/components/IconSymbol';
 
 export default function MyStudioScreen() {
   const { user, session, profile, loading, signOut } = useAuth();
-
-  useEffect(() => {
-    console.log('MyStudioScreen: Checking authentication state');
-    
-    // If not loading and no session, redirect to login
-    if (!loading && !session) {
-      console.log('MyStudioScreen: No session found, redirecting to login');
-      router.replace('/(auth)/login');
-    }
-  }, [loading, session]);
 
   const handleEditProfile = () => {
     console.log('Edit Profile button pressed');
@@ -53,8 +43,8 @@ export default function MyStudioScreen() {
     console.log('Sign Out button pressed');
     try {
       await signOut();
-      console.log('User signed out successfully, redirecting to Home');
-      router.replace('/(tabs)/index');
+      console.log('User signed out successfully');
+      // Navigation to auth screen is handled automatically by root layout
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -68,11 +58,6 @@ export default function MyStudioScreen() {
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
-  }
-
-  // If no session after loading, return null (redirect will happen)
-  if (!session || !user) {
-    return null;
   }
 
   // User is authenticated, show My Studio content
@@ -96,10 +81,10 @@ export default function MyStudioScreen() {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
-                {user.user_metadata?.full_name || 'User'}
+                {user?.user_metadata?.full_name || 'User'}
               </Text>
               <Text style={styles.profileEmail}>
-                {user.email || 'No email'}
+                {user?.email || 'No email'}
               </Text>
             </View>
             <Pressable 
