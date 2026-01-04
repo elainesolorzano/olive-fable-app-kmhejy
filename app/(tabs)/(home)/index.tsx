@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardButtonText: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '600',
   },
