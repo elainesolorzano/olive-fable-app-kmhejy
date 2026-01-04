@@ -105,6 +105,7 @@ export default function SessionPrepScreen() {
 
   const timeline = [
     {
+      id: 'seven-days',
       title: '7 Days Before',
       description: 'Start preparing your pet for the session',
       checklist: [
@@ -115,6 +116,7 @@ export default function SessionPrepScreen() {
       ],
     },
     {
+      id: 'forty-eight-hours',
       title: '48 Hours Before',
       description: 'Final preparations',
       checklist: [
@@ -125,6 +127,7 @@ export default function SessionPrepScreen() {
       ],
     },
     {
+      id: 'day-of',
       title: 'Day Of',
       description: 'Session day checklist',
       checklist: [
@@ -167,7 +170,7 @@ export default function SessionPrepScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preparation Timeline</Text>
           {timeline.map((item, index) => (
-            <View key={index} style={styles.timelineItem}>
+            <View key={item.id} style={styles.timelineItem}>
               <View style={styles.timelineDot}>
                 <View style={styles.dot} />
                 {index < timeline.length - 1 && <View style={styles.line} />}
@@ -176,7 +179,7 @@ export default function SessionPrepScreen() {
                 <Text style={styles.timelineTitle}>{item.title}</Text>
                 <Text style={styles.timelineDescription}>{item.description}</Text>
                 {item.checklist.map((checkItem, checkIndex) => (
-                  <View key={checkIndex} style={styles.checklistItem}>
+                  <View key={`${item.id}-check-${checkIndex}`} style={styles.checklistItem}>
                     <IconSymbol
                       ios_icon_name="checkmark.circle.fill"
                       android_material_icon_name="check-circle"
