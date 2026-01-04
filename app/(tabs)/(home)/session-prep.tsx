@@ -1,12 +1,42 @@
 
-import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { IconSymbol } from '@/components/IconSymbol';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { GemmaMessage } from '@/components/GemmaMessage';
+import React from 'react';
 
-const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
+
+const timeline = [
+  {
+    id: 'week-before',
+    title: '1 Week Before',
+    items: [
+      { id: 'week-groom', text: 'Schedule grooming if needed' },
+      { id: 'week-outfit', text: 'Plan your outfit (neutrals work best)' },
+      { id: 'week-practice', text: 'Practice basic commands with treats' }
+    ]
+  },
+  {
+    id: 'day-before',
+    title: 'Day Before',
+    items: [
+      { id: 'day-exercise', text: 'Give your pet extra exercise' },
+      { id: 'day-pack', text: 'Pack treats, favorite toy, water' },
+      { id: 'day-nails', text: 'Trim nails if comfortable doing so' }
+    ]
+  },
+  {
+    id: 'session-day',
+    title: 'Session Day',
+    items: [
+      { id: 'session-meal', text: 'Light meal 2-3 hours before' },
+      { id: 'session-potty', text: 'Potty break right before leaving' },
+      { id: 'session-arrive', text: 'Arrive 10 minutes early to settle in' }
+    ]
+  }
+];
 
 const styles = StyleSheet.create({
   container: {
@@ -14,15 +44,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingBottom: TAB_BAR_HEIGHT + 20,
   },
   header: {
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
@@ -32,11 +62,9 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
   },
-  gemmaContainer: {
-    marginBottom: 24,
-  },
   section: {
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    marginBottom: 32,
   },
   sectionTitle: {
     fontSize: 20,
@@ -45,152 +73,87 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   timelineItem: {
-    flexDirection: 'row',
     marginBottom: 24,
   },
-  timelineDot: {
-    width: 40,
+  timelineHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 12,
   },
-  dot: {
+  timelineDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
     backgroundColor: colors.primary,
-    marginTop: 4,
-  },
-  line: {
-    width: 2,
-    flex: 1,
-    backgroundColor: colors.border,
-    marginTop: 4,
-  },
-  timelineContent: {
-    flex: 1,
-    paddingBottom: 8,
+    marginRight: 12,
   },
   timelineTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 8,
-  },
-  timelineDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 12,
   },
   checklistItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    marginLeft: 18,
     marginBottom: 8,
-    paddingLeft: 8,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.border,
   },
   checkIcon: {
-    marginRight: 8,
+    marginRight: 12,
     marginTop: 2,
   },
   checklistText: {
-    fontSize: 14,
-    color: colors.text,
     flex: 1,
-    lineHeight: 20,
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 24,
   },
 });
 
 export default function SessionPrepScreen() {
   const insets = useSafeAreaInsets();
 
-  const timeline = [
-    {
-      id: 'seven-days',
-      title: '7 Days Before',
-      description: 'Start preparing your pet for the session',
-      checklist: [
-        { id: 'seven-days-1', text: 'Schedule grooming appointment' },
-        { id: 'seven-days-2', text: 'Practice sitting and staying commands' },
-        { id: 'seven-days-3', text: 'Choose your favorite collar or accessories' },
-        { id: 'seven-days-4', text: 'Review location and parking information' },
-      ],
-    },
-    {
-      id: 'forty-eight-hours',
-      title: '48 Hours Before',
-      description: 'Final preparations',
-      checklist: [
-        { id: 'forty-eight-hours-1', text: 'Confirm your appointment time' },
-        { id: 'forty-eight-hours-2', text: 'Prepare treats and favorite toys' },
-        { id: 'forty-eight-hours-3', text: 'Plan your outfit (if joining photos)' },
-        { id: 'forty-eight-hours-4', text: 'Get a good night\'s sleep' },
-      ],
-    },
-    {
-      id: 'day-of',
-      title: 'Day Of',
-      description: 'Session day checklist',
-      checklist: [
-        { id: 'day-of-1', text: 'Feed your pet 2-3 hours before' },
-        { id: 'day-of-2', text: 'Take a walk to burn energy' },
-        { id: 'day-of-3', text: 'Bring water and treats' },
-        { id: 'day-of-4', text: 'Arrive 10 minutes early' },
-        { id: 'day-of-5', text: 'Relax and have fun!' },
-      ],
-    },
-  ];
-
   return (
     <View style={styles.container}>
-      <ScrollView
+      <ScrollView 
         style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 16 }
-        ]}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        contentInsetAdjustmentBehavior="automatic"
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Session Preparation</Text>
+        <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+          <Text style={styles.title}>Session Prep</Text>
           <Text style={styles.subtitle}>
-            Follow this timeline to ensure your pet is ready for their portrait session
+            A timeline to help you and your pet arrive relaxed and ready
           </Text>
         </View>
 
-        {/* Gemma's Message */}
-        <View style={styles.gemmaContainer}>
-          <GemmaMessage
-            message="A well-prepared pet makes for a relaxed session and beautiful portraits. Follow these steps and we'll create magic together!"
-            showAvatar={true}
-          />
-        </View>
+        <GemmaMessage 
+          message="The secret to great photos? A calm, happy pet. Follow this timeline and we'll handle the rest."
+        />
 
-        {/* Timeline */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preparation Timeline</Text>
-          {timeline.map((item, index) => (
+          {timeline.map((item) => (
             <View key={item.id} style={styles.timelineItem}>
-              <View style={styles.timelineDot}>
-                <View style={styles.dot} />
-                {index < timeline.length - 1 && <View style={styles.line} />}
-              </View>
-              <View style={styles.timelineContent}>
+              <View style={styles.timelineHeader}>
+                <View style={styles.timelineDot} />
                 <Text style={styles.timelineTitle}>{item.title}</Text>
-                <Text style={styles.timelineDescription}>{item.description}</Text>
-                {item.checklist.map((checkItem) => (
-                  <View key={checkItem.id} style={styles.checklistItem}>
-                    <IconSymbol
-                      ios_icon_name="checkmark.circle.fill"
-                      android_material_icon_name="check-circle"
-                      size={20}
-                      color={colors.primary}
-                      style={styles.checkIcon}
-                    />
-                    <Text style={styles.checklistText}>{checkItem.text}</Text>
-                  </View>
-                ))}
               </View>
+              {item.items.map((checkItem) => (
+                <View key={checkItem.id} style={styles.checklistItem}>
+                  <IconSymbol 
+                    ios_icon_name="checkmark.circle.fill"
+                    android_material_icon_name="check-circle"
+                    size={20}
+                    color={colors.primary}
+                    style={styles.checkIcon}
+                  />
+                  <Text style={styles.checklistText}>{checkItem.text}</Text>
+                </View>
+              ))}
             </View>
           ))}
         </View>
