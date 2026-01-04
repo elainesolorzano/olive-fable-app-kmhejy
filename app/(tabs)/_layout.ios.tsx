@@ -1,127 +1,26 @@
 
 import React from 'react';
-import { Tabs } from 'expo-router';
-import { IconSymbol } from '@/components/IconSymbol';
-import { colors } from '@/styles/commonStyles';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#111F0F',
-        tabBarInactiveTintColor: '#2B2B2B',
-        tabBarStyle: {
-          backgroundColor: '#F7F2EA',
-          borderTopWidth: 1,
-          borderTopColor: '#E5DED5',
-          paddingBottom: 20,
-          paddingTop: 8,
-          height: 88,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-          marginBottom: 2,
-        },
-        tabBarIconStyle: {
-          marginTop: 2,
-        },
-        tabBarShowLabel: true,
-      }}
-    >
-      {/* Hide index route */}
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-        }}
-      />
-      
-      {/* Client Lounge (Home) Tab */}
-      <Tabs.Screen
-        name="(home)"
-        options={{
-          title: 'Client Lounge',
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol
-              ios_icon_name="house.fill"
-              android_material_icon_name="home"
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      {/* Learn Tab */}
-      <Tabs.Screen
-        name="learn"
-        options={{
-          title: 'Learn',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol
-              ios_icon_name="book.fill"
-              android_material_icon_name="menu-book"
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      {/* Workshops Tab */}
-      <Tabs.Screen
-        name="workshops"
-        options={{
-          title: 'Workshops',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol
-              ios_icon_name="calendar"
-              android_material_icon_name="event"
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      {/* My Studio Tab */}
-      <Tabs.Screen
-        name="my-studio"
-        options={{
-          title: 'My Studio',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol
-              ios_icon_name="person.fill"
-              android_material_icon_name="person"
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      {/* Hide Book tab - removed from navigation */}
-      <Tabs.Screen
-        name="book"
-        options={{
-          href: null,
-        }}
-      />
-
-      {/* Hide Profile tab */}
-      <Tabs.Screen
-        name="profile"
-        options={{
-          href: null,
-        }}
-      />
-    </Tabs>
+    <NativeTabs>
+      <NativeTabs.Trigger key="home" name="(home)">
+        <Icon sf="house.fill" />
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger key="learn" name="learn">
+        <Icon sf="book.fill" />
+        <Label>Learn</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger key="workshops" name="workshops">
+        <Icon sf="graduationcap.fill" />
+        <Label>Workshops</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger key="my-studio" name="my-studio">
+        <Icon sf="person.fill" />
+        <Label>My Studio</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

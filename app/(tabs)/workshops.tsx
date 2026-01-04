@@ -1,11 +1,11 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput, Platform } from 'react-native';
-import { IconSymbol } from '@/components/IconSymbol';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { IconSymbol } from '@/components/IconSymbol';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 
 interface WorkshopFeature {
   id: string;
@@ -15,48 +15,259 @@ interface WorkshopFeature {
   description: string;
 }
 
-const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
+const TAB_BAR_HEIGHT = 60;
+
+const workshopFeatures: WorkshopFeature[] = [
+  {
+    id: 'prep',
+    icon: 'pets',
+    iosIcon: 'pawprint.fill',
+    title: 'Pet Posing Mastery',
+    description: 'Learn professional techniques to capture your pet\'s personality',
+  },
+  {
+    id: 'lighting',
+    icon: 'wb-sunny',
+    iosIcon: 'sun.max.fill',
+    title: 'Natural Lighting',
+    description: 'Master the art of using natural light for stunning portraits',
+  },
+  {
+    id: 'editing',
+    icon: 'photo-filter',
+    iosIcon: 'wand.and.stars',
+    title: 'Photo Editing',
+    description: 'Transform your photos with simple editing techniques',
+  },
+  {
+    id: 'connection',
+    icon: 'favorite',
+    iosIcon: 'heart.fill',
+    title: 'Deeper Connection',
+    description: 'Build trust and connection with your pet through photography',
+  },
+];
+
+export default function WorkshopsScreen() {
+  const insets = useSafeAreaInsets();
+  const { session } = useSupabaseAuth();
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Calculate bottom padding: tab bar height + safe area bottom + extra spacing
+  const bottomPadding = TAB_BAR_HEIGHT + insets.bottom + 24;
+
+  const handleJoinWaitlist = async () => {
+    if (!email.trim()) {
+      Alert.alert('Email Required', 'Please enter your email address to join the waitlist.');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // TODO: Backend Integration - Save email to waitlist table
+      console.log('Joining waitlist with email:', email);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      Alert.alert(
+        'Success!',
+        'You\'ve been added to the workshop waitlist. We\'ll notify you when workshops launch!',
+        [{ text: 'OK', onPress: () => setEmail('') }]
+      );
+    } catch (error) {
+      console.error('Error joining waitlist:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <View style={commonStyles.container} pointerEvents="auto">
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingBottom: bottomPadding }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={commonStyles.title}>Workshops</Text>
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>Coming Soon</Text>
+          </View>
+        </View>
+
+        {/* Hero Section */}
+        <View style={[commonStyles.card, styles.heroCard]}>
+          <IconSymbol 
+            ios_icon_name="sparkles"
+            android_material_icon_name="auto-awesome"
+            size={48}
+            color={colors.primary}
+            style={styles.heroIcon}
+          />
+          <Text style={styles.heroTitle}>Something Exciting is Coming</Text>
+          <Text style={styles.heroDescription}>
+            Workshops for pet parents who want better photos and deeper connection with their furry friends.
+          </Text>
+        </View>
+
+        {/* Features Section */}
+        <View style={styles.featuresSection}>
+          <Text style={styles.sectionTitle}>What You&apos;ll Learn</Text>
+          {workshopFeatures.map((feature) => (
+            <View
+              key={feature.id}
+              style={styles.featureCard}
+            >
+              <View style={styles.featureIconContainer}>
+                <IconSymbol 
+                  ios_icon_name={feature.iosIcon}
+                  android_material_icon_name={feature.icon}
+                  size={28}
+                  color={colors.primary}
+                />
+              </View>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDescription}>{feature.description}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Waitlist Section */}
+        <View style={[commonStyles.card, styles.waitlistCard]}>
+          <Text style={commonStyles.cardTitle}>Join the Waitlist</Text>
+          <Text style={commonStyles.cardText}>
+            Be the first to know when workshops launch. We&apos;ll send you all the details!
+          </Text>
+          
+          <TextInput
+            style={styles.emailInput}
+            placeholder="Enter your email"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!isSubmitting}
+          />
+
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.primaryButton,
+              pressed && styles.pressed,
+              isSubmitting && styles.disabled
+            ]}
+            onPress={handleJoinWaitlist}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color={colors.card} />
+            ) : (
+              <Text style={buttonStyles.buttonText}>Notify Me When Workshops Launch</Text>
+            )}
+          </Pressable>
+        </View>
+
+        {/* Membership CTA */}
+        <View style={[commonStyles.card, styles.membershipCard]}>
+          <IconSymbol 
+            ios_icon_name="star.fill"
+            android_material_icon_name="star"
+            size={32}
+            color={colors.accent}
+            style={styles.membershipIcon}
+          />
+          <Text style={commonStyles.cardTitle}>Get Early Access</Text>
+          <Text style={commonStyles.cardText}>
+            Members of The Olive & Fable Club will get exclusive early access to all workshops, plus special member pricing.
+          </Text>
+          <Pressable 
+            style={({ pressed }) => [
+              buttonStyles.secondaryButton,
+              pressed && styles.pressed
+            ]}
+            onPress={() => {
+              Alert.alert(
+                'Membership',
+                'Membership features coming soon! Join the waitlist to be notified.',
+                [{ text: 'OK' }]
+              );
+            }}
+          >
+            <Text style={buttonStyles.secondaryButtonText}>Learn About Membership</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
+  contentContainer: {
     paddingTop: 60,
+    paddingHorizontal: 20,
+    // paddingBottom handled dynamically
   },
   header: {
+    marginBottom: 24,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    justifyContent: 'space-between',
   },
-  badge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 16,
+  comingSoonBadge: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
-  badgeText: {
-    color: colors.text,
+  comingSoonText: {
     fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 1,
+    color: colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  title: {
-    fontSize: 32,
+  heroCard: {
+    alignItems: 'center',
+    backgroundColor: colors.highlight,
+    marginBottom: 32,
+  },
+  heroIcon: {
+    marginBottom: 16,
+  },
+  heroTitle: {
+    fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
     marginBottom: 12,
   },
-  subtitle: {
+  heroDescription: {
     fontSize: 16,
+    fontWeight: '400',
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 20,
   },
   featuresSection: {
     marginBottom: 32,
@@ -68,247 +279,65 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   featureCard: {
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  featureHeader: {
-    flexDirection: 'row',
+  featureIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.highlight,
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
+    marginRight: 16,
   },
-  featureIcon: {
-    marginRight: 12,
+  featureContent: {
+    flex: 1,
+    justifyContent: 'center',
   },
   featureTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    flex: 1,
+    marginBottom: 4,
   },
   featureDescription: {
     fontSize: 14,
+    fontWeight: '400',
     color: colors.textSecondary,
     lineHeight: 20,
   },
-  waitlistSection: {
-    backgroundColor: colors.primary,
-    borderRadius: 16,
-    padding: 24,
+  waitlistCard: {
     marginBottom: 16,
-    alignItems: 'center',
   },
-  waitlistTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  waitlistDescription: {
-    fontSize: 14,
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  input: {
-    backgroundColor: colors.text,
+  emailInput: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: colors.background,
-    width: '100%',
+    color: colors.text,
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  membershipCard: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+  },
+  membershipIcon: {
     marginBottom: 12,
   },
-  button: {
-    backgroundColor: colors.text,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
+  pressed: {
+    opacity: 0.7,
   },
-  buttonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: colors.text,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  secondaryButtonText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '600',
+  disabled: {
+    opacity: 0.5,
   },
 });
-
-export default function WorkshopsScreen() {
-  const { session } = useSupabaseAuth();
-  const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const features: WorkshopFeature[] = [
-    {
-      id: '1',
-      icon: 'camera',
-      iosIcon: 'camera.fill',
-      title: 'Professional Techniques',
-      description: 'Learn the same methods used by professional pet photographers',
-    },
-    {
-      id: '2',
-      icon: 'group',
-      iosIcon: 'person.3.fill',
-      title: 'Small Group Sessions',
-      description: 'Intimate workshops with personalized attention and feedback',
-    },
-    {
-      id: '3',
-      icon: 'pets',
-      iosIcon: 'pawprint.fill',
-      title: 'Hands-On Practice',
-      description: 'Work with real pets in a supportive, guided environment',
-    },
-    {
-      id: '4',
-      icon: 'school',
-      iosIcon: 'book.fill',
-      title: 'Comprehensive Curriculum',
-      description: 'From basics to advanced techniques, all skill levels welcome',
-    },
-  ];
-
-  const handleJoinWaitlist = async () => {
-    if (!email.trim()) {
-      Alert.alert('Email Required', 'Please enter your email address');
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // TODO: Backend Integration - Save email to waitlist table
-      const { error } = await supabase
-        .from('workshop_waitlist')
-        .insert([{ email: email.trim() }]);
-
-      if (error) {
-        console.error('Waitlist error:', error);
-        Alert.alert('Success', 'Thanks for joining! We\'ll notify you when workshops launch.');
-      } else {
-        Alert.alert('Success', 'You\'re on the list! We\'ll email you when workshops are available.');
-        setEmail('');
-      }
-    } catch (error) {
-      console.error('Waitlist error:', error);
-      Alert.alert('Success', 'Thanks for your interest! We\'ll be in touch soon.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 16 }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>COMING SOON</Text>
-          </View>
-          <Text style={styles.title}>Workshops</Text>
-          <Text style={styles.subtitle}>
-            Something exciting is coming. Workshops for pet parents who want better photos and deeper connection.
-          </Text>
-        </View>
-
-        {/* Features */}
-        <View style={styles.featuresSection}>
-          <Text style={styles.sectionTitle}>What to Expect</Text>
-          {features.map((feature) => (
-            <View key={feature.id} style={styles.featureCard}>
-              <View style={styles.featureHeader}>
-                <IconSymbol
-                  ios_icon_name={feature.iosIcon}
-                  android_material_icon_name={feature.icon}
-                  size={24}
-                  color={colors.primary}
-                  style={styles.featureIcon}
-                />
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-              </View>
-              <Text style={styles.featureDescription}>
-                {feature.description}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Waitlist CTA */}
-        <View style={styles.waitlistSection}>
-          <Text style={styles.waitlistTitle}>Be the First to Know</Text>
-          <Text style={styles.waitlistDescription}>
-            Join the waitlist and get notified when workshops launch
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            placeholderTextColor={colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!loading}
-          />
-          <Pressable
-            style={styles.button}
-            onPress={handleJoinWaitlist}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : (
-              <Text style={styles.buttonText}>Notify Me When Workshops Launch</Text>
-            )}
-          </Pressable>
-          {session && (
-            <Pressable style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonText}>
-                Join Membership for Early Access
-              </Text>
-            </Pressable>
-          )}
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
