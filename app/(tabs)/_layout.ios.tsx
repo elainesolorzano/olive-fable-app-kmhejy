@@ -6,35 +6,23 @@ export default function TabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger key="home" name="(home)">
-        <Icon 
-          sf="house.fill" 
-          size={24} 
-          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
-        />
+        <Icon sf="house.fill" />
         <Label>Home</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="learn" name="learn">
-        <Icon 
-          sf="book.fill" 
-          size={24} 
-          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
-        />
+        <Icon sf="book.fill" />
         <Label>Learn</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger key="book" name="book">
+        <Icon sf="calendar" />
+        <Label>Book</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger key="workshops" name="workshops">
-        <Icon 
-          sf="sparkles" 
-          size={24} 
-          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
-        />
+        <Icon sf="graduationcap.fill" />
         <Label>Workshops</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="my-studio" name="my-studio">
-        <Icon 
-          sf="person.fill" 
-          size={24} 
-          color={{ light: '#111F0F', dark: '#FFFFFF' }} 
-        />
+        <Icon sf="person.fill" />
         <Label>My Studio</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
