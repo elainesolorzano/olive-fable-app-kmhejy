@@ -111,25 +111,18 @@ export default function GettingToStudioScreen() {
   const insets = useSafeAreaInsets();
 
   const handleOpenMaps = async () => {
+    // Updated address as requested
     const address = 'Olive and Fable Pet Photography, 720 Market Street, Suite J, Kirkland, WA 98034';
     const encodedAddress = encodeURIComponent(address);
     
     let url: string;
     
     if (Platform.OS === 'ios') {
-      // Use Apple Maps on iOS with proper format
-      url = `http://maps.apple.com/?q=${encodedAddress}`;
+      // Use Apple Maps on iOS with HTTPS URL
+      url = `https://maps.apple.com/?q=${encodedAddress}`;
     } else if (Platform.OS === 'android') {
-      // Try geo: scheme first, with Google Maps HTTPS as fallback
-      const geoUrl = `geo:0,0?q=${encodedAddress}`;
-      const canOpenGeo = await Linking.canOpenURL(geoUrl);
-      
-      if (canOpenGeo) {
-        url = geoUrl;
-      } else {
-        // Fallback to Google Maps HTTPS URL
-        url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-      }
+      // Use Google Maps HTTPS URL for Android
+      url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
     } else {
       // Web and other platforms use Google Maps HTTPS
       url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
