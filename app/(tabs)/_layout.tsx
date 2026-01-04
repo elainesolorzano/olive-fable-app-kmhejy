@@ -1,97 +1,56 @@
 
 import React from 'react';
-import { Tabs } from 'expo-router';
-import { IconSymbol } from '@/components/IconSymbol';
+import { Stack } from 'expo-router';
+import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
+  // Define the tabs configuration - exactly 4 tabs
+  const tabs: TabBarItem[] = [
+    {
+      name: '(home)',
+      route: '/(tabs)/(home)/',
+      icon: 'home',
+      label: 'Home',
+    },
+    {
+      name: 'learn',
+      route: '/(tabs)/learn',
+      icon: 'school',
+      label: 'Learn',
+    },
+    {
+      name: 'workshops',
+      route: '/(tabs)/workshops',
+      icon: 'event',
+      label: 'Workshops',
+    },
+    {
+      name: 'my-studio',
+      route: '/(tabs)/my-studio',
+      icon: 'person',
+      label: 'My Studio',
+    },
+  ];
+
+  // For Android and Web, use Stack navigation with custom floating tab bar
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#111F0F',
-        tabBarInactiveTintColor: '#2B2B2B',
-        tabBarLabelStyle: { 
-          fontSize: 12, 
-          fontWeight: '600', 
-          opacity: 1 
-        },
-        tabBarIconStyle: { 
-          opacity: 1 
-        },
-        tabBarStyle: { 
-          backgroundColor: '#FFFFFF', 
-          opacity: 1 
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="(home)"
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol 
-              ios_icon_name="house.fill" 
-              android_material_icon_name="home" 
-              size={size} 
-              color={color} 
-            />
-          ),
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'none', // Remove fade animation to prevent black screen flash
         }}
-      />
-      <Tabs.Screen
-        name="learn"
-        options={{
-          tabBarLabel: 'Learn',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol 
-              ios_icon_name="book.fill" 
-              android_material_icon_name="menu-book" 
-              size={size} 
-              color={color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="workshops"
-        options={{
-          tabBarLabel: 'Workshops',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol 
-              ios_icon_name="rectangle.grid.2x2.fill" 
-              android_material_icon_name="grid-view" 
-              size={size} 
-              color={color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="my-studio"
-        options={{
-          tabBarLabel: 'My Studio',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol 
-              ios_icon_name="person.fill" 
-              android_material_icon_name="person" 
-              size={size} 
-              color={color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="book"
-        options={{
-          href: null,
-        }}
-      />
-    </Tabs>
+      >
+        <Stack.Screen key="home" name="(home)" />
+        <Stack.Screen key="learn" name="learn" />
+        <Stack.Screen key="workshops" name="workshops" />
+        <Stack.Screen key="my-studio" name="my-studio" />
+        {/* Hide index, book, and profile routes from tab bar */}
+        <Stack.Screen name="index" options={{ href: null }} />
+        <Stack.Screen name="book" options={{ href: null }} />
+        <Stack.Screen name="profile" options={{ href: null }} />
+      </Stack>
+      <FloatingTabBar tabs={tabs} />
+    </>
   );
 }
