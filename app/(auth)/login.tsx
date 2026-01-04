@@ -1,5 +1,5 @@
 
-import { colors, commonStyles } from '@/styles/commonStyles';
+import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
 import { router } from 'expo-router';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: colors.textLight,
+    color: colors.textSecondary,
     marginBottom: 32,
     textAlign: 'center',
   },
@@ -48,8 +48,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    minHeight: 52,
-    height: 52,
+    height: 50,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -59,11 +58,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   inputError: {
-    borderColor: '#DC2626',
+    borderColor: colors.error,
   },
   errorText: {
     fontSize: 13,
-    color: '#DC2626',
+    color: colors.error,
     marginTop: 6,
   },
   forgotPassword: {
@@ -76,21 +75,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signInButton: {
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: '#111F0F',
-    justifyContent: 'center',
-    alignItems: 'center',
+    ...buttonStyles.primary,
     marginBottom: 16,
-    width: '100%',
   },
   signInButtonDisabled: {
     opacity: 0.6,
   },
   signInButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    ...buttonStyles.primaryText,
   },
   signUpContainer: {
     flexDirection: 'row',
@@ -100,7 +92,7 @@ const styles = StyleSheet.create({
   },
   signUpText: {
     fontSize: 15,
-    color: colors.textLight,
+    color: colors.textSecondary,
   },
   signUpLink: {
     fontSize: 15,
@@ -109,9 +101,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   errorMessage: {
-    backgroundColor: '#DC262620',
+    backgroundColor: colors.error + '20',
     borderWidth: 1,
-    borderColor: '#DC2626',
+    borderColor: colors.error,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -119,7 +111,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#DC2626',
+    color: colors.error,
     marginBottom: 4,
   },
   errorDescription: {
@@ -219,7 +211,7 @@ export default function LoginScreen() {
             <TextInput
               style={[styles.input, error && styles.inputError]}
               placeholder="your@email.com"
-              placeholderTextColor={colors.textLight}
+              placeholderTextColor={colors.textSecondary}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -237,7 +229,7 @@ export default function LoginScreen() {
             <TextInput
               style={[styles.input, error && styles.inputError]}
               placeholder="Enter your password"
-              placeholderTextColor={colors.textLight}
+              placeholderTextColor={colors.textSecondary}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
@@ -271,7 +263,7 @@ export default function LoginScreen() {
           </Pressable>
 
           <View style={styles.signUpContainer}>
-            <Text style={styles.signUpText}>Don&apos;t have an account?</Text>
+            <Text style={styles.signUpText}>Don't have an account?</Text>
             <Pressable onPress={() => router.push('/(auth)/sign-up')} disabled={loading}>
               <Text style={styles.signUpLink}>Sign Up</Text>
             </Pressable>
