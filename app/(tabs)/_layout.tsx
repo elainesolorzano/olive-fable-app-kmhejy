@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  // Define the tabs configuration
+  // Define the tabs configuration - exactly 4 tabs
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
@@ -13,10 +13,22 @@ export default function TabLayout() {
       label: 'Home',
     },
     {
-      name: 'profile',
-      route: '/(tabs)/profile',
+      name: 'learn',
+      route: '/(tabs)/learn',
+      icon: 'school',
+      label: 'Learn',
+    },
+    {
+      name: 'workshops',
+      route: '/(tabs)/workshops',
+      icon: 'event',
+      label: 'Workshops',
+    },
+    {
+      name: 'my-studio',
+      route: '/(tabs)/my-studio',
       icon: 'person',
-      label: 'Profile',
+      label: 'My Studio',
     },
   ];
 
@@ -30,7 +42,10 @@ export default function TabLayout() {
         }}
       >
         <Stack.Screen key="home" name="(home)" />
-        <Stack.Screen key="profile" name="profile" />
+        <Stack.Screen key="learn" name="learn" />
+        <Stack.Screen key="workshops" name="workshops" />
+        <Stack.Screen key="my-studio" name="my-studio" />
+        {/* Hide index and any other routes from tab bar */}
         <Stack.Screen name="index" options={{ href: null }} />
       </Stack>
       <FloatingTabBar tabs={tabs} />

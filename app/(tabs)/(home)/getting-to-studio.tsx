@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { GemmaMessage } from '@/components/GemmaMessage';
-import { View, Text, StyleSheet, ScrollView, Linking, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Linking, Pressable, Platform, Alert } from 'react-native';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
@@ -110,16 +110,32 @@ const styles = StyleSheet.create({
 export default function GettingToStudioScreen() {
   const insets = useSafeAreaInsets();
 
-  const handleOpenMaps = () => {
-    // Replace with actual studio address
-    const address = 'Olive & Fable Studio, Your City, State';
-    const url = Platform.select({
-      ios: `maps:0,0?q=${encodeURIComponent(address)}`,
-      android: `geo:0,0?q=${encodeURIComponent(address)}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
-    });
+  const handleOpenMaps = async () => {
+    // Updated address as requested
+    const address = 'Olive and Fable Pet Photography, 720 Market Street, Suite J, Kirkland, WA 98034';
+    
+    // Use reliable HTTP URL that works on all platforms
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-    Linking.openURL(url);
+    try {
+      const supported = await Linking.canOpenURL(googleMapsUrl);
+      if (supported) {
+        await Linking.openURL(googleMapsUrl);
+      } else {
+        Alert.alert(
+          'Unable to Open Maps',
+          'Could not open the maps application. Please try again later.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.log('Error opening maps:', error);
+      Alert.alert(
+        'Error',
+        'An error occurred while trying to open maps. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   return (
@@ -164,9 +180,10 @@ export default function GettingToStudioScreen() {
               <Text style={styles.cardTitle}>Address</Text>
             </View>
             <Text style={styles.address}>
-              Olive & Fable Studio{'\n'}
-              123 Main Street{'\n'}
-              Your City, State 12345
+              Olive and Fable Pet Photography{'\n'}
+              720 Market Street{'\n'}
+              Suite J{'\n'}
+              Kirkland, WA 98034
             </Text>
             <Pressable style={styles.button} onPress={handleOpenMaps}>
               <Text style={styles.buttonText}>Open in Maps</Text>
