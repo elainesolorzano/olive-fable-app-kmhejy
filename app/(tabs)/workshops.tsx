@@ -15,25 +15,25 @@ interface WorkshopFeature {
   description: string;
 }
 
-const TAB_BAR_HEIGHT = 80;
+const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 0 : 80;
 
 const workshopFeatures: WorkshopFeature[] = [
   {
-    id: '1',
+    id: 'feature-1',
     icon: 'camera',
     iosIcon: 'camera.fill',
     title: 'Better Photos',
     description: 'Learn professional techniques for capturing your pet'
   },
   {
-    id: '2',
+    id: 'feature-2',
     icon: 'favorite',
     iosIcon: 'heart.fill',
     title: 'Deeper Connection',
-    description: 'Build trust and understanding through the lens'
+    description: 'Build trust and understanding through photography'
   },
   {
-    id: '3',
+    id: 'feature-3',
     icon: 'school',
     iosIcon: 'book.fill',
     title: 'Expert Guidance',
@@ -41,214 +41,68 @@ const workshopFeatures: WorkshopFeature[] = [
   }
 ];
 
-export default function WorkshopsScreen() {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useSupabaseAuth();
-  const insets = useSafeAreaInsets();
-
-  const handleJoinWaitlist = async () => {
-    const emailToUse = user?.email || email.trim();
-    
-    if (!emailToUse) {
-      Alert.alert('Email Required', 'Please enter your email address to join the waitlist.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      const { error } = await supabase
-        .from('workshop_waitlist')
-        .insert([{ email: emailToUse }]);
-
-      if (error) throw error;
-
-      Alert.alert(
-        'You\'re on the list!',
-        'We\'ll notify you when workshops launch. Members get early access.',
-        [{ text: 'Perfect', style: 'default' }]
-      );
-      
-      setEmail('');
-    } catch (error: any) {
-      if (error.code === '23505') {
-        Alert.alert('Already Registered', 'This email is already on the waitlist.');
-      } else {
-        Alert.alert('Error', 'Something went wrong. Please try again.');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <ScrollView 
-      style={styles.container}
-      contentContainerStyle={[
-        styles.contentContainer,
-        { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 20 }
-      ]}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>Workshops</Text>
-        <Text style={styles.subtitle}>Coming Soon</Text>
-      </View>
-
-      <View style={styles.messageCard}>
-        <Text style={styles.messageText}>
-          Something exciting is coming. Workshops for pet parents who want better photos and deeper connection.
-        </Text>
-      </View>
-
-      <View style={styles.featuresSection}>
-        <Text style={styles.sectionTitle}>What to Expect</Text>
-        {workshopFeatures.map((feature) => (
-          <View
-            key={feature.id}
-            style={styles.featureCard}
-          >
-            <View style={styles.featureIcon}>
-              <IconSymbol
-                name={Platform.OS === 'ios' ? feature.iosIcon : feature.icon}
-                size={24}
-                color={colors.primary}
-              />
-            </View>
-            <View style={styles.featureContent}>
-              <Text style={styles.featureTitle}>{feature.title}</Text>
-              <Text style={styles.featureDescription}>{feature.description}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      <View style={styles.ctaSection}>
-        {!user && (
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            placeholderTextColor={colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        )}
-        
-        <Pressable
-          style={({ pressed }) => [
-            buttonStyles.primary,
-            pressed && buttonStyles.primaryPressed,
-            isSubmitting && buttonStyles.primaryDisabled
-          ]}
-          onPress={handleJoinWaitlist}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={buttonStyles.primaryText}>
-              Notify Me When Workshops Launch
-            </Text>
-          )}
-        </Pressable>
-
-        {!user && (
-          <Pressable
-            style={({ pressed }) => [
-              buttonStyles.secondary,
-              pressed && buttonStyles.secondaryPressed
-            ]}
-            onPress={() => Alert.alert('Membership', 'Join to get early access to workshops')}
-          >
-            <Text style={buttonStyles.secondaryText}>
-              Join Membership for Early Access
-            </Text>
-          </Pressable>
-        )}
-      </View>
-    </ScrollView>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  contentContainer: {
-    padding: 20,
+  scrollContent: {
+    paddingBottom: TAB_BAR_HEIGHT + 32,
   },
   header: {
-    marginBottom: 24,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   title: {
     fontSize: 32,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: colors.textSecondary,
-  },
-  messageCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 32,
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: colors.text,
-  },
-  featuresSection: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 16,
-  },
-  featureCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
     marginBottom: 12,
   },
+  subtitle: {
+    fontSize: 17,
+    lineHeight: 24,
+    color: colors.textSecondary,
+  },
+  featuresSection: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  featureCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
   featureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 16,
   },
   featureContent: {
     flex: 1,
   },
   featureTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 4,
   },
   featureDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
+    fontSize: 15,
     lineHeight: 20,
+    color: colors.textSecondary,
   },
   ctaSection: {
-    gap: 12,
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  inputContainer: {
+    marginBottom: 16,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
@@ -257,3 +111,102 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 });
+
+export default function WorkshopsScreen() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { user } = useSupabaseAuth();
+  const insets = useSafeAreaInsets();
+
+  const handleJoinWaitlist = async () => {
+    const emailToUse = user?.email || email.trim();
+    
+    if (!emailToUse) {
+      Alert.alert('Email Required', 'Please enter your email address');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('workshop_waitlist')
+        .insert([{ email: emailToUse }]);
+
+      if (error) throw error;
+
+      Alert.alert(
+        'Success!',
+        'You\'re on the list. We\'ll notify you when workshops launch.',
+        [{ text: 'OK' }]
+      );
+      setEmail('');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to join waitlist');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Workshops</Text>
+          <Text style={styles.subtitle}>
+            Something exciting is coming. Workshops for pet parents who want better photos and deeper connection.
+          </Text>
+        </View>
+
+        <View style={styles.featuresSection}>
+          {workshopFeatures.map((feature) => (
+            <View key={feature.id} style={styles.featureCard}>
+              <View style={styles.featureIcon}>
+                <IconSymbol
+                  name={feature.icon}
+                  ios_icon_name={feature.iosIcon}
+                  size={28}
+                  color={colors.primary}
+                />
+              </View>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDescription}>{feature.description}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.ctaSection}>
+          {!user && (
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                placeholderTextColor={colors.textTertiary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+          )}
+
+          <Pressable
+            style={[buttonStyles.primary, loading && buttonStyles.disabled]}
+            onPress={handleJoinWaitlist}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.buttonText} />
+            ) : (
+              <Text style={buttonStyles.primaryText}>
+                Notify Me When Workshops Launch
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
