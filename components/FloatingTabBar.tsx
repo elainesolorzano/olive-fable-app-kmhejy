@@ -40,7 +40,7 @@ interface FloatingTabBarProps {
 
 export default function FloatingTabBar({
   tabs,
-  containerWidth = screenWidth / 2.5,
+  containerWidth = screenWidth * 0.95,
   borderRadius = 35,
   bottomMargin
 }: FloatingTabBarProps) {
@@ -49,6 +49,7 @@ export default function FloatingTabBar({
   const theme = useTheme();
   const animatedValue = useSharedValue(0);
 
+  // Improved active tab detection with better path matching
   const activeTabIndex = React.useMemo(() => {
     let bestMatch = -1;
     let bestMatchScore = 0;
@@ -106,6 +107,7 @@ export default function FloatingTabBar({
     };
   });
 
+  // Dynamic styles - fully opaque, no translucency
   const dynamicStyles = {
     blurContainer: {
       ...styles.blurContainer,
@@ -114,19 +116,18 @@ export default function FloatingTabBar({
       ...Platform.select({
         ios: {
           backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.8)'
-            : 'rgba(255, 255, 255, 0.6)',
+            ? 'rgba(28, 28, 30, 1)'
+            : 'rgba(255, 255, 255, 1)',
         },
         android: {
           backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.95)'
-            : 'rgba(255, 255, 255, 0.6)',
+            ? 'rgba(28, 28, 30, 1)'
+            : 'rgba(255, 255, 255, 1)',
         },
         web: {
           backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.95)'
-            : 'rgba(255, 255, 255, 0.6)',
-          backdropFilter: 'blur(10px)',
+            ? 'rgba(28, 28, 30, 1)'
+            : 'rgba(255, 255, 255, 1)',
         },
       }),
     },
@@ -152,7 +153,7 @@ export default function FloatingTabBar({
         }
       ]}>
         <BlurView
-          intensity={80}
+          intensity={0}
           style={[dynamicStyles.blurContainer, { borderRadius }]}
         >
           <View style={dynamicStyles.background} />
@@ -163,7 +164,7 @@ export default function FloatingTabBar({
 
               return (
                 <TouchableOpacity
-                  key={index}
+                  key={`tab-${tab.name}-${index}`}
                   style={styles.tab}
                   onPress={() => handleTabPress(tab.route)}
                   activeOpacity={0.7}
@@ -173,13 +174,17 @@ export default function FloatingTabBar({
                       android_material_icon_name={tab.icon}
                       ios_icon_name={tab.icon}
                       size={24}
-                      color={isActive ? theme.colors.primary : (theme.dark ? '#98989D' : '#000000')}
+                      color={isActive ? '#111F0F' : '#2B2B2B'}
+                      style={{ opacity: 1 }}
                     />
                     <Text
                       style={[
                         styles.tabLabel,
-                        { color: theme.dark ? '#98989D' : '#8E8E93' },
-                        isActive && { color: theme.colors.primary, fontWeight: '600' },
+                        { 
+                          color: isActive ? '#111F0F' : '#2B2B2B',
+                          opacity: 1,
+                          fontWeight: isActive ? '600' : '500'
+                        },
                       ]}
                     >
                       {tab.label}
@@ -239,8 +244,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   tabLabel: {
-    fontSize: 9,
-    fontWeight: '500',
+    fontSize: 10,
     marginTop: 2,
   },
 });
