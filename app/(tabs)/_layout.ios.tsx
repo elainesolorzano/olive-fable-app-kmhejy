@@ -4,7 +4,12 @@ import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
   return (
-    <NativeTabs>
+    <NativeTabs
+      screenOptions={{
+        tabBarActiveTintColor: '#111F0F',
+        tabBarInactiveTintColor: '#2B2B2B',
+      }}
+    >
       <NativeTabs.Trigger name="(home)">
         <Icon sf="house.fill" />
         <Label>Home</Label>
@@ -14,14 +19,13 @@ export default function TabLayout() {
         <Label>Learn</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="workshops">
-        <Icon sf="rectangle.grid.2x2.fill" />
+        <Icon sf="calendar" />
         <Label>Workshops</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="my-studio">
         <Icon sf="person.fill" />
         <Label>My Studio</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="index" options={{ href: null }} />
     </NativeTabs>
   );
 }
