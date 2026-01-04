@@ -170,28 +170,32 @@ export default function SessionPrepScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preparation Timeline</Text>
           {timeline.map((item, index) => (
-            <View key={item.id} style={styles.timelineItem}>
-              <View style={styles.timelineDot}>
-                <View style={styles.dot} />
-                {index < timeline.length - 1 && <View style={styles.line} />}
+            <React.Fragment key={item.id}>
+              <View style={styles.timelineItem}>
+                <View style={styles.timelineDot}>
+                  <View style={styles.dot} />
+                  {index < timeline.length - 1 && <View style={styles.line} />}
+                </View>
+                <View style={styles.timelineContent}>
+                  <Text style={styles.timelineTitle}>{item.title}</Text>
+                  <Text style={styles.timelineDescription}>{item.description}</Text>
+                  {item.checklist.map((checkItem) => (
+                    <React.Fragment key={checkItem.id}>
+                      <View style={styles.checklistItem}>
+                        <IconSymbol
+                          ios_icon_name="checkmark.circle.fill"
+                          android_material_icon_name="check-circle"
+                          size={20}
+                          color={colors.primary}
+                          style={styles.checkIcon}
+                        />
+                        <Text style={styles.checklistText}>{checkItem.text}</Text>
+                      </View>
+                    </React.Fragment>
+                  ))}
+                </View>
               </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>{item.title}</Text>
-                <Text style={styles.timelineDescription}>{item.description}</Text>
-                {item.checklist.map((checkItem) => (
-                  <View key={checkItem.id} style={styles.checklistItem}>
-                    <IconSymbol
-                      ios_icon_name="checkmark.circle.fill"
-                      android_material_icon_name="check-circle"
-                      size={20}
-                      color={colors.primary}
-                      style={styles.checkIcon}
-                    />
-                    <Text style={styles.checklistText}>{checkItem.text}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
+            </React.Fragment>
           ))}
         </View>
       </ScrollView>

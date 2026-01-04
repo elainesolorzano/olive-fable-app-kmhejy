@@ -5,23 +5,29 @@ import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 export default function TabLayout() {
   return (
     <NativeTabs>
-      <NativeTabs.Trigger key="home" name="(home)">
+      {/* Main tab screens - these 4 tabs will be visible */}
+      <NativeTabs.Trigger name="(home)">
         <Icon sf="house.fill" />
         <Label>Home</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="learn" name="learn">
+      
+      <NativeTabs.Trigger name="learn">
         <Icon sf="book.fill" />
         <Label>Learn</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="workshops" name="workshops">
+      
+      <NativeTabs.Trigger name="workshops">
         <Icon sf="calendar" />
         <Label>Workshops</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="my-studio" name="my-studio">
+      
+      <NativeTabs.Trigger name="my-studio">
         <Icon sf="person.fill" />
         <Label>My Studio</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Screen key="index" name="index" options={{ href: null }} />
+      
+      {/* Hidden screen - this will not appear in the tab bar */}
+      <NativeTabs.Screen name="index" options={{ href: null }} />
     </NativeTabs>
   );
 }
