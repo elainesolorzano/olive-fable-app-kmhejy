@@ -179,7 +179,7 @@ export default function SessionPrepScreen() {
                 <Text style={styles.timelineTitle}>{item.title}</Text>
                 <Text style={styles.timelineDescription}>{item.description}</Text>
                 {item.checklist.map((checkItem, checkIndex) => (
-                  <View key={`${item?.id ?? item?.title ?? "timeline"}-${index}-${checkIndex}`} style={styles.checklistItem}>
+                  <View key={`${item?.id ?? item?.title ?? "timeline"}-${index}-${checkItem?.id ?? checkItem?.text ?? "check"}-${checkIndex}`} style={styles.checklistItem}>
                     <IconSymbol
                       ios_icon_name="checkmark.circle.fill"
                       android_material_icon_name="check-circle"
