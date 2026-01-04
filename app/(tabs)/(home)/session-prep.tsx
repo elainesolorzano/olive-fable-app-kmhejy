@@ -109,10 +109,10 @@ export default function SessionPrepScreen() {
       title: '7 Days Before',
       description: 'Start preparing your pet for the session',
       checklist: [
-        'Schedule grooming appointment',
-        'Practice sitting and staying commands',
-        'Choose your favorite collar or accessories',
-        'Review location and parking information',
+        { id: 'seven-days-1', text: 'Schedule grooming appointment' },
+        { id: 'seven-days-2', text: 'Practice sitting and staying commands' },
+        { id: 'seven-days-3', text: 'Choose your favorite collar or accessories' },
+        { id: 'seven-days-4', text: 'Review location and parking information' },
       ],
     },
     {
@@ -120,10 +120,10 @@ export default function SessionPrepScreen() {
       title: '48 Hours Before',
       description: 'Final preparations',
       checklist: [
-        'Confirm your appointment time',
-        'Prepare treats and favorite toys',
-        'Plan your outfit (if joining photos)',
-        'Get a good night\'s sleep',
+        { id: 'forty-eight-hours-1', text: 'Confirm your appointment time' },
+        { id: 'forty-eight-hours-2', text: 'Prepare treats and favorite toys' },
+        { id: 'forty-eight-hours-3', text: 'Plan your outfit (if joining photos)' },
+        { id: 'forty-eight-hours-4', text: 'Get a good night\'s sleep' },
       ],
     },
     {
@@ -131,11 +131,11 @@ export default function SessionPrepScreen() {
       title: 'Day Of',
       description: 'Session day checklist',
       checklist: [
-        'Feed your pet 2-3 hours before',
-        'Take a walk to burn energy',
-        'Bring water and treats',
-        'Arrive 10 minutes early',
-        'Relax and have fun!',
+        { id: 'day-of-1', text: 'Feed your pet 2-3 hours before' },
+        { id: 'day-of-2', text: 'Take a walk to burn energy' },
+        { id: 'day-of-3', text: 'Bring water and treats' },
+        { id: 'day-of-4', text: 'Arrive 10 minutes early' },
+        { id: 'day-of-5', text: 'Relax and have fun!' },
       ],
     },
   ];
@@ -179,8 +179,8 @@ export default function SessionPrepScreen() {
                 <View style={styles.timelineContent}>
                   <Text style={styles.timelineTitle}>{item.title}</Text>
                   <Text style={styles.timelineDescription}>{item.description}</Text>
-                  {item.checklist.map((checkItem, checkIndex) => (
-                    <View key={`${item.id}-check-${checkIndex}`} style={styles.checklistItem}>
+                  {item.checklist.map((checkItem) => (
+                    <View key={checkItem.id} style={styles.checklistItem}>
                       <IconSymbol
                         ios_icon_name="checkmark.circle.fill"
                         android_material_icon_name="check-circle"
@@ -188,7 +188,7 @@ export default function SessionPrepScreen() {
                         color={colors.primary}
                         style={styles.checkIcon}
                       />
-                      <Text style={styles.checklistText}>{checkItem}</Text>
+                      <Text style={styles.checklistText}>{checkItem.text}</Text>
                     </View>
                   ))}
                 </View>

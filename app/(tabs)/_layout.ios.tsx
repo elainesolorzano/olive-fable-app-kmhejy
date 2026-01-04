@@ -1,26 +1,76 @@
 
 import React from 'react';
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { Tabs } from 'expo-router';
+import { IconSymbol } from '@/components/IconSymbol';
 
 export default function TabLayout() {
   return (
-    <NativeTabs>
-      <NativeTabs.Trigger key="home" name="(home)">
-        <Icon sf="house.fill" />
-        <Label>Home</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="learn" name="learn">
-        <Icon sf="book.fill" />
-        <Label>Learn</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="workshops" name="workshops">
-        <Icon sf="calendar.badge.clock" />
-        <Label>Workshops</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="my-studio" name="my-studio">
-        <Icon sf="person.fill" />
-        <Label>My Studio</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: '#111F0F',
+        tabBarInactiveTintColor: '#8E8E93',
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="(home)"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              ios_icon_name="house.fill"
+              android_material_icon_name="home"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="learn"
+        options={{
+          title: 'Learn',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              ios_icon_name="book.fill"
+              android_material_icon_name="school"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="workshops"
+        options={{
+          title: 'Workshops',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              ios_icon_name="calendar"
+              android_material_icon_name="event"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="my-studio"
+        options={{
+          title: 'My Studio',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              ios_icon_name="person.fill"
+              android_material_icon_name="person"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }

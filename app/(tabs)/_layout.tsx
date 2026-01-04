@@ -41,10 +41,10 @@ export default function TabLayout() {
           animation: 'none',
         }}
       >
-        <Stack.Screen key="home" name="(home)" />
-        <Stack.Screen key="learn" name="learn" />
-        <Stack.Screen key="workshops" name="workshops" />
-        <Stack.Screen key="my-studio" name="my-studio" />
+        <Stack.Screen name="(home)" />
+        <Stack.Screen name="learn" />
+        <Stack.Screen name="workshops" />
+        <Stack.Screen name="my-studio" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>

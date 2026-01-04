@@ -99,8 +99,6 @@ export default function FloatingTabBar({
     router.push(route);
   };
 
-  // Remove unnecessary tabBarStyle animation to prevent flickering
-
   const tabWidthPercent = ((100 / tabs.length) - 1).toFixed(2);
 
   const indicatorStyle = useAnimatedStyle(() => {
@@ -186,13 +184,13 @@ export default function FloatingTabBar({
                       android_material_icon_name={tab.icon}
                       ios_icon_name={tab.icon}
                       size={28}
-                      color={isActive ? '#000000' : '#666666'}
+                      color={isActive ? '#111F0F' : '#666666'}
                     />
                     <Text
                       style={[
                         styles.tabLabel,
-                        { color: theme.dark ? '#98989D' : '#8E8E93' },
-                        isActive && { color: theme.colors.primary, fontWeight: '600' },
+                        { color: isActive ? '#111F0F' : '#666666' },
+                        isActive && { fontWeight: '600' },
                       ]}
                     >
                       {tab.label}

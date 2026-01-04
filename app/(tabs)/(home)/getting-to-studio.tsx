@@ -276,7 +276,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Studio 205 is on your right - ring the bell and we'll greet you!
+                Studio 205 is on your right - ring the bell and we&apos;ll greet you!
               </Text>
             </View>
           </View>
