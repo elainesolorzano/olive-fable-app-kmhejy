@@ -3,8 +3,6 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { IconSymbol } from '@/components/IconSymbol';
 
 interface WorkshopFeature {
@@ -15,7 +13,7 @@ interface WorkshopFeature {
   description: string;
 }
 
-const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 0 : 80;
+const TAB_BAR_HEIGHT = 80;
 
 const workshopFeatures: WorkshopFeature[] = [
   {
@@ -30,14 +28,14 @@ const workshopFeatures: WorkshopFeature[] = [
     icon: 'favorite',
     iosIcon: 'heart.fill',
     title: 'Deeper Connection',
-    description: 'Build trust and understanding through photography'
+    description: 'Build trust and understanding with your companion'
   },
   {
     id: 'feature-3',
-    icon: 'school',
-    iosIcon: 'book.fill',
-    title: 'Expert Guidance',
-    description: 'Step-by-step instruction from Olive & Fable'
+    icon: 'groups',
+    iosIcon: 'person.3.fill',
+    title: 'Community',
+    description: 'Connect with other passionate pet parents'
   }
 ];
 
@@ -47,12 +45,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    paddingBottom: TAB_BAR_HEIGHT + 32,
+    paddingHorizontal: 24,
+    paddingTop: 20,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
+    marginBottom: 32,
   },
   title: {
     fontSize: 32,
@@ -61,16 +58,30 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   subtitle: {
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 16,
     color: colors.textSecondary,
+    lineHeight: 24,
+  },
+  comingSoonBadge: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  comingSoonText: {
+    color: colors.background,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   featuresSection: {
-    paddingHorizontal: 24,
     marginBottom: 32,
   },
   featureCard: {
-    backgroundColor: colors.cardBackground,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -84,73 +95,63 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featureTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 4,
   },
   featureDescription: {
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 14,
     color: colors.textSecondary,
+    lineHeight: 20,
   },
   ctaSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  inputContainer: {
-    marginBottom: 16,
+    marginBottom: TAB_BAR_HEIGHT + 40,
   },
   input: {
-    backgroundColor: colors.cardBackground,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
     color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginBottom: 16,
   },
 });
 
 export default function WorkshopsScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user } = useSupabaseAuth();
   const insets = useSafeAreaInsets();
 
   const handleJoinWaitlist = async () => {
-    const emailToUse = user?.email || email.trim();
-    
-    if (!emailToUse) {
+    if (!email.trim()) {
       Alert.alert('Email Required', 'Please enter your email address');
       return;
     }
 
     setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('workshop_waitlist')
-        .insert([{ email: emailToUse }]);
-
-      if (error) throw error;
-
-      Alert.alert(
-        'Success!',
-        'You\'re on the list. We\'ll notify you when workshops launch.',
-        [{ text: 'OK' }]
-      );
-      setEmail('');
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to join waitlist');
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
       setLoading(false);
-    }
+      Alert.alert('Success!', 'You\'ve been added to the waitlist. We\'ll notify you when workshops launch.');
+      setEmail('');
+    }, 1000);
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 20 }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>Coming Soon</Text>
+          </View>
           <Text style={styles.title}>Workshops</Text>
           <Text style={styles.subtitle}>
             Something exciting is coming. Workshops for pet parents who want better photos and deeper connection.
@@ -159,50 +160,46 @@ export default function WorkshopsScreen() {
 
         <View style={styles.featuresSection}>
           {workshopFeatures.map((feature) => (
-            <View key={feature.id} style={styles.featureCard}>
-              <View style={styles.featureIcon}>
-                <IconSymbol
-                  name={feature.icon}
-                  ios_icon_name={feature.iosIcon}
-                  size={28}
-                  color={colors.primary}
-                />
+            <React.Fragment key={feature.id}>
+              <View style={styles.featureCard}>
+                <View style={styles.featureIcon}>
+                  <IconSymbol
+                    ios_icon_name={Platform.OS === 'ios' ? feature.iosIcon : undefined}
+                    android_material_icon_name={feature.icon}
+                    size={24}
+                    color={colors.accent}
+                  />
+                </View>
+                <View style={styles.featureContent}>
+                  <Text style={styles.featureTitle}>{feature.title}</Text>
+                  <Text style={styles.featureDescription}>{feature.description}</Text>
+                </View>
               </View>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={styles.featureDescription}>{feature.description}</Text>
-              </View>
-            </View>
+            </React.Fragment>
           ))}
         </View>
 
         <View style={styles.ctaSection}>
-          {!user && (
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your email"
-                placeholderTextColor={colors.textTertiary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-          )}
-
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your email"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          
           <Pressable
-            style={[buttonStyles.primary, loading && buttonStyles.disabled]}
+            style={[buttonStyles.primary, loading && { opacity: 0.6 }]}
             onPress={handleJoinWaitlist}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={colors.buttonText} />
+              <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={buttonStyles.primaryText}>
-                Notify Me When Workshops Launch
-              </Text>
+              <Text style={buttonStyles.primaryText}>Notify Me When Workshops Launch</Text>
             )}
           </Pressable>
         </View>
