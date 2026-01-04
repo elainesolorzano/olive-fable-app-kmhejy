@@ -45,8 +45,10 @@ export default function TabLayout() {
         <Stack.Screen key="learn" name="learn" />
         <Stack.Screen key="workshops" name="workshops" />
         <Stack.Screen key="my-studio" name="my-studio" />
-        {/* Hide index and any other routes from tab bar */}
+        {/* Hide index, book, and profile routes from tab bar */}
         <Stack.Screen name="index" options={{ href: null }} />
+        <Stack.Screen name="book" options={{ href: null }} />
+        <Stack.Screen name="profile" options={{ href: null }} />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>
