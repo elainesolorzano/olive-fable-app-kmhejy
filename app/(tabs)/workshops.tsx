@@ -159,23 +159,21 @@ export default function WorkshopsScreen() {
         </View>
 
         <View style={styles.featuresSection}>
-          {workshopFeatures.map((feature) => (
-            <React.Fragment key={feature.id}>
-              <View style={styles.featureCard}>
-                <View style={styles.featureIcon}>
-                  <IconSymbol
-                    ios_icon_name={Platform.OS === 'ios' ? feature.iosIcon : undefined}
-                    android_material_icon_name={feature.icon}
-                    size={24}
-                    color={colors.accent}
-                  />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureTitle}>{feature.title}</Text>
-                  <Text style={styles.featureDescription}>{feature.description}</Text>
-                </View>
+          {workshopFeatures.map((feature, index) => (
+            <View key={`${feature?.id ?? feature?.title ?? "feature"}-${index}`} style={styles.featureCard}>
+              <View style={styles.featureIcon}>
+                <IconSymbol
+                  ios_icon_name={Platform.OS === 'ios' ? feature.iosIcon : undefined}
+                  android_material_icon_name={feature.icon}
+                  size={24}
+                  color={colors.accent}
+                />
               </View>
-            </React.Fragment>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDescription}>{feature.description}</Text>
+              </View>
+            </View>
           ))}
         </View>
 
