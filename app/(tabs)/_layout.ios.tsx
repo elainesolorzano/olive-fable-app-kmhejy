@@ -14,7 +14,7 @@ export default function TabLayout() {
         <Label>Learn</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="workshops" name="workshops">
-        <Icon sf="graduationcap.fill" />
+        <Icon sf="calendar.badge.clock" />
         <Label>Workshops</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="my-studio" name="my-studio">

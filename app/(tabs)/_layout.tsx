@@ -15,13 +15,13 @@ export default function TabLayout() {
     {
       name: 'learn',
       route: '/(tabs)/learn',
-      icon: 'menu-book',
+      icon: 'school',
       label: 'Learn',
     },
     {
       name: 'workshops',
       route: '/(tabs)/workshops',
-      icon: 'school',
+      icon: 'event',
       label: 'Workshops',
     },
     {
