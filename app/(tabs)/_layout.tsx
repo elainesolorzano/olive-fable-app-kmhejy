@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  // Define the tabs configuration for Olive & Fable Studio
+  // Define the tabs configuration
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
@@ -13,22 +13,10 @@ export default function TabLayout() {
       label: 'Home',
     },
     {
-      name: 'learn',
-      route: '/(tabs)/learn',
-      icon: 'school',
-      label: 'Learn',
-    },
-    {
-      name: 'workshops',
-      route: '/(tabs)/workshops',
-      icon: 'event',
-      label: 'Workshops',
-    },
-    {
-      name: 'my-studio',
-      route: '/(tabs)/my-studio',
+      name: 'profile',
+      route: '/(tabs)/profile',
       icon: 'person',
-      label: 'My Studio',
+      label: 'Profile',
     },
   ];
 
@@ -38,13 +26,12 @@ export default function TabLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'none',
+          animation: 'none', // Remove fade animation to prevent black screen flash
         }}
       >
-        <Stack.Screen name="(home)" />
-        <Stack.Screen name="learn" />
-        <Stack.Screen name="workshops" />
-        <Stack.Screen name="my-studio" />
+        <Stack.Screen key="home" name="(home)" />
+        <Stack.Screen key="profile" name="profile" />
+        <Stack.Screen name="index" options={{ href: null }} />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>
