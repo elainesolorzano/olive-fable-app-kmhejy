@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { GemmaMessage } from '@/components/GemmaMessage';
-import { View, Text, StyleSheet, ScrollView, Linking, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Linking, Pressable, Platform, Alert } from 'react-native';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
@@ -110,16 +110,43 @@ const styles = StyleSheet.create({
 export default function GettingToStudioScreen() {
   const insets = useSafeAreaInsets();
 
-  const handleOpenMaps = () => {
-    // Replace with actual studio address
-    const address = 'Olive & Fable Studio, Your City, State';
-    const url = Platform.select({
-      ios: `maps:0,0?q=${encodeURIComponent(address)}`,
-      android: `geo:0,0?q=${encodeURIComponent(address)}`,
-      default: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
-    });
+  const handleOpenMaps = async () => {
+    const address = 'Olive and Fable Pet Photography, 720 Market Street, Suite J, Kirkland, WA 98034';
+    const encodedAddress = encodeURIComponent(address);
+    
+    let url: string;
+    
+    if (Platform.OS === 'ios') {
+      // Use Apple Maps on iOS with proper format
+      url = `http://maps.apple.com/?q=${encodedAddress}`;
+    } else if (Platform.OS === 'android') {
+      // Try geo: scheme first, with Google Maps HTTPS as fallback
+      const geoUrl = `geo:0,0?q=${encodedAddress}`;
+      const canOpenGeo = await Linking.canOpenURL(geoUrl);
+      
+      if (canOpenGeo) {
+        url = geoUrl;
+      } else {
+        // Fallback to Google Maps HTTPS URL
+        url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+      }
+    } else {
+      // Web and other platforms use Google Maps HTTPS
+      url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    }
 
-    Linking.openURL(url);
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        console.log('Cannot open maps URL:', url);
+        Alert.alert('Error', 'Unable to open maps application');
+      }
+    } catch (error) {
+      console.log('Error opening maps:', error);
+      Alert.alert('Error', 'Unable to open maps application');
+    }
   };
 
   return (
@@ -164,9 +191,10 @@ export default function GettingToStudioScreen() {
               <Text style={styles.cardTitle}>Address</Text>
             </View>
             <Text style={styles.address}>
-              Olive & Fable Studio{'\n'}
-              123 Main Street{'\n'}
-              Your City, State 12345
+              Olive and Fable Pet Photography{'\n'}
+              720 Market Street{'\n'}
+              Suite J{'\n'}
+              Kirkland, WA 98034
             </Text>
             <Pressable style={styles.button} onPress={handleOpenMaps}>
               <Text style={styles.buttonText}>Open in Maps</Text>
