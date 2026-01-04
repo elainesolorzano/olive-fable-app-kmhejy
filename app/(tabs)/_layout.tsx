@@ -19,12 +19,6 @@ export default function TabLayout() {
       label: 'Learn',
     },
     {
-      name: 'book',
-      route: '/(tabs)/book',
-      icon: 'event',
-      label: 'Book',
-    },
-    {
       name: 'workshops',
       route: '/(tabs)/workshops',
       icon: 'school',
@@ -49,7 +43,6 @@ export default function TabLayout() {
       >
         <Stack.Screen key="home" name="(home)" />
         <Stack.Screen key="learn" name="learn" />
-        <Stack.Screen key="book" name="book" />
         <Stack.Screen key="workshops" name="workshops" />
         <Stack.Screen key="my-studio" name="my-studio" />
       </Stack>

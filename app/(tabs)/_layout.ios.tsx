@@ -13,10 +13,6 @@ export default function TabLayout() {
         <Icon sf="book.fill" />
         <Label>Learn</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="book" name="book">
-        <Icon sf="calendar" />
-        <Label>Book</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger key="workshops" name="workshops">
         <Icon sf="graduationcap.fill" />
         <Label>Workshops</Label>
