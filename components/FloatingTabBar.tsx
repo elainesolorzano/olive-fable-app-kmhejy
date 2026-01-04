@@ -99,6 +99,8 @@ export default function FloatingTabBar({
     router.push(route);
   };
 
+  // Remove unnecessary tabBarStyle animation to prevent flickering
+
   const tabWidthPercent = ((100 / tabs.length) - 1).toFixed(2);
 
   const indicatorStyle = useAnimatedStyle(() => {
@@ -116,27 +118,27 @@ export default function FloatingTabBar({
     };
   });
 
-  // Explicit high-contrast colors for tab bar visibility
-  const tabBarBackgroundColor = '#F7F2EA'; // Same beige as app background
-  const activeColor = '#111111'; // High contrast black for active
-  const inactiveColor = '#2B2B2B'; // Dark gray for inactive
-
   // Dynamic styles based on theme
   const dynamicStyles = {
     blurContainer: {
       ...styles.blurContainer,
       borderWidth: 1.2,
       borderColor: 'rgba(255, 255, 255, 1)',
-      backgroundColor: tabBarBackgroundColor,
       ...Platform.select({
         ios: {
-          backgroundColor: tabBarBackgroundColor,
+          backgroundColor: theme.dark
+            ? 'rgba(28, 28, 30, 0.8)'
+            : 'rgba(255, 255, 255, 0.6)',
         },
         android: {
-          backgroundColor: tabBarBackgroundColor,
+          backgroundColor: theme.dark
+            ? 'rgba(28, 28, 30, 0.95)'
+            : 'rgba(255, 255, 255, 0.6)',
         },
         web: {
-          backgroundColor: tabBarBackgroundColor,
+          backgroundColor: theme.dark
+            ? 'rgba(28, 28, 30, 0.95)'
+            : 'rgba(255, 255, 255, 0.6)',
           backdropFilter: 'blur(10px)',
         },
       }),
@@ -146,7 +148,9 @@ export default function FloatingTabBar({
     },
     indicator: {
       ...styles.indicator,
-      backgroundColor: 'rgba(0, 0, 0, 0.06)', // Subtle indicator
+      backgroundColor: theme.dark
+        ? 'rgba(255, 255, 255, 0.08)' // Subtle white overlay in dark mode
+        : 'rgba(0, 0, 0, 0.04)', // Subtle black overlay in light mode
       width: `${tabWidthPercent}%` as `${number}%`, // Dynamic width based on number of tabs
     },
   };
@@ -182,20 +186,13 @@ export default function FloatingTabBar({
                       android_material_icon_name={tab.icon}
                       ios_icon_name={tab.icon}
                       size={24}
-                      color={isActive ? activeColor : inactiveColor}
+                      color={isActive ? theme.colors.primary : (theme.dark ? '#98989D' : '#000000')}
                     />
                     <Text
                       style={[
                         styles.tabLabel,
-                        { 
-                          color: inactiveColor,
-                          fontSize: 12,
-                          fontWeight: '600',
-                        },
-                        isActive && { 
-                          color: activeColor,
-                          fontWeight: '600',
-                        },
+                        { color: theme.dark ? '#98989D' : '#8E8E93' },
+                        isActive && { color: theme.colors.primary, fontWeight: '600' },
                       ]}
                     >
                       {tab.label}
@@ -260,6 +257,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   tabLabel: {
+    fontSize: 9,
+    fontWeight: '500',
     marginTop: 2,
     // Dynamic styling applied in component
   },

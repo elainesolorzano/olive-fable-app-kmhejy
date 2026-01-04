@@ -5,7 +5,6 @@ import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
   // Define the tabs configuration for Olive & Fable Studio
-  // Book tab removed as requested
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
