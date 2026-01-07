@@ -30,29 +30,29 @@ const workshopFeatures: WorkshopFeature[] = [
     icon: 'camera',
     iosIcon: 'camera.fill',
     title: 'For Pet Parents: Better Photos',
-    description: 'Easy tips for posing, lighting, and getting your pet's attention—using your phone or camera.',
+    description: 'Easy tips for posing, lighting, and getting your pet's attention—using your phone or camera.'
   },
   {
     id: '2',
-    icon: 'palette',
+    icon: 'color-lens',
     iosIcon: 'paintpalette.fill',
     title: 'For Photographers: Styling + Set Design',
-    description: 'Learn backdrops, props, color stories, and how to create consistent luxury looks.',
+    description: 'Learn backdrops, props, color stories, and how to create consistent luxury looks.'
   },
   {
     id: '3',
     icon: 'edit',
     iosIcon: 'slider.horizontal.3',
     title: 'Editing + Retouching',
-    description: 'Step-by-step workflows in Lightroom/Photoshop for clean, timeless, client-ready images.',
+    description: 'Step-by-step workflows in Lightroom/Photoshop for clean, timeless, client-ready images.'
   },
   {
     id: '4',
     icon: 'group',
     iosIcon: 'person.3.fill',
     title: 'Community + Critiques',
-    description: 'Connect with others, get feedback, and learn what sells in fine-art pet portraiture.',
-  },
+    description: 'Connect with others, get feedback, and learn what sells in fine-art pet portraiture.'
+  }
 ];
 
 export default function WorkshopsScreen() {
@@ -68,12 +68,10 @@ export default function WorkshopsScreen() {
   };
 
   const handleJoinWaitlist = async () => {
-    // Reset all messages
     setEmailError(null);
     setSuccessMessage(null);
     setSmsError(null);
 
-    // Validate email
     if (!email.trim()) {
       setEmailError('Please enter your email address');
       return;
@@ -84,7 +82,6 @@ export default function WorkshopsScreen() {
       return;
     }
 
-    // Construct mailto URL
     const to = 'hello@oliveandfable.com';
     const subject = 'Workshops Waitlist';
     const body = `Please add me to the Olive & Fable Workshops waitlist.\n\nEmail: ${email.trim()}\nI am a: Pet Parent / Photographer / Both (choose one)\n(Optional) What I want to learn: `;
@@ -107,7 +104,6 @@ export default function WorkshopsScreen() {
   };
 
   const handleTextMeTheLink = async () => {
-    // Reset messages
     setEmailError(null);
     setSuccessMessage(null);
     setSmsError(null);
@@ -138,23 +134,19 @@ export default function WorkshopsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Coming Soon Badge */}
         <View style={styles.comingSoonBadge}>
           <Text style={styles.comingSoonText}>COMING SOON</Text>
         </View>
 
-        {/* Header */}
         <Text style={styles.title}>Workshops</Text>
         <Text style={styles.subtitle}>
           Workshops are launching soon. Join the waitlist to get early access + launch perks.
         </Text>
 
-        {/* Intro Text */}
         <Text style={styles.introText}>
           Workshops are coming soon for pet parents who want better everyday photos and photographers who want to level up styling, lighting, editing, and client-ready workflow.
         </Text>
 
-        {/* Feature Cards */}
         <View style={styles.featuresContainer}>
           {workshopFeatures.map((feature) => (
             <View key={feature.id} style={styles.featureCard}>
@@ -174,7 +166,6 @@ export default function WorkshopsScreen() {
           ))}
         </View>
 
-        {/* Waitlist Signup */}
         <View style={styles.signupContainer}>
           <Text style={styles.signupLabel}>Join the Waitlist</Text>
           <TextInput
@@ -233,13 +224,13 @@ export default function WorkshopsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background
   },
   scrollView: {
-    flex: 1,
+    flex: 1
   },
   contentContainer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 24
   },
   comingSoonBadge: {
     alignSelf: 'flex-start',
@@ -247,34 +238,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginBottom: 16,
+    marginBottom: 16
   },
   comingSoonText: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 1
   },
   title: {
     fontSize: 32,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: 12
   },
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
     lineHeight: 24,
-    marginBottom: 24,
+    marginBottom: 24
   },
   introText: {
     fontSize: 16,
     color: colors.text,
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 32
   },
   featuresContainer: {
-    marginBottom: 40,
+    marginBottom: 40
   },
   featureCard: {
     flexDirection: 'row',
@@ -287,12 +278,12 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowRadius: 8
       },
       android: {
-        elevation: 2,
-      },
-    }),
+        elevation: 2
+      }
+    })
   },
   featureIconContainer: {
     width: 48,
@@ -301,30 +292,30 @@ const styles = StyleSheet.create({
     backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 16
   },
   featureContent: {
-    flex: 1,
+    flex: 1
   },
   featureTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 4
   },
   featureDescription: {
     fontSize: 14,
     color: colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 20
   },
   signupContainer: {
-    marginBottom: 32,
+    marginBottom: 32
   },
   signupLabel: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 16,
+    marginBottom: 16
   },
   emailInput: {
     backgroundColor: colors.card,
@@ -334,33 +325,33 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.border
   },
   joinButton: {
-    marginBottom: 16,
+    marginBottom: 16
   },
   textButton: {
     paddingVertical: 12,
-    alignItems: 'center',
+    alignItems: 'center'
   },
   textButtonPressed: {
-    opacity: 0.6,
+    opacity: 0.6
   },
   textButtonText: {
     fontSize: 16,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '600'
   },
   errorText: {
     fontSize: 14,
     color: '#DC2626',
     marginTop: -8,
-    marginBottom: 12,
+    marginBottom: 12
   },
   successText: {
     fontSize: 14,
     color: '#059669',
     marginTop: -8,
-    marginBottom: 12,
-  },
+    marginBottom: 12
+  }
 });
