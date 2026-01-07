@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput, Platform } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
 import { IconSymbol } from '@/components/IconSymbol';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput, Platform } from 'react-native';
 
 interface WorkshopFeature {
   id: string;
@@ -17,25 +17,25 @@ const TAB_BAR_HEIGHT = 80;
 
 const workshopFeatures: WorkshopFeature[] = [
   {
-    id: '1',
+    id: 'feature-1',
     icon: 'camera',
     iosIcon: 'camera.fill',
     title: 'Better Photos',
-    description: 'Learn professional techniques for capturing stunning pet portraits'
+    description: 'Learn professional techniques for capturing your pet'
   },
   {
-    id: '2',
+    id: 'feature-2',
     icon: 'favorite',
     iosIcon: 'heart.fill',
     title: 'Deeper Connection',
-    description: 'Build a stronger bond with your pet through photography'
+    description: 'Build trust and understanding with your companion'
   },
   {
-    id: '3',
-    icon: 'school',
-    iosIcon: 'book.fill',
-    title: 'Expert Guidance',
-    description: 'Get tips and tricks from professional pet photographers'
+    id: 'feature-3',
+    icon: 'groups',
+    iosIcon: 'person.3.fill',
+    title: 'Community',
+    description: 'Connect with other passionate pet parents'
   }
 ];
 
@@ -45,90 +45,83 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    paddingBottom: TAB_BAR_HEIGHT + 40,
-  },
-  header: {
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 32,
+  },
+  header: {
+    marginBottom: 32,
   },
   title: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 12,
   },
   subtitle: {
-    fontSize: 17,
+    fontSize: 16,
     color: colors.textSecondary,
     lineHeight: 24,
   },
+  comingSoonBadge: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  comingSoonText: {
+    color: colors.background,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
   featuresSection: {
-    paddingHorizontal: 24,
     marginBottom: 32,
   },
   featureCard: {
-    backgroundColor: colors.cardBackground,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-  },
-  featureHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: 'flex-start',
   },
   featureIcon: {
-    marginRight: 12,
+    marginRight: 16,
+  },
+  featureContent: {
+    flex: 1,
   },
   featureTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
+    marginBottom: 4,
   },
   featureDescription: {
-    fontSize: 15,
+    fontSize: 14,
     color: colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 20,
   },
-  waitlistSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  waitlistCard: {
-    backgroundColor: colors.cardBackground,
-    borderRadius: 16,
-    padding: 24,
-  },
-  waitlistTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  waitlistText: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    lineHeight: 22,
-    marginBottom: 20,
+  ctaSection: {
+    marginBottom: TAB_BAR_HEIGHT + 40,
   },
   input: {
-    backgroundColor: colors.inputBackground,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
     color: colors.text,
     marginBottom: 16,
   },
-  buttonContainer: {
-    gap: 12,
-  },
 });
 
 export default function WorkshopsScreen() {
-  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleJoinWaitlist = async () => {
     if (!email.trim()) {
@@ -136,23 +129,29 @@ export default function WorkshopsScreen() {
       return;
     }
 
-    setIsLoading(true);
+    setLoading(true);
     // Simulate API call
     setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert('Success!', 'You\'ve been added to the workshop waitlist');
+      setLoading(false);
+      Alert.alert('Success!', 'You\'ve been added to the waitlist. We\'ll notify you when workshops launch.');
       setEmail('');
-    }, 1500);
+    }, 1000);
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={{ paddingTop: insets.top }}
-        contentContainerStyle={styles.scrollContent}
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 20 }
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>Coming Soon</Text>
+          </View>
           <Text style={styles.title}>Workshops</Text>
           <Text style={styles.subtitle}>
             Something exciting is coming. Workshops for pet parents who want better photos and deeper connection.
@@ -161,57 +160,46 @@ export default function WorkshopsScreen() {
 
         <View style={styles.featuresSection}>
           {workshopFeatures.map((feature) => (
-            <React.Fragment key={feature.id}>
-              <View style={styles.featureCard}>
-                <View style={styles.featureHeader}>
-                  <IconSymbol
-                    ios_icon_name={feature.iosIcon}
-                    android_material_icon_name={feature.icon}
-                    size={24}
-                    color={colors.primary}
-                    style={styles.featureIcon}
-                  />
-                  <Text style={styles.featureTitle}>{feature.title}</Text>
-                </View>
+            <View key={feature.id} style={styles.featureCard}>
+              <View style={styles.featureIcon}>
+                <IconSymbol
+                  ios_icon_name={Platform.OS === 'ios' ? feature.iosIcon : undefined}
+                  android_material_icon_name={feature.icon}
+                  size={24}
+                  color={colors.accent}
+                />
+              </View>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
                 <Text style={styles.featureDescription}>{feature.description}</Text>
               </View>
-            </React.Fragment>
+            </View>
           ))}
         </View>
 
-        <View style={styles.waitlistSection}>
-          <View style={styles.waitlistCard}>
-            <Text style={styles.waitlistTitle}>Join the Waitlist</Text>
-            <Text style={styles.waitlistText}>
-              Be the first to know when workshops launch and get early access as a member.
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              placeholderTextColor={colors.textTertiary}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <View style={styles.buttonContainer}>
-              <Pressable
-                style={[buttonStyles.primary, isLoading && buttonStyles.disabled]}
-                onPress={handleJoinWaitlist}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color={colors.buttonText} />
-                ) : (
-                  <Text style={buttonStyles.primaryText}>Notify Me When Workshops Launch</Text>
-                )}
-              </Pressable>
-              <Pressable style={buttonStyles.secondary}>
-                <Text style={buttonStyles.secondaryText}>Join Membership for Early Access</Text>
-              </Pressable>
-            </View>
-          </View>
+        <View style={styles.ctaSection}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your email"
+            placeholderTextColor={colors.textSecondary}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          
+          <Pressable
+            style={[buttonStyles.primary, loading && { opacity: 0.6 }]}
+            onPress={handleJoinWaitlist}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.background} />
+            ) : (
+              <Text style={buttonStyles.primaryText}>Notify Me When Workshops Launch</Text>
+            )}
+          </Pressable>
         </View>
       </ScrollView>
     </View>
