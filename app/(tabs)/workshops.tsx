@@ -1,8 +1,6 @@
 
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import React, { useState } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IconSymbol } from '@/components/IconSymbol';
 import { 
   View, 
   Text, 
@@ -13,6 +11,8 @@ import {
   Platform,
   Linking 
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { IconSymbol } from '@/components/IconSymbol';
 
 interface WorkshopFeature {
   id: string;
@@ -22,7 +22,7 @@ interface WorkshopFeature {
   description: string;
 }
 
-const TAB_BAR_HEIGHT = 80;
+const TAB_BAR_HEIGHT = Platform.select({ ios: 83, android: 60, default: 60 });
 
 const workshopFeatures: WorkshopFeature[] = [
   {
@@ -30,37 +30,180 @@ const workshopFeatures: WorkshopFeature[] = [
     icon: 'camera',
     iosIcon: 'camera.fill',
     title: 'For Pet Parents: Better Photos',
-    description: 'Easy tips for posing, lighting, and getting your pet's attention—using your phone or camera.'
+    description: "Easy tips for posing, lighting, and getting your pet's attention—using your phone or camera.",
   },
   {
     id: '2',
-    icon: 'color-lens',
+    icon: 'palette',
     iosIcon: 'paintpalette.fill',
     title: 'For Photographers: Styling + Set Design',
-    description: 'Learn backdrops, props, color stories, and how to create consistent luxury looks.'
+    description: 'Learn backdrops, props, color stories, and how to create consistent luxury looks.',
   },
   {
     id: '3',
     icon: 'edit',
     iosIcon: 'slider.horizontal.3',
     title: 'Editing + Retouching',
-    description: 'Step-by-step workflows in Lightroom/Photoshop for clean, timeless, client-ready images.'
+    description: 'Step-by-step workflows in Lightroom/Photoshop for clean, timeless, client-ready images.',
   },
   {
     id: '4',
-    icon: 'group',
+    icon: 'people',
     iosIcon: 'person.3.fill',
     title: 'Community + Critiques',
-    description: 'Connect with others, get feedback, and learn what sells in fine-art pet portraiture.'
-  }
+    description: 'Connect with others, get feedback, and learn what sells in fine-art pet portraiture.',
+  },
 ];
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    paddingBottom: TAB_BAR_HEIGHT + 40,
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+  },
+  comingSoonBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.accent,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  comingSoonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.background,
+    letterSpacing: 1,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  description: {
+    fontSize: 16,
+    color: colors.text,
+    lineHeight: 26,
+    marginBottom: 32,
+  },
+  featuresSection: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  featureCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  featureIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.accent + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  featureContent: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  featureDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  waitlistSection: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: colors.text,
+    marginBottom: 12,
+  },
+  inputError: {
+    borderColor: '#E63946',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#E63946',
+    marginTop: -8,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  successText: {
+    fontSize: 14,
+    color: colors.accent,
+    marginTop: -8,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  primaryButton: {
+    ...buttonStyles.primary,
+    marginBottom: 16,
+  },
+  primaryButtonText: {
+    ...buttonStyles.primaryText,
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    color: colors.accent,
+    fontWeight: '600',
+  },
+  fallbackText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+});
 
 export default function WorkshopsScreen() {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [smsError, setSmsError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [smsError, setSmsError] = useState('');
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,9 +211,9 @@ export default function WorkshopsScreen() {
   };
 
   const handleJoinWaitlist = async () => {
-    setEmailError(null);
-    setSuccessMessage(null);
-    setSmsError(null);
+    setEmailError('');
+    setSuccessMessage('');
+    setSmsError('');
 
     if (!email.trim()) {
       setEmailError('Please enter your email address');
@@ -85,7 +228,7 @@ export default function WorkshopsScreen() {
     const to = 'hello@oliveandfable.com';
     const subject = 'Workshops Waitlist';
     const body = `Please add me to the Olive & Fable Workshops waitlist.\n\nEmail: ${email.trim()}\nI am a: Pet Parent / Photographer / Both (choose one)\n(Optional) What I want to learn: `;
-    
+
     const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
     try {
@@ -98,64 +241,65 @@ export default function WorkshopsScreen() {
         setEmailError(`Couldn't open your mail app. Copy this email: ${to}`);
       }
     } catch (error) {
-      console.log('Error opening mail app:', error);
       setEmailError(`Couldn't open your mail app. Copy this email: ${to}`);
     }
   };
 
   const handleTextMeTheLink = async () => {
-    setEmailError(null);
-    setSuccessMessage(null);
-    setSmsError(null);
+    setEmailError('');
+    setSuccessMessage('');
+    setSmsError('');
 
     const message = 'Send me the Olive & Fable Workshops waitlist link';
-    const smsUrl = Platform.OS === 'ios' ? `sms:&body=${encodeURIComponent(message)}` : `sms:?body=${encodeURIComponent(message)}`;
+    const smsUrl = Platform.select({
+      ios: `sms:&body=${encodeURIComponent(message)}`,
+      android: `sms:?body=${encodeURIComponent(message)}`,
+      default: `sms:?body=${encodeURIComponent(message)}`,
+    });
 
     try {
       const canOpen = await Linking.canOpenURL(smsUrl);
       if (canOpen) {
         await Linking.openURL(smsUrl);
       } else {
-        setSmsError('Couldn\'t open SMS. Please email hello@oliveandfable.com instead.');
+        setSmsError("Couldn't open SMS. Text \"workshops\" to your preferred number.");
       }
     } catch (error) {
-      console.log('Error opening SMS app:', error);
-      setSmsError('Couldn\'t open SMS. Please email hello@oliveandfable.com instead.');
+      setSmsError("Couldn't open SMS. Text \"workshops\" to your preferred number.");
     }
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.contentContainer,
-          { paddingTop: insets.top + 20, paddingBottom: TAB_BAR_HEIGHT + 40 }
-        ]}
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.comingSoonBadge}>
-          <Text style={styles.comingSoonText}>COMING SOON</Text>
+        <View style={styles.header}>
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>COMING SOON</Text>
+          </View>
+          
+          <Text style={styles.title}>Workshops</Text>
+          
+          <Text style={styles.subtitle}>
+            Workshops are launching soon. Join the waitlist to get early access + launch perks.
+          </Text>
+          
+          <Text style={styles.description}>
+            Workshops are coming soon for pet parents who want better everyday photos and photographers who want to level up styling, lighting, editing, and client-ready workflow.
+          </Text>
         </View>
 
-        <Text style={styles.title}>Workshops</Text>
-        <Text style={styles.subtitle}>
-          Workshops are launching soon. Join the waitlist to get early access + launch perks.
-        </Text>
-
-        <Text style={styles.introText}>
-          Workshops are coming soon for pet parents who want better everyday photos and photographers who want to level up styling, lighting, editing, and client-ready workflow.
-        </Text>
-
-        <View style={styles.featuresContainer}>
+        <View style={styles.featuresSection}>
           {workshopFeatures.map((feature) => (
             <View key={feature.id} style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
                 <IconSymbol
-                  ios_icon_name={feature.iosIcon}
-                  android_material_icon_name={feature.icon}
+                  name={Platform.OS === 'ios' ? feature.iosIcon : feature.icon}
                   size={24}
-                  color={colors.primary}
+                  color={colors.accent}
                 />
               </View>
               <View style={styles.featureContent}>
@@ -166,192 +310,44 @@ export default function WorkshopsScreen() {
           ))}
         </View>
 
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupLabel}>Join the Waitlist</Text>
+        <View style={styles.waitlistSection}>
+          <Text style={styles.sectionTitle}>Join the Waitlist</Text>
+          
           <TextInput
-            style={styles.emailInput}
-            placeholder="your@email.com"
+            style={[styles.input, emailError ? styles.inputError : null]}
+            placeholder="Your email address"
             placeholderTextColor={colors.textSecondary}
             value={email}
             onChangeText={(text) => {
               setEmail(text);
-              setEmailError(null);
-              setSuccessMessage(null);
+              setEmailError('');
+              setSuccessMessage('');
             }}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
           />
           
-          {emailError && (
-            <Text style={styles.errorText}>{emailError}</Text>
-          )}
+          {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+          {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
           
-          {successMessage && (
-            <Text style={styles.successText}>{successMessage}</Text>
-          )}
-
-          <Pressable
-            style={({ pressed }) => [
-              buttonStyles.primary,
-              styles.joinButton,
-              pressed && buttonStyles.primaryPressed
-            ]}
+          <Pressable 
+            style={styles.primaryButton}
             onPress={handleJoinWaitlist}
           >
-            <Text style={buttonStyles.primaryText}>Join the Workshops Waitlist</Text>
+            <Text style={styles.primaryButtonText}>Join the Workshops Waitlist</Text>
           </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.textButton,
-              pressed && styles.textButtonPressed
-            ]}
+          
+          <Pressable 
+            style={styles.secondaryButton}
             onPress={handleTextMeTheLink}
           >
-            <Text style={styles.textButtonText}>Text me the link instead</Text>
+            <Text style={styles.secondaryButtonText}>Text me the link instead</Text>
           </Pressable>
-
-          {smsError && (
-            <Text style={styles.errorText}>{smsError}</Text>
-          )}
+          
+          {smsError ? <Text style={styles.fallbackText}>{smsError}</Text> : null}
         </View>
       </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background
-  },
-  scrollView: {
-    flex: 1
-  },
-  contentContainer: {
-    paddingHorizontal: 24
-  },
-  comingSoonBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 16
-  },
-  comingSoonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 12
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    lineHeight: 24,
-    marginBottom: 24
-  },
-  introText: {
-    fontSize: 16,
-    color: colors.text,
-    lineHeight: 24,
-    marginBottom: 32
-  },
-  featuresContainer: {
-    marginBottom: 40
-  },
-  featureCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8
-      },
-      android: {
-        elevation: 2
-      }
-    })
-  },
-  featureIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: `${colors.primary}15`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16
-  },
-  featureContent: {
-    flex: 1
-  },
-  featureTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4
-  },
-  featureDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20
-  },
-  signupContainer: {
-    marginBottom: 32
-  },
-  signupLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 16
-  },
-  emailInput: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: colors.border
-  },
-  joinButton: {
-    marginBottom: 16
-  },
-  textButton: {
-    paddingVertical: 12,
-    alignItems: 'center'
-  },
-  textButtonPressed: {
-    opacity: 0.6
-  },
-  textButtonText: {
-    fontSize: 16,
-    color: colors.primary,
-    fontWeight: '600'
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#DC2626',
-    marginTop: -8,
-    marginBottom: 12
-  },
-  successText: {
-    fontSize: 14,
-    color: '#059669',
-    marginTop: -8,
-    marginBottom: 12
-  }
-});
