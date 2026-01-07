@@ -12,6 +12,7 @@ export const colors = {
   textTertiary: '#8E8E93',
   border: '#E2DDD5',
   card: '#FFFFFF',
+  surface: '#FFFFFF',
   success: '#34C759',
   error: '#FF3B30',
   warning: '#FF9500',
@@ -26,6 +27,9 @@ export const buttonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 56,
+  },
+  primaryPressed: {
+    opacity: 0.8,
   },
   primaryText: {
     color: '#FFFFFF',
