@@ -137,24 +137,28 @@ export default function SessionPrepScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preparation Timeline</Text>
           {timeline.map((item) => (
-            <View key={item.id} style={styles.timelineItem}>
-              <View style={styles.timelineHeader}>
-                <View style={styles.timelineDot} />
-                <Text style={styles.timelineTitle}>{item.title}</Text>
-              </View>
-              {item.items.map((checkItem) => (
-                <View key={checkItem.id} style={styles.checklistItem}>
-                  <IconSymbol 
-                    ios_icon_name="checkmark.circle.fill"
-                    android_material_icon_name="check-circle"
-                    size={20}
-                    color={colors.primary}
-                    style={styles.checkIcon}
-                  />
-                  <Text style={styles.checklistText}>{checkItem.text}</Text>
+            <React.Fragment key={item.id}>
+              <View style={styles.timelineItem}>
+                <View style={styles.timelineHeader}>
+                  <View style={styles.timelineDot} />
+                  <Text style={styles.timelineTitle}>{item.title}</Text>
                 </View>
-              ))}
-            </View>
+                {item.items.map((checkItem) => (
+                  <React.Fragment key={checkItem.id}>
+                    <View style={styles.checklistItem}>
+                      <IconSymbol 
+                        ios_icon_name="checkmark.circle.fill"
+                        android_material_icon_name="check-circle"
+                        size={20}
+                        color={colors.primary}
+                        style={styles.checkIcon}
+                      />
+                      <Text style={styles.checklistText}>{checkItem.text}</Text>
+                    </View>
+                  </React.Fragment>
+                ))}
+              </View>
+            </React.Fragment>
           ))}
         </View>
       </ScrollView>
