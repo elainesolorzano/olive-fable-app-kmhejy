@@ -58,7 +58,7 @@ export default function WorkshopsScreen() {
     setEmailError('');
 
     const subject = encodeURIComponent('Workshop Waitlist');
-    const body = encodeURIComponent(`I'd like to join the workshop waitlist.\n\nEmail: ${email}`);
+    const body = encodeURIComponent(`I would like to join the workshop waitlist.\n\nEmail: ${email}`);
     const mailtoUrl = `mailto:info@oliveandfable.com?subject=${subject}&body=${body}`;
 
     try {
@@ -91,20 +91,16 @@ export default function WorkshopsScreen() {
           Platform.OS !== 'ios' && styles.contentContainerWithTabBar,
         ]}
       >
-        {/* Coming Soon Badge */}
         <View style={styles.badge}>
           <Text style={styles.badgeText}>COMING SOON</Text>
         </View>
 
-        {/* Header */}
         <Text style={styles.title}>Workshops</Text>
 
-        {/* Intro Text */}
         <Text style={styles.intro}>
           Something exciting is coming. Workshops for pet parents who want better photos and deeper connection.
         </Text>
 
-        {/* Feature Cards */}
         <View style={styles.featuresContainer}>
           {workshopFeatures.map((feature) => (
             <View key={feature.id} style={styles.featureCard}>
@@ -114,7 +110,6 @@ export default function WorkshopsScreen() {
           ))}
         </View>
 
-        {/* Email Input */}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -132,7 +127,6 @@ export default function WorkshopsScreen() {
           {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
         </View>
 
-        {/* Join Waitlist Button */}
         <Pressable
           style={[
             buttonStyles.primary,
@@ -145,7 +139,6 @@ export default function WorkshopsScreen() {
           <Text style={buttonStyles.primaryText}>Notify Me When Workshops Launch</Text>
         </Pressable>
 
-        {/* Membership CTA */}
         <Pressable style={[buttonStyles.secondary, styles.button]}>
           <Text style={buttonStyles.secondaryText}>Join Membership for Early Access</Text>
         </Pressable>
