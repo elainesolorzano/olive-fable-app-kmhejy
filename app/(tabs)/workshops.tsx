@@ -26,7 +26,7 @@ const workshopFeatures: WorkshopFeature[] = [
   {
     id: 'pet-parents',
     title: 'For Pet Parents: Better Photos',
-    description: 'Easy tips for posing, lighting, and getting your pet\'s attention - using your phone or camera.',
+    description: 'Easy tips for posing, lighting, and getting your pet attention - using your phone or camera.',
   },
   {
     id: 'styling-design',
@@ -178,7 +178,7 @@ export default function WorkshopsScreen() {
     const timestamp = new Date().toLocaleString();
     const subject = encodeURIComponent('Olive & Fable Workshops Waitlist');
     const body = encodeURIComponent(
-      `Email: ${email}\nTimestamp: ${timestamp}\n\nI'd like to join the waitlist for Olive & Fable workshops.`
+      `Email: ${email}\nTimestamp: ${timestamp}\n\nI would like to join the waitlist for Olive & Fable workshops.`
     );
     const mailtoUrl = `mailto:info@oliveandfable.com?subject=${subject}&body=${body}`;
 
