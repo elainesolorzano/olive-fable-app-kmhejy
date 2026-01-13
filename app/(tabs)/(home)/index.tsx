@@ -2,10 +2,9 @@
 import React from 'react';
 import { Logo } from '@/components/Logo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { router } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { colors } from '@/styles/commonStyles';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { GemmaMessage } from '@/components/GemmaMessage';
 
@@ -96,7 +95,6 @@ const styles = StyleSheet.create({
 });
 
 export default function ClientLoungeScreen() {
-  const { session } = useSupabaseAuth();
   const insets = useSafeAreaInsets();
 
   return (
@@ -137,7 +135,10 @@ export default function ClientLoungeScreen() {
           {/* Session Prep Card */}
           <Pressable 
             style={styles.card}
-            onPress={() => router.push('/(tabs)/(home)/session-prep')}
+            onPress={() => {
+              console.log('User tapped Session Preparation card');
+              router.push('/(tabs)/(home)/session-prep');
+            }}
           >
             <View style={styles.cardHeader}>
               <IconSymbol
@@ -160,7 +161,10 @@ export default function ClientLoungeScreen() {
           {/* Getting to Studio Card */}
           <Pressable 
             style={styles.card}
-            onPress={() => router.push('/(tabs)/(home)/getting-to-studio')}
+            onPress={() => {
+              console.log('User tapped Getting to the Studio card');
+              router.push('/(tabs)/(home)/getting-to-studio');
+            }}
           >
             <View style={styles.cardHeader}>
               <IconSymbol
@@ -183,7 +187,10 @@ export default function ClientLoungeScreen() {
           {/* Reveal Prep Card */}
           <Pressable 
             style={styles.card}
-            onPress={() => router.push('/(tabs)/(home)/reveal-prep')}
+            onPress={() => {
+              console.log('User tapped Reveal Preparation card');
+              router.push('/(tabs)/(home)/reveal-prep');
+            }}
           >
             <View style={styles.cardHeader}>
               <IconSymbol
@@ -223,24 +230,6 @@ export default function ClientLoungeScreen() {
             </Text>
           </View>
         </View>
-
-        {/* Call to Action */}
-        {!session && (
-          <View style={styles.section}>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Ready to Get Started?</Text>
-              <Text style={styles.cardDescription}>
-                Sign in to access your client portal, book sessions, and unlock exclusive content.
-              </Text>
-              <Pressable 
-                style={[styles.cardButton, { marginTop: 8 }]}
-                onPress={() => router.push('/(auth)/login')}
-              >
-                <Text style={styles.cardButtonText}>Sign In</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
       </ScrollView>
     </View>
   );

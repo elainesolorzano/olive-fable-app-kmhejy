@@ -6,8 +6,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme, Alert } from "react-native";
-import { useNetworkState } from "expo-network";
+import { useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   DarkTheme,
@@ -31,16 +30,25 @@ function RootLayoutNav() {
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) {
+      console.log('Auth loading, waiting...');
+      return;
+    }
+
+    console.log('Auth loaded. Session:', session ? 'Authenticated' : 'Not authenticated');
+    console.log('Current segments:', segments);
 
     const inAuthGroup = segments[0] === "(auth)";
 
-    // Allow access to tabs without authentication for now
-    // Users can still sign in from the home screen
+    // If user is authenticated and on auth screens, redirect to tabs
     if (session && inAuthGroup) {
-      // Redirect to tabs if authenticated and in auth screens
+      console.log('User authenticated, redirecting from auth screens to tabs');
       router.replace("/(tabs)");
     }
+
+    // Note: We do NOT redirect unauthenticated users away from tabs
+    // They can browse Home, Learn, and Workshops freely
+    // My Studio will show its own login screen when accessed
   }, [session, loading, segments, router]);
 
   return (
@@ -78,28 +86,16 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const networkState = useNetworkState();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
   useEffect(() => {
     if (loaded) {
+      console.log('Fonts loaded, hiding splash screen');
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
-  React.useEffect(() => {
-    if (
-      !networkState.isConnected &&
-      networkState.isInternetReachable === false
-    ) {
-      Alert.alert(
-        "🔌 You are offline",
-        "You can keep using the app! Your changes will be saved locally and synced when you are back online."
-      );
-    }
-  }, [networkState.isConnected, networkState.isInternetReachable]);
 
   if (!loaded) {
     return null;
