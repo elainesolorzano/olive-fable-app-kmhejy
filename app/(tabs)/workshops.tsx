@@ -26,7 +26,7 @@ const workshopFeatures: WorkshopFeature[] = [
   {
     id: 'pet-parents',
     title: 'For Pet Parents: Better Photos',
-    description: 'Easy tips for posing, lighting, and getting your pet\'s attention - using your phone or camera.',
+    description: 'Easy tips for posing, lighting, and getting your pet&apos;s attention - using your phone or camera.',
   },
   {
     id: 'styling-design',
@@ -163,6 +163,7 @@ export default function WorkshopsScreen() {
   };
 
   const handleJoinWaitlist = async () => {
+    console.log('User tapped Join Waitlist button with email:', email);
     setEmailError('');
 
     if (!email.trim()) {
@@ -185,9 +186,11 @@ export default function WorkshopsScreen() {
     try {
       const canOpen = await Linking.canOpenURL(mailtoUrl);
       if (canOpen) {
+        console.log('Opening email client with mailto URL');
         await Linking.openURL(mailtoUrl);
         setEmail('');
       } else {
+        console.log('Email client not available, showing alert');
         Alert.alert(
           'Email Not Available',
           `Please email us directly at info@oliveandfable.com with your email address: ${email}`,
@@ -195,6 +198,7 @@ export default function WorkshopsScreen() {
         );
       }
     } catch (error) {
+      console.log('Error opening email client:', error);
       Alert.alert(
         'Unable to Open Email',
         `Please send an email to info@oliveandfable.com with your email address: ${email}`,
