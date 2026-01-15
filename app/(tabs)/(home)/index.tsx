@@ -110,7 +110,7 @@ export default function ClientLoungeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Logo width={120} height={120} />
+            <Logo width={150} height={150} />
           </View>
           <Text style={styles.welcomeText}>
             Welcome to Olive & Fable
