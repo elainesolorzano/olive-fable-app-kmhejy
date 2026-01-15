@@ -79,14 +79,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   button: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#2D5016',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
   buttonText: {
-    color: colors.text,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -111,30 +111,30 @@ export default function GettingToStudioScreen() {
   const insets = useSafeAreaInsets();
 
   const handleOpenMaps = async () => {
-    // Updated address as requested
-    const address = 'Olive and Fable Pet Photography, 720 Market Street, Suite J, Kirkland, WA 98034';
+    console.log('User tapped Locate Here button to open Apple Maps');
     
-    // Use reliable HTTP URL that works on all platforms
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    // Define the full address
+    const fullAddress = 'Olive and Fable Pet Photography, 720 Market Street, Suite J, Kirkland, WA 98034';
+    
+    // Use Apple Maps URL format (works on iOS and falls back gracefully on other platforms)
+    const appleMapsUrl = `https://maps.apple.com/?q=${encodeURIComponent(fullAddress)}`;
 
     try {
-      const supported = await Linking.canOpenURL(googleMapsUrl);
-      if (supported) {
-        await Linking.openURL(googleMapsUrl);
-      } else {
+      console.log('Opening Apple Maps with URL:', appleMapsUrl);
+      await Linking.openURL(appleMapsUrl);
+    } catch (error) {
+      console.log('Error opening Apple Maps, attempting fallback:', error);
+      // Fallback: try opening the same URL again
+      try {
+        await Linking.openURL(appleMapsUrl);
+      } catch (fallbackError) {
+        console.log('Fallback also failed:', fallbackError);
         Alert.alert(
           'Unable to Open Maps',
           'Could not open the maps application. Please try again later.',
           [{ text: 'OK' }]
         );
       }
-    } catch (error) {
-      console.log('Error opening maps:', error);
-      Alert.alert(
-        'Error',
-        'An error occurred while trying to open maps. Please try again.',
-        [{ text: 'OK' }]
-      );
     }
   };
 
@@ -186,7 +186,7 @@ export default function GettingToStudioScreen() {
               Kirkland, WA 98034
             </Text>
             <Pressable style={styles.button} onPress={handleOpenMaps}>
-              <Text style={styles.buttonText}>Open in Maps</Text>
+              <Text style={styles.buttonText}>Locate Here</Text>
             </Pressable>
           </View>
         </View>
@@ -215,7 +215,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Free parking available in the lot behind the building
+                Complimentary parking is available directly in front of the building (two marked spaces).
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -227,7 +227,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Street parking available on Main Street (2-hour limit)
+                Free street parking is also available right out front when spots are open.
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -239,7 +239,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Accessible parking spots available near the entrance
+                If you have any trouble locating us, please call or text (206) 310-8619 and we&apos;ll be happy to help.
               </Text>
             </View>
           </View>
@@ -269,7 +269,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Enter through the main entrance on Main Street
+                Enter through the main entrance on Market Street.
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -281,7 +281,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Take the elevator or stairs to the second floor
+                Once inside, follow the hallway.
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -293,7 +293,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Studio 205 is on your right - ring the bell and we&apos;ll greet you!
+                You&apos;ll find Suite J on your right — ring the studio bell and we&apos;ll greet you.
               </Text>
             </View>
           </View>
@@ -339,7 +339,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Wheelchair accessible entrance and elevator
+                Wheelchair accessible entrance
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -351,7 +351,7 @@ export default function GettingToStudioScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
-                Accessible restroom facilities on the second floor
+                Restroom facilities available
               </Text>
             </View>
             <View style={styles.infoRow}>
