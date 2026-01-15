@@ -1,11 +1,27 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function PrivacyScreen() {
+  console.log('Privacy & Security screen loaded');
+
+  const handlePrivacyPolicy = () => {
+    console.log('User tapped Privacy Policy button');
+    Linking.openURL('https://www.oliveandfable.com/privacypolicy');
+  };
+
+  const handleTermsOfService = () => {
+    console.log('User tapped Terms of Service button');
+    Linking.openURL('https://www.oliveandfable.com/termsofservice');
+  };
+
+  const handleContactStudio = () => {
+    console.log('User tapped Contact the Studio button for data request');
+    Linking.openURL('mailto:info@oliveandfable.com?subject=Account%20%26%20Data%20Request');
+  };
+
   return (
     <View style={commonStyles.container}>
       <ScrollView 
@@ -22,55 +38,12 @@ export default function PrivacyScreen() {
           />
         </View>
         
-        <Text style={commonStyles.title}>Privacy</Text>
+        <Text style={commonStyles.title}>Privacy & Security</Text>
         
         <View style={commonStyles.card}>
-          <Text style={styles.comingSoonText}>
-            Privacy settings are coming soon!
-          </Text>
           <Text style={styles.descriptionText}>
-            Manage your privacy preferences, data sharing settings, and account security options.
+            Your trust matters. We are committed to protecting your personal information and respecting your privacy at every step.
           </Text>
-        </View>
-
-        <View style={[commonStyles.card, styles.infoCard]}>
-          <Text style={styles.infoTitle}>Privacy Controls:</Text>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Data sharing preferences</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Account visibility</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Security settings</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Delete account</Text>
-          </View>
         </View>
 
         <Pressable 
@@ -78,9 +51,37 @@ export default function PrivacyScreen() {
             buttonStyles.primaryButton,
             pressed && styles.pressed
           ]}
-          onPress={() => router.back()}
+          onPress={handlePrivacyPolicy}
         >
-          <Text style={buttonStyles.buttonText}>Go Back</Text>
+          <Text style={buttonStyles.buttonText}>Privacy Policy</Text>
+        </Pressable>
+
+        <Pressable 
+          style={({ pressed }) => [
+            buttonStyles.primaryButton,
+            pressed && styles.pressed,
+            styles.buttonSpacing
+          ]}
+          onPress={handleTermsOfService}
+        >
+          <Text style={buttonStyles.buttonText}>Terms of Service</Text>
+        </Pressable>
+
+        <View style={[commonStyles.card, styles.infoCard]}>
+          <Text style={styles.infoTitle}>Your Data</Text>
+          <Text style={styles.descriptionText}>
+            If you&apos;d like to request access to your data, make updates, or ask for deletion, our team is happy to help.
+          </Text>
+        </View>
+
+        <Pressable 
+          style={({ pressed }) => [
+            buttonStyles.primaryButton,
+            pressed && styles.pressed
+          ]}
+          onPress={handleContactStudio}
+        >
+          <Text style={buttonStyles.buttonText}>Contact the Studio</Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -100,13 +101,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: 24,
   },
-  comingSoonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
   descriptionText: {
     fontSize: 14,
     fontWeight: '400',
@@ -116,24 +110,17 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: colors.highlight,
+    marginTop: 8,
   },
   infoTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 16,
+    marginBottom: 12,
+    textAlign: 'center',
   },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    paddingLeft: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.text,
-    marginLeft: 12,
+  buttonSpacing: {
+    marginTop: 12,
   },
   pressed: {
     opacity: 0.7,

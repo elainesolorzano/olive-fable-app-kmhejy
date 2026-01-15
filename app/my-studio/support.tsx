@@ -1,11 +1,23 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function SupportScreen() {
+  console.log('Help & Support screen loaded');
+
+  const handleContactStudio = () => {
+    console.log('User tapped Contact the Studio button');
+    Linking.openURL('mailto:info@oliveandfable.com');
+  };
+
+  const handleViewFAQs = () => {
+    console.log('User tapped View FAQs button');
+    // TODO: Add FAQ URL when available
+    Linking.openURL('https://www.oliveandfable.com');
+  };
+
   return (
     <View style={commonStyles.container}>
       <ScrollView 
@@ -25,52 +37,9 @@ export default function SupportScreen() {
         <Text style={commonStyles.title}>Help & Support</Text>
         
         <View style={commonStyles.card}>
-          <Text style={styles.comingSoonText}>
-            Help & Support features are coming soon!
-          </Text>
           <Text style={styles.descriptionText}>
-            Get help with your account, sessions, and app features. Access FAQs, contact support, and find answers to common questions.
+            At Olive & Fable, we believe the experience should feel just as intentional and beautiful as the artwork itself.
           </Text>
-        </View>
-
-        <View style={[commonStyles.card, styles.infoCard]}>
-          <Text style={styles.infoTitle}>What you&apos;ll find here:</Text>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Frequently Asked Questions</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Contact support team</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Session help guides</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <IconSymbol 
-              ios_icon_name="circle.fill"
-              android_material_icon_name="circle"
-              size={8}
-              color={colors.textSecondary}
-            />
-            <Text style={styles.infoText}>Technical troubleshooting</Text>
-          </View>
         </View>
 
         <Pressable 
@@ -78,10 +47,27 @@ export default function SupportScreen() {
             buttonStyles.primaryButton,
             pressed && styles.pressed
           ]}
-          onPress={() => router.back()}
+          onPress={handleContactStudio}
         >
-          <Text style={buttonStyles.buttonText}>Go Back</Text>
+          <Text style={buttonStyles.buttonText}>Contact the Studio</Text>
         </Pressable>
+
+        <Pressable 
+          style={({ pressed }) => [
+            buttonStyles.secondaryButton,
+            pressed && styles.pressed,
+            styles.buttonSpacing
+          ]}
+          onPress={handleViewFAQs}
+        >
+          <Text style={buttonStyles.secondaryButtonText}>View FAQs</Text>
+        </Pressable>
+
+        <View style={[commonStyles.card, styles.footerCard]}>
+          <Text style={styles.footerText}>
+            We typically respond within one business day.
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -100,13 +86,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     marginBottom: 24,
   },
-  comingSoonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
   descriptionText: {
     fontSize: 14,
     fontWeight: '400',
@@ -114,26 +93,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  infoCard: {
+  buttonSpacing: {
+    marginTop: 12,
+  },
+  footerCard: {
     backgroundColor: colors.highlight,
+    marginTop: 8,
   },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 16,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    paddingLeft: 8,
-  },
-  infoText: {
+  footerText: {
     fontSize: 14,
     fontWeight: '400',
-    color: colors.text,
-    marginLeft: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   pressed: {
     opacity: 0.7,
