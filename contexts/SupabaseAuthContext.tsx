@@ -29,7 +29,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // Save session to secure storage
-  const saveSession = async (session: Session | null) => {
+  const saveSession = useCallback(async (session: Session | null) => {
     console.log('Saving session to secure storage:', session ? 'Session exists' : 'No session');
     try {
       if (Platform.OS === 'web') {
@@ -54,7 +54,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error saving session to secure storage:', error);
     }
-  };
+  }, []);
 
   // Load session from secure storage - wrapped in useCallback to stabilize the reference
   const loadSession = useCallback(async (): Promise<Session | null> => {
@@ -113,7 +113,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       console.error('Error loading session from secure storage:', error);
       return null;
     }
-  }, []);
+  }, [saveSession]);
 
   useEffect(() => {
     console.log('Auth context initializing');
@@ -169,7 +169,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [loadSession]);
+  }, [loadSession, saveSession]);
 
   const signUp = async (email: string, password: string) => {
     console.log('User signing up with email:', email);
