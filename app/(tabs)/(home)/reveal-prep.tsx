@@ -1,18 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking, Image } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
+import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking, Image, Modal, TouchableOpacity } from 'react-native';
+import { IconSymbol } from '@/components/IconSymbol';
+import WebView from 'react-native-webview';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
 // Data structures with stable unique IDs to prevent React key warnings
 const selectionProcessSteps = [
-  { id: 'step-1', text: 'View your carefully curated gallery for the first time' },
-  { id: 'step-2', text: 'Narrow down your favorites with our guidance' },
-  { id: 'step-3', text: 'Choose your artwork and sizes that fit your home' },
-  { id: 'step-4', text: 'Select any digital files and heirloom products you would love to take home' },
+  { id: 'step-1', text: "You'll see a carefully curated gallery for the first time" },
+  { id: 'step-2', text: "We'll walk through each portrait together" },
+  { id: 'step-3', text: "You'll narrow down favorites and choose artwork/products that feel most like you" },
+  { id: 'step-4', text: 'Select your preferred sizes and any heirloom products' },
   { id: 'step-5', text: 'Finalize your order and review delivery timing' },
 ];
 
@@ -50,28 +51,35 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   gemmaCard: {
-    backgroundColor: colors.backgroundAlt,
+    backgroundColor: '#F5F1E8',
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E8E3DC',
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 16,
   },
-  gemmaAvatar: {
+  gemmaAvatarContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.border,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#E8E3DC',
+    backgroundColor: '#FFFFFF',
+  },
+  gemmaAvatar: {
+    width: '100%',
+    height: '100%',
   },
   gemmaTextContainer: {
     flex: 1,
   },
   gemmaText: {
     fontSize: 15,
-    color: colors.textSecondary,
+    color: '#1A1A1A',
     lineHeight: 22,
     fontStyle: 'italic',
   },
@@ -93,12 +101,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardIcon: {
+    marginRight: 12,
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 12,
     letterSpacing: -0.2,
+    flex: 1,
   },
   cardBody: {
     fontSize: 16,
@@ -148,18 +164,45 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textDecorationLine: 'underline',
   },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.backgroundAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  webviewContainer: {
+    flex: 1,
+  },
 });
 
 export default function RevealPrepScreen() {
   const insets = useSafeAreaInsets();
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleViewProductGuide = async () => {
+  const handleViewProductGuide = () => {
     console.log('User tapped View Product Guide button');
-    try {
-      await WebBrowser.openBrowserAsync('https://www.oliveandfable.com/products');
-    } catch (error) {
-      console.error('Error opening product guide:', error);
-    }
+    setModalVisible(true);
   };
 
   const handleContactUs = async () => {
@@ -190,12 +233,15 @@ export default function RevealPrepScreen() {
           </Text>
         </View>
 
-        {/* Gemma Intro Card */}
+        {/* Gemma Intro Card - Using same avatar as Home Welcome bubble */}
         <View style={styles.gemmaCard}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=200&fit=crop' }}
-            style={styles.gemmaAvatar}
-          />
+          <View style={styles.gemmaAvatarContainer}>
+            <Image
+              source={require('@/assets/images/bb700b49-eac8-433e-a8be-ad5057bdb80c.jpeg')}
+              style={styles.gemmaAvatar}
+              resizeMode="cover"
+            />
+          </View>
           <View style={styles.gemmaTextContainer}>
             <Text style={styles.gemmaText}>
               The reveal is one of my favorite moments. You&apos;ll see your carefully curated gallery for the first time, and together we&apos;ll choose the artwork and products that feel most like you.
@@ -208,26 +254,53 @@ export default function RevealPrepScreen() {
           <Text style={styles.sectionTitle}>What to Expect</Text>
           
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>The Gallery Reveal</Text>
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="star.fill"
+                android_material_icon_name="star"
+                size={24}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>The Gallery Reveal</Text>
+            </View>
             <Text style={styles.cardBody}>
               One to two weeks after your session, we&apos;ll meet on Zoom for your gallery reveal. This is where the magic comes together. You&apos;ll see your curated set of images for the first time, and we&apos;ll walk through each portrait so you can choose your favorite artwork pieces, digital files, and any heirloom products you&apos;d love to bring home.
             </Text>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Duration</Text>
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="clock.fill"
+                android_material_icon_name="schedule"
+                size={24}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>Duration</Text>
+            </View>
             <Text style={styles.cardBody}>
               Plan for 60–90 minutes. This gives you time to view images, explore artwork options, and make thoughtful selections.
             </Text>
           </View>
         </View>
 
-        {/* Section 2: Selection Process */}
+        {/* Section 2: Selection Process - Updated copy */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Selection Process</Text>
           
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>How It Works</Text>
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="checkmark.circle.fill"
+                android_material_icon_name="check-circle"
+                size={24}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>How It Works</Text>
+            </View>
             <View style={styles.bulletList}>
               {selectionProcessSteps.map((step) => (
                 <View key={step.id} style={styles.bulletItem}>
@@ -243,7 +316,16 @@ export default function RevealPrepScreen() {
           <Text style={styles.sectionTitle}>Tips for Your Reveal</Text>
           
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Make the Most of It</Text>
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="lightbulb.fill"
+                android_material_icon_name="lightbulb"
+                size={24}
+                color={colors.accent}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>Make the Most of It</Text>
+            </View>
             <View style={styles.bulletList}>
               {revealTips.map((tip) => (
                 <View key={tip.id} style={styles.bulletItem}>
@@ -251,6 +333,27 @@ export default function RevealPrepScreen() {
                 </View>
               ))}
             </View>
+          </View>
+        </View>
+
+        {/* Product Guide Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Product Guide</Text>
+          
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <IconSymbol
+                ios_icon_name="book.fill"
+                android_material_icon_name="menu-book"
+                size={24}
+                color={colors.primary}
+                style={styles.cardIcon}
+              />
+              <Text style={styles.cardTitle}>Explore Our Products</Text>
+            </View>
+            <Text style={styles.cardBody}>
+              Browse our complete collection of fine art prints, canvas wraps, albums, and heirloom products. Get inspired before your reveal appointment.
+            </Text>
           </View>
         </View>
 
@@ -274,6 +377,43 @@ export default function RevealPrepScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* Product Guide Modal with WebView */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={[styles.modalContainer, { paddingTop: insets.top }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Product Guide</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                console.log('User closed Product Guide modal');
+                setModalVisible(false);
+              }}
+            >
+              <IconSymbol
+                ios_icon_name="xmark"
+                android_material_icon_name="close"
+                size={20}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.webviewContainer}>
+            <WebView
+              source={{ uri: 'https://www.canva.com/design/DAG323RfGaw/5aNumYnQm3EAALtGKWcM0Q/view?embed' }}
+              startInLoadingState={true}
+              scalesPageToFit={true}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
