@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
@@ -56,8 +56,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Load session from secure storage
-  const loadSession = async (): Promise<Session | null> => {
+  // Load session from secure storage - wrapped in useCallback to stabilize the reference
+  const loadSession = useCallback(async (): Promise<Session | null> => {
     console.log('Loading session from secure storage');
     try {
       let sessionJson: string | null = null;
@@ -113,7 +113,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       console.error('Error loading session from secure storage:', error);
       return null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     console.log('Auth context initializing');
@@ -169,7 +169,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadSession]);
 
   const signUp = async (email: string, password: string) => {
     console.log('User signing up with email:', email);

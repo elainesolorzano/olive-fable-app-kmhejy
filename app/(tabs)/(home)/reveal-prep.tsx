@@ -12,7 +12,7 @@ const selectionProcessSteps = [
   { id: 'step-1', text: 'View your carefully curated gallery for the first time' },
   { id: 'step-2', text: 'Narrow down your favorites with our guidance' },
   { id: 'step-3', text: 'Choose your artwork and sizes that fit your home' },
-  { id: 'step-4', text: 'Select any digital files and heirloom products you'd love to take home' },
+  { id: 'step-4', text: 'Select any digital files and heirloom products you would love to take home' },
   { id: 'step-5', text: 'Finalize your order and review delivery timing' },
 ];
 
@@ -198,7 +198,7 @@ export default function RevealPrepScreen() {
           />
           <View style={styles.gemmaTextContainer}>
             <Text style={styles.gemmaText}>
-              The reveal is one of my favorite moments. You'll see your carefully curated gallery for the first time, and together we'll choose the artwork and products that feel most like you.
+              The reveal is one of my favorite moments. You&apos;ll see your carefully curated gallery for the first time, and together we&apos;ll choose the artwork and products that feel most like you.
             </Text>
           </View>
         </View>
@@ -210,7 +210,7 @@ export default function RevealPrepScreen() {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>The Gallery Reveal</Text>
             <Text style={styles.cardBody}>
-              One to two weeks after your session, we'll meet on Zoom for your gallery reveal. This is where the magic comes together. You'll see your curated set of images for the first time, and we'll walk through each portrait so you can choose your favorite artwork pieces, digital files, and any heirloom products you'd love to bring home.
+              One to two weeks after your session, we&apos;ll meet on Zoom for your gallery reveal. This is where the magic comes together. You&apos;ll see your curated set of images for the first time, and we&apos;ll walk through each portrait so you can choose your favorite artwork pieces, digital files, and any heirloom products you&apos;d love to bring home.
             </Text>
           </View>
 
