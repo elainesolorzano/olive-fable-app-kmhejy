@@ -1,16 +1,10 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
-import { router } from 'expo-router';
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function NotificationsScreen() {
-  const handleContactStudio = () => {
-    console.log('User tapped Contact the Studio button');
-    Linking.openURL('mailto:info@oliveandfable.com');
-  };
-
   return (
     <View style={commonStyles.container}>
       <ScrollView 
@@ -31,11 +25,14 @@ export default function NotificationsScreen() {
         
         <View style={commonStyles.card}>
           <Text style={styles.bodyText}>
-            We believe communication should feel thoughtful, never overwhelming. Notification controls will be available soon.
+            We believe communication should feel thoughtful and intentional, never overwhelming. Notification controls will be available in a future update.
           </Text>
         </View>
 
         <View style={[commonStyles.card, styles.infoCard]}>
+          <Text style={styles.infoHeaderText}>
+            You may receive occasional updates related to:
+          </Text>
           <View style={styles.infoItem}>
             <IconSymbol 
               ios_icon_name="circle.fill"
@@ -52,7 +49,7 @@ export default function NotificationsScreen() {
               size={8}
               color={colors.textSecondary}
             />
-            <Text style={styles.infoText}>Order and artwork updates</Text>
+            <Text style={styles.infoText}>Order and artwork progress updates</Text>
           </View>
           <View style={styles.infoItem}>
             <IconSymbol 
@@ -76,19 +73,9 @@ export default function NotificationsScreen() {
 
         <View style={commonStyles.card}>
           <Text style={styles.supportingText}>
-            Until notification settings are available, we&apos;ll only reach out when it truly matters.
+            Until notification preferences are available, we&apos;ll only reach out when it truly matters.
           </Text>
         </View>
-
-        <Pressable 
-          style={({ pressed }) => [
-            buttonStyles.primaryButton,
-            pressed && styles.pressed
-          ]}
-          onPress={handleContactStudio}
-        >
-          <Text style={buttonStyles.buttonText}>Contact the Studio</Text>
-        </Pressable>
       </ScrollView>
     </View>
   );
@@ -117,6 +104,13 @@ const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: colors.highlight,
   },
+  infoHeaderText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.text,
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -135,8 +129,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
-  },
-  pressed: {
-    opacity: 0.7,
   },
 });
