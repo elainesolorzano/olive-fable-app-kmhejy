@@ -10,6 +10,20 @@ import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platf
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
+// Progress steps for the client journey
+const PROGRESS_STEPS = [
+  'Inquiry Received',
+  'Consultation Scheduled',
+  'Session Confirmed',
+  'Session Complete',
+  'Gallery Ready',
+  'Reveal Scheduled',
+  'Order In Production',
+  'Delivered',
+];
+
+const CURRENT_STEP = 'Session Confirmed'; // Hardcoded for now
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -27,22 +41,18 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   header: {
-    alignItems: 'center',
     marginBottom: 32,
   },
-  logoContainer: {
-    marginBottom: 16,
-  },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: colors.textSecondary,
-    textAlign: 'center',
+    lineHeight: 24,
   },
   // Login Screen Styles
   loginContainer: {
@@ -86,15 +96,97 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  // Dashboard Styles
-  section: {
+  // Progress Card Styles
+  progressCard: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  progressCardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  progressCardHelper: {
+    fontSize: 14,
+    color: colors.textSecondary,
     marginBottom: 24,
+    lineHeight: 20,
+  },
+  progressStepsContainer: {
+    marginTop: 8,
+  },
+  progressStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  progressStepLast: {
+    marginBottom: 0,
+  },
+  progressStepIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.background,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  progressStepIndicatorActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  progressStepIndicatorComplete: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  progressStepLine: {
+    position: 'absolute',
+    left: 15,
+    top: 32,
+    width: 2,
+    height: 20,
+    backgroundColor: colors.border,
+  },
+  progressStepLineComplete: {
+    backgroundColor: colors.primary,
+  },
+  progressStepText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    flex: 1,
+  },
+  progressStepTextActive: {
+    color: colors.text,
+    fontWeight: '600',
+  },
+  progressStepTextComplete: {
+    color: colors.text,
+  },
+  checkIcon: {
+    color: '#FFFFFF',
+  },
+  // Account & Settings Section
+  section: {
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   menuItem: {
     flexDirection: 'row',
@@ -116,11 +208,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
-  },
-  menuDescription: {
-    fontSize: 12,
-    color: colors.textSecondary,
   },
   chevron: {
     marginLeft: 8,
@@ -130,7 +217,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -185,6 +273,64 @@ export default function MyStudioScreen() {
     router.push('/(auth)/login');
   };
 
+  // Determine which steps are complete and which is current
+  const currentStepIndex = PROGRESS_STEPS.indexOf(CURRENT_STEP);
+
+  const renderProgressStep = (step: string, index: number) => {
+    const isComplete = index < currentStepIndex;
+    const isActive = index === currentStepIndex;
+    const isLast = index === PROGRESS_STEPS.length - 1;
+
+    return (
+      <View key={step} style={[styles.progressStep, isLast && styles.progressStepLast]}>
+        <View>
+          <View
+            style={[
+              styles.progressStepIndicator,
+              isActive && styles.progressStepIndicatorActive,
+              isComplete && styles.progressStepIndicatorComplete,
+            ]}
+          >
+            {isComplete ? (
+              <IconSymbol
+                ios_icon_name="checkmark"
+                android_material_icon_name="check"
+                size={18}
+                color="#FFFFFF"
+              />
+            ) : isActive ? (
+              <View
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 6,
+                  backgroundColor: '#FFFFFF',
+                }}
+              />
+            ) : null}
+          </View>
+          {!isLast && (
+            <View
+              style={[
+                styles.progressStepLine,
+                isComplete && styles.progressStepLineComplete,
+              ]}
+            />
+          )}
+        </View>
+        <Text
+          style={[
+            styles.progressStepText,
+            isActive && styles.progressStepTextActive,
+            isComplete && styles.progressStepTextComplete,
+          ]}
+        >
+          {step}
+        </Text>
+      </View>
+    );
+  };
+
   // Show loading spinner while checking auth state
   if (loading) {
     return (
@@ -229,18 +375,26 @@ export default function MyStudioScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Logo width={80} height={80} />
-          </View>
           <Text style={styles.title}>My Studio</Text>
           <Text style={styles.subtitle}>
-            {session.user?.email || 'Welcome back!'}
+            Your Olive & Fable experience, in one place.
           </Text>
         </View>
 
-        {/* Account Section */}
+        {/* My Experience Progress Card */}
+        <View style={styles.progressCard}>
+          <Text style={styles.progressCardTitle}>My Experience</Text>
+          <Text style={styles.progressCardHelper}>
+            We&apos;ll guide you through each step of the process.
+          </Text>
+          <View style={styles.progressStepsContainer}>
+            {PROGRESS_STEPS.map((step, index) => renderProgressStep(step, index))}
+          </View>
+        </View>
+
+        {/* Account & Settings Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>Account & Settings</Text>
           
           <Pressable style={styles.menuItem} onPress={handleEditProfile}>
             <IconSymbol
@@ -252,7 +406,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Edit Profile</Text>
-              <Text style={styles.menuDescription}>Update your information</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
@@ -273,7 +426,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Saved Content</Text>
-              <Text style={styles.menuDescription}>Your bookmarked guides</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
@@ -294,7 +446,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Purchases</Text>
-              <Text style={styles.menuDescription}>View your orders</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
@@ -304,12 +455,7 @@ export default function MyStudioScreen() {
               style={styles.chevron}
             />
           </Pressable>
-        </View>
 
-        {/* Settings Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
-          
           <Pressable style={styles.menuItem} onPress={handleNotifications}>
             <IconSymbol
               ios_icon_name="bell.fill"
@@ -320,7 +466,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Notifications</Text>
-              <Text style={styles.menuDescription}>Manage your alerts</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
@@ -341,7 +486,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Privacy & Security</Text>
-              <Text style={styles.menuDescription}>Manage your data</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
@@ -362,7 +506,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Help & Support</Text>
-              <Text style={styles.menuDescription}>Get assistance</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
