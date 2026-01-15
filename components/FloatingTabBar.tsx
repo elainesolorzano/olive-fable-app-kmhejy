@@ -1,25 +1,16 @@
 
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  interpolate,
-} from 'react-native-reanimated';
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Platform,
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Href } from 'expo-router';
-import { BlurView } from 'expo-blur';
-import { useTheme } from '@react-navigation/native';
 import { useRouter, usePathname } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface TabBarItem {
   name: string;
@@ -41,6 +32,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: '#F5F1E8', // Solid background that extends to bottom
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
     zIndex: 1000,
   },
   tabBarContainer: {
@@ -50,8 +44,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     backgroundColor: '#F5F1E8',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
   },
   tabButton: {
     flex: 1,
@@ -84,8 +76,8 @@ export default function FloatingTabBar({
   bottomMargin = 0,
 }: FloatingTabBarProps) {
   const router = useRouter();
-  const theme = useTheme();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   const handleTabPress = (route: Href) => {
     console.log('Tab pressed:', route);
@@ -100,7 +92,7 @@ export default function FloatingTabBar({
   };
 
   return (
-    <SafeAreaView edges={['bottom']} style={styles.container}>
+    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.tabBarContainer}>
         {tabs.map((tab) => {
           const active = isActive(tab.name);
@@ -135,6 +127,6 @@ export default function FloatingTabBar({
           );
         })}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
