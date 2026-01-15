@@ -2,11 +2,25 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { IconSymbol } from '@/components/IconSymbol';
-import { GemmaMessage } from '@/components/GemmaMessage';
+import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
+
+// Data structures with stable unique IDs to prevent React key warnings
+const selectionProcessSteps = [
+  { id: 'step-1', text: 'View your fully retouched portraits' },
+  { id: 'step-2', text: 'Choose favorites and refine your final set' },
+  { id: 'step-3', text: 'Explore sizes and products that fit your space' },
+  { id: 'step-4', text: 'Finalize your order and delivery timeline' },
+];
+
+const revealTips = [
+  { id: 'tip-1', text: 'Bring measurements or photos of your wall space' },
+  { id: 'tip-2', text: 'Consider bringing a partner for a second opinion' },
+  { id: 'tip-3', text: 'Think about which rooms you want to feature your portraits' },
+  { id: 'tip-4', text: 'Trust your instincts — choose what feels like you' },
+];
 
 const styles = StyleSheet.create({
   container: {
@@ -15,86 +29,130 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: 12,
+    letterSpacing: -0.5,
   },
-  subtitle: {
-    fontSize: 16,
+  subheader: {
+    fontSize: 17,
     color: colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: 26,
+    marginBottom: 16,
   },
-  gemmaContainer: {
-    marginBottom: 24,
+  gemmaNote: {
+    fontSize: 15,
+    color: colors.textTertiary,
+    fontStyle: 'italic',
+    lineHeight: 22,
+    paddingLeft: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 40,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 16,
+    marginBottom: 20,
+    letterSpacing: -0.3,
   },
   card: {
     backgroundColor: colors.backgroundAlt,
     borderRadius: 16,
-    padding: 20,
+    padding: 24,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardIcon: {
-    marginRight: 12,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    flex: 1,
+    marginBottom: 12,
+    letterSpacing: -0.2,
   },
-  cardDescription: {
-    fontSize: 14,
+  cardBody: {
+    fontSize: 16,
     color: colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 24,
   },
-  bulletPoint: {
+  bulletList: {
+    marginTop: 4,
+  },
+  bulletItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
-    paddingLeft: 8,
-  },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.primary,
-    marginRight: 12,
-    marginTop: 7,
+    marginBottom: 12,
   },
   bulletText: {
-    fontSize: 14,
-    color: colors.text,
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 24,
     flex: 1,
-    lineHeight: 20,
+  },
+  ctaContainer: {
+    marginTop: 8,
+    marginBottom: 24,
+    gap: 16,
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  secondaryLink: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  secondaryLinkText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });
 
 export default function RevealPrepScreen() {
   const insets = useSafeAreaInsets();
+
+  const handleViewProductGuide = async () => {
+    console.log('User tapped View Product Guide button');
+    try {
+      await WebBrowser.openBrowserAsync('https://www.oliveandfable.com/products');
+    } catch (error) {
+      console.error('Error opening product guide:', error);
+    }
+  };
+
+  const handleContactUs = async () => {
+    console.log('User tapped Contact Us link');
+    const mailtoUrl = 'mailto:info@oliveandfable.com?subject=Question%20About%20Reveal%20Appointment';
+    try {
+      await Linking.openURL(mailtoUrl);
+    } catch (error) {
+      console.error('Error opening email client:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -102,145 +160,90 @@ export default function RevealPrepScreen() {
         style={styles.container}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 16 }
+          { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 32 }
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header / Hero */}
         <View style={styles.header}>
           <Text style={styles.title}>Reveal Preparation</Text>
-          <Text style={styles.subtitle}>
-            Get ready for your portrait reveal and selection appointment
+          <Text style={styles.subheader}>
+            Everything you need to feel relaxed, confident, and excited for your portrait reveal.
+          </Text>
+          <Text style={styles.gemmaNote}>
+            Gemma's tip: bring your measurements — it makes choosing artwork effortless.
           </Text>
         </View>
 
-        {/* Gemma's Message */}
-        <View style={styles.gemmaContainer}>
-          <GemmaMessage
-            message="The reveal is one of my favorite moments! You'll see all the beautiful images we created together and choose your favorites."
-            showAvatar={true}
-          />
-        </View>
-
-        {/* What to Expect */}
+        {/* Section 1: What to Expect */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What to Expect</Text>
           
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <IconSymbol
-                ios_icon_name="photo.fill"
-                android_material_icon_name="photo"
-                size={24}
-                color={colors.primary}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>The Reveal Experience</Text>
-            </View>
-            <Text style={styles.cardDescription}>
-              Your reveal appointment is a special moment where you'll see all the images from your session for the first time. We'll guide you through the selection process.
+            <Text style={styles.cardTitle}>The Reveal Experience</Text>
+            <Text style={styles.cardBody}>
+              Your reveal is where everything comes together. You'll see your portraits for the first time, narrow favorites, and design artwork that fits your home beautifully.
             </Text>
           </View>
 
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <IconSymbol
-                ios_icon_name="clock.fill"
-                android_material_icon_name="schedule"
-                size={24}
-                color={colors.primary}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>Duration</Text>
-            </View>
-            <Text style={styles.cardDescription}>
-              Plan for 60-90 minutes. This gives you time to view all images, discuss options, and make thoughtful selections.
+            <Text style={styles.cardTitle}>Duration</Text>
+            <Text style={styles.cardBody}>
+              Plan for 60–90 minutes. This gives you time to view images, explore artwork options, and make thoughtful selections.
             </Text>
           </View>
         </View>
 
-        {/* Selection Process */}
+        {/* Section 2: Selection Process */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Selection Process</Text>
           
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <IconSymbol
-                ios_icon_name="star.fill"
-                android_material_icon_name="star"
-                size={24}
-                color={colors.primary}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>How It Works</Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                View all professionally edited images from your session
-              </Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                Mark your favorites and narrow down your selections
-              </Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                Choose products and sizes that fit your space
-              </Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                Finalize your order and discuss delivery timeline
-              </Text>
+            <Text style={styles.cardTitle}>How It Works</Text>
+            <View style={styles.bulletList}>
+              {selectionProcessSteps.map((step) => (
+                <View key={step.id} style={styles.bulletItem}>
+                  <Text style={styles.bulletText}>• {step.text}</Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
 
-        {/* Tips */}
+        {/* Section 3: Tips for Your Reveal */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tips for Your Reveal</Text>
           
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <IconSymbol
-                ios_icon_name="lightbulb.fill"
-                android_material_icon_name="lightbulb"
-                size={24}
-                color={colors.accent}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>Make the Most of It</Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                Bring measurements of wall spaces where you'd like to display portraits
-              </Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                Consider bringing a partner or family member for a second opinion
-              </Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                Think about which rooms you'd like to feature your pet's portraits
-              </Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bullet} />
-              <Text style={styles.bulletText}>
-                Trust your instincts - choose the images that make your heart happy
-              </Text>
+            <Text style={styles.cardTitle}>Make the Most of It</Text>
+            <View style={styles.bulletList}>
+              {revealTips.map((tip) => (
+                <View key={tip.id} style={styles.bulletItem}>
+                  <Text style={styles.bulletText}>• {tip.text}</Text>
+                </View>
+              ))}
             </View>
           </View>
+        </View>
+
+        {/* CTA Area */}
+        <View style={styles.ctaContainer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.primaryButton,
+              pressed && { opacity: 0.85 }
+            ]}
+            onPress={handleViewProductGuide}
+          >
+            <Text style={styles.primaryButtonText}>View Product Guide</Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.secondaryLink}
+            onPress={handleContactUs}
+          >
+            <Text style={styles.secondaryLinkText}>Questions? Contact Us</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </View>
