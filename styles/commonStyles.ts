@@ -1,5 +1,5 @@
 
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const colors = {
   primary: '#111F0F',
@@ -86,10 +86,19 @@ export const commonStyles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
+      },
+      default: {
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
+      },
+    }),
   },
 });

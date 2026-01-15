@@ -21,6 +21,7 @@ export function GemmaMessage({ message, showAvatar = true, style }: GemmaMessage
           <Image
             source={require('@/assets/images/bb700b49-eac8-433e-a8be-ad5057bdb80c.jpeg')}
             style={styles.avatar}
+            resizeMode="cover"
           />
         </View>
       )}
@@ -49,7 +50,6 @@ const styles = StyleSheet.create({
   avatar: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   bubble: {
     flex: 1,
