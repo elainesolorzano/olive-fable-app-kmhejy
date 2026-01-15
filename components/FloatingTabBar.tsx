@@ -64,7 +64,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: '500',
   },
+  iconWrapper: {
+    opacity: 1, // Explicitly set opacity to 1 to ensure icons are visible
+  },
 });
+
+// Icon mapping: active (filled) and inactive (outline) variants
+const iconMap: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }> = {
+  home: { active: 'home', inactive: 'home-outline' },
+  book: { active: 'book', inactive: 'book-outline' },
+  calendar: { active: 'calendar', inactive: 'calendar-outline' },
+  person: { active: 'person', inactive: 'person-outline' },
+};
 
 export default function FloatingTabBar({
   tabs,
@@ -95,6 +106,12 @@ export default function FloatingTabBar({
           const active = isActive(tab.name);
           // Active color: #111F0F, Inactive color: #8A8A8A
           const color = active ? '#111F0F' : '#8A8A8A';
+          
+          // Get the correct icon variant (filled for active, outline for inactive)
+          const iconVariants = iconMap[tab.icon as string];
+          const iconName = iconVariants 
+            ? (active ? iconVariants.active : iconVariants.inactive)
+            : tab.icon;
 
           return (
             <TouchableOpacity
@@ -103,11 +120,14 @@ export default function FloatingTabBar({
               onPress={() => handleTabPress(tab.route)}
               activeOpacity={0.7}
             >
-              <Ionicons
-                name={tab.icon}
-                size={24}
-                color={color}
-              />
+              <View style={styles.iconWrapper}>
+                <Ionicons
+                  name={iconName}
+                  size={24}
+                  color={color}
+                  style={{ opacity: 1 }}
+                />
+              </View>
               <Text style={[styles.tabLabel, { color }]}>
                 {tab.label}
               </Text>

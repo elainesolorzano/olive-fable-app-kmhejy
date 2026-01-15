@@ -1,36 +1,57 @@
 
 import React from 'react';
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { Stack } from 'expo-router';
+import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
+  // Define the tabs configuration - exactly 4 tabs with Ionicons
+  // Using active/inactive icon variants as specified
+  const tabs: TabBarItem[] = [
+    {
+      name: '(home)',
+      route: '/(tabs)/(home)/',
+      icon: 'home', // Will use home for active, home-outline for inactive
+      label: 'Home',
+    },
+    {
+      name: 'learn',
+      route: '/(tabs)/learn',
+      icon: 'book', // Will use book for active, book-outline for inactive
+      label: 'Learn',
+    },
+    {
+      name: 'workshops',
+      route: '/(tabs)/workshops',
+      icon: 'calendar', // Will use calendar for active, calendar-outline for inactive
+      label: 'Workshops',
+    },
+    {
+      name: 'my-studio',
+      route: '/(tabs)/my-studio',
+      icon: 'person', // Will use person for active, person-outline for inactive
+      label: 'My Studio',
+    },
+  ];
+
+  // Use Stack navigation with custom floating tab bar (same as Android/Web)
   return (
-    <NativeTabs
-      tabBarActiveTintColor="#111F0F"
-      tabBarInactiveTintColor="#8A8A8A"
-    >
-      {/* Hide index route from tab bar */}
-      <NativeTabs.Screen name="index" options={{ href: null }} />
-      
-      {/* Define the 4 visible tabs */}
-      <NativeTabs.Trigger key="home" name="(home)">
-        <Icon sf="house.fill" />
-        <Label>Home</Label>
-      </NativeTabs.Trigger>
-      
-      <NativeTabs.Trigger key="learn" name="learn">
-        <Icon sf="book.fill" />
-        <Label>Learn</Label>
-      </NativeTabs.Trigger>
-      
-      <NativeTabs.Trigger key="workshops" name="workshops">
-        <Icon sf="calendar" />
-        <Label>Workshops</Label>
-      </NativeTabs.Trigger>
-      
-      <NativeTabs.Trigger key="my-studio" name="my-studio">
-        <Icon sf="person.fill" />
-        <Label>My Studio</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'none', // Remove fade animation to prevent black screen flash
+        }}
+      >
+        <Stack.Screen key="home" name="(home)" />
+        <Stack.Screen key="learn" name="learn" />
+        <Stack.Screen key="workshops" name="workshops" />
+        <Stack.Screen key="my-studio" name="my-studio" />
+        {/* Hide index, book, and profile routes from tab bar */}
+        <Stack.Screen name="index" options={{ href: null }} />
+        <Stack.Screen name="book" options={{ href: null }} />
+        <Stack.Screen name="profile" options={{ href: null }} />
+      </Stack>
+      <FloatingTabBar tabs={tabs} />
+    </>
   );
 }
