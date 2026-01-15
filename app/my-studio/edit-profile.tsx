@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
@@ -17,12 +17,7 @@ export default function EditProfileScreen() {
   const [contactMethod, setContactMethod] = useState<'Email' | 'Text Message'>('Email');
   const [successMessage, setSuccessMessage] = useState('');
 
-  useEffect(() => {
-    console.log('Edit Profile screen loaded for user:', user?.email);
-    fetchProfile();
-  }, [user]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     if (!user?.id) {
       console.log('No user ID available');
       setLoading(false);
@@ -56,7 +51,12 @@ export default function EditProfileScreen() {
       console.error('Exception fetching profile:', err);
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    console.log('Edit Profile screen loaded for user:', user?.email);
+    fetchProfile();
+  }, [user, fetchProfile]);
 
   const handleSaveChanges = async () => {
     if (!user?.id) {
