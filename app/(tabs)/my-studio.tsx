@@ -238,16 +238,6 @@ export default function MyStudioScreen() {
     router.push('/my-studio/edit-profile');
   };
 
-  const handleSavedContent = () => {
-    console.log('User navigating to Saved Content');
-    router.push('/my-studio/saved');
-  };
-
-  const handlePurchases = () => {
-    console.log('User navigating to Purchases');
-    router.push('/my-studio/purchases');
-  };
-
   const handleNotifications = () => {
     console.log('User navigating to Notifications');
     router.push('/my-studio/notifications');
@@ -406,46 +396,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Edit Profile</Text>
-            </View>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron-right"
-              size={20}
-              color={colors.textSecondary}
-              style={styles.chevron}
-            />
-          </Pressable>
-
-          <Pressable style={styles.menuItem} onPress={handleSavedContent}>
-            <IconSymbol
-              ios_icon_name="bookmark.fill"
-              android_material_icon_name="bookmark"
-              size={24}
-              color={colors.primary}
-              style={styles.menuIcon}
-            />
-            <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>Saved Content</Text>
-            </View>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron-right"
-              size={20}
-              color={colors.textSecondary}
-              style={styles.chevron}
-            />
-          </Pressable>
-
-          <Pressable style={styles.menuItem} onPress={handlePurchases}>
-            <IconSymbol
-              ios_icon_name="cart.fill"
-              android_material_icon_name="shopping-cart"
-              size={24}
-              color={colors.primary}
-              style={styles.menuIcon}
-            />
-            <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>Purchases</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
