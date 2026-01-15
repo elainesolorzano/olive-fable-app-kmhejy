@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  // Define the tabs configuration - exactly 4 tabs
+  // Define the tabs configuration - exactly 4 tabs with Ionicons
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
@@ -15,13 +15,13 @@ export default function TabLayout() {
     {
       name: 'learn',
       route: '/(tabs)/learn',
-      icon: 'school',
+      icon: 'book',
       label: 'Learn',
     },
     {
       name: 'workshops',
       route: '/(tabs)/workshops',
-      icon: 'event',
+      icon: 'calendar',
       label: 'Workshops',
     },
     {

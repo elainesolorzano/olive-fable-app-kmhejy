@@ -4,7 +4,10 @@ import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
   return (
-    <NativeTabs>
+    <NativeTabs
+      tabBarActiveTintColor="#111F0F"
+      tabBarInactiveTintColor="#8A8A8A"
+    >
       {/* Hide index route from tab bar */}
       <NativeTabs.Screen name="index" options={{ href: null }} />
       

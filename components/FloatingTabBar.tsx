@@ -15,17 +15,16 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Ionicons } from '@expo/vector-icons';
 import { Href } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '@react-navigation/native';
 import { useRouter, usePathname } from 'expo-router';
-import { IconSymbol } from '@/components/IconSymbol';
 
 export interface TabBarItem {
   name: string;
   route: Href;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
 }
 
@@ -78,6 +77,7 @@ export default function FloatingTabBar({
   const pathname = usePathname();
 
   const handleTabPress = (route: Href) => {
+    console.log('Tab pressed:', route);
     router.push(route);
   };
 
@@ -93,8 +93,8 @@ export default function FloatingTabBar({
       <View style={styles.tabBarContainer}>
         {tabs.map((tab) => {
           const active = isActive(tab.name);
-          // Active color: #0F2A1A (dark green), Inactive color: #2B2B2B
-          const color = active ? '#0F2A1A' : '#2B2B2B';
+          // Active color: #111F0F, Inactive color: #8A8A8A
+          const color = active ? '#111F0F' : '#8A8A8A';
 
           return (
             <TouchableOpacity
@@ -103,8 +103,8 @@ export default function FloatingTabBar({
               onPress={() => handleTabPress(tab.route)}
               activeOpacity={0.7}
             >
-              <IconSymbol
-                android_material_icon_name={tab.icon}
+              <Ionicons
+                name={tab.icon}
                 size={24}
                 color={color}
               />
