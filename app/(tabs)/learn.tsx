@@ -1,28 +1,44 @@
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Image, Modal, TouchableOpacity } from 'react-native';
+import { colors, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
+import WebView from 'react-native-webview';
 
-interface ContentCategory {
+interface DisplayOption {
   id: string;
   title: string;
-  description: string;
-  icon: string;
-  items: ContentItem[];
-}
-
-interface ContentItem {
-  id: string;
-  title: string;
-  type: 'video' | 'guide' | 'checklist';
-  duration?: string;
+  body: string;
+  imageUrl: string;
+  investmentUrl: string;
 }
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
+
+const displayOptions: DisplayOption[] = [
+  {
+    id: 'prints',
+    title: 'Matted Fine Art Prints',
+    body: 'A classic, museum-style option. Perfect for framing, gifting, or building a collection over time. Clean, timeless, and designed to elevate your portraits.',
+    imageUrl: 'https://images.squarespace-cdn.com/content/v1/67c1f9d2eb4c2e2665801269/ebdfbec8-e0b5-4c6e-83d3-9ba1b104dad2/3XM_image.jpg',
+    investmentUrl: 'https://www.oliveandfable.com/investment',
+  },
+  {
+    id: 'wallart',
+    title: 'Wall Art',
+    body: 'Create a statement piece for your home. Choose a single hero portrait or a collage layout to showcase multiple favorites together in a cohesive, gallery-style display.',
+    imageUrl: 'https://images.squarespace-cdn.com/content/v1/67c1f9d2eb4c2e2665801269/a07dea79-e09c-42fd-bae6-44c7bbabaac8/Doramockup.jpg',
+    investmentUrl: 'https://www.oliveandfable.com/investment',
+  },
+  {
+    id: 'boxes',
+    title: 'Portrait Boxes',
+    body: 'An heirloom way to keep and rotate your portraits. A beautifully crafted box designed to hold fine art prints — elegant, intentional, and made to last.',
+    imageUrl: 'https://images.squarespace-cdn.com/content/v1/67c1f9d2eb4c2e2665801269/2aa79b86-de47-4a0c-a380-40899fa02380/Reveal_Box_15.jpg',
+    investmentUrl: 'https://www.oliveandfable.com/investment',
+  },
+];
 
 const styles = StyleSheet.create({
   container: {
@@ -35,226 +51,140 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 16,
+    letterSpacing: -0.2,
+  },
+  intro: {
     fontSize: 16,
     color: colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: 26,
+    letterSpacing: 0.2,
   },
-  categoryCard: {
+  card: {
     backgroundColor: colors.backgroundAlt,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 20,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.06)',
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.06)',
+      },
+      default: {
+        boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.06)',
+      },
+    }),
   },
-  categoryHeader: {
+  cardImage: {
+    width: '100%',
+    height: 240,
+    backgroundColor: colors.border,
+  },
+  cardContent: {
+    padding: 24,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+    letterSpacing: -0.3,
+  },
+  cardBody: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    lineHeight: 24,
+    marginBottom: 20,
+    letterSpacing: 0.1,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: colors.backgroundAlt,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  categoryLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  categoryIcon: {
-    marginRight: 12,
-  },
-  categoryInfo: {
-    flex: 1,
-  },
-  categoryTitle: {
+  modalTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
-  },
-  categoryDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  expandIcon: {
-    marginLeft: 12,
-  },
-  itemsList: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  contentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  itemIcon: {
-    marginRight: 12,
-  },
-  itemInfo: {
     flex: 1,
+    textAlign: 'center',
   },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  itemMeta: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  lockedBadge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  lockedText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  ctaCard: {
-    backgroundColor: colors.primary,
+  closeButton: {
+    width: 32,
+    height: 32,
     borderRadius: 16,
-    padding: 24,
-    marginTop: 8,
-    marginBottom: 16,
+    backgroundColor: colors.border,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  ctaTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
+  closeButtonPlaceholder: {
+    width: 32,
   },
-  ctaDescription: {
-    fontSize: 14,
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  ctaButton: {
-    backgroundColor: colors.text,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  ctaButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
+  webView: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
 });
 
 export default function LearnScreen() {
-  const { session } = useSupabaseAuth();
+  console.log('LearnScreen: Rendering Display Options screen');
   const insets = useSafeAreaInsets();
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState('');
 
-  const categories: ContentCategory[] = [
-    {
-      id: 'posing',
-      title: 'Posing Your Pet',
-      description: 'Master the art of pet posing',
-      icon: 'camera',
-      items: [
-        { id: '1', title: 'Basic Sitting Poses', type: 'video', duration: '5 min' },
-        { id: '2', title: 'Action Shots', type: 'video', duration: '7 min' },
-        { id: '3', title: 'Group Pet Portraits', type: 'guide' },
-      ],
-    },
-    {
-      id: 'prep',
-      title: 'Session Preparation',
-      description: 'Get ready for your shoot',
-      icon: 'checklist',
-      items: [
-        { id: '4', title: 'What to Bring Checklist', type: 'checklist' },
-        { id: '5', title: 'Grooming Tips', type: 'guide' },
-        { id: '6', title: 'Calming Techniques', type: 'video', duration: '4 min' },
-      ],
-    },
-    {
-      id: 'phone',
-      title: 'Phone Photography',
-      description: 'Take better photos at home',
-      icon: 'phone-android',
-      items: [
-        { id: '7', title: 'Lighting Basics', type: 'video', duration: '6 min' },
-        { id: '8', title: 'Composition Guide', type: 'guide' },
-        { id: '9', title: 'Editing Tips', type: 'video', duration: '8 min' },
-      ],
-    },
-    {
-      id: 'locations',
-      title: 'Locations & Looks',
-      description: 'Choose the perfect setting',
-      icon: 'location-on',
-      items: [
-        { id: '10', title: 'Indoor vs Outdoor', type: 'guide' },
-        { id: '11', title: 'Seasonal Backdrops', type: 'video', duration: '5 min' },
-        { id: '12', title: 'Props & Accessories', type: 'guide' },
-      ],
-    },
-  ];
-
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev =>
-      prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
+  const handleViewDetails = (option: DisplayOption) => {
+    console.log('LearnScreen: User tapped View Details for:', option.title);
+    setCurrentUrl(option.investmentUrl);
+    setModalVisible(true);
   };
 
-  const handleContentItemPress = (item: ContentItem, itemTitle: string) => {
-    if (!session) {
-      Alert.alert(
-        'Sign In Required',
-        'Please sign in to access this content.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign In', onPress: handleSignIn },
-        ]
-      );
-      return;
-    }
-
-    // TODO: Navigate to content detail screen
-    Alert.alert('Coming Soon', `"${itemTitle}" will be available soon!`);
-  };
-
-  const handleSignIn = () => {
-    router.push('/(auth)/login');
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return 'play-circle';
-      case 'guide':
-        return 'description';
-      case 'checklist':
-        return 'checklist';
-      default:
-        return 'article';
-    }
+  const handleCloseModal = () => {
+    console.log('LearnScreen: User closed WebView modal');
+    setModalVisible(false);
+    setCurrentUrl('');
   };
 
   return (
@@ -270,94 +200,74 @@ export default function LearnScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Learn</Text>
-          <Text style={styles.subtitle}>
-            Master pet photography and session preparation with our expert guides
+          <Text style={styles.subtitle}>Display Options</Text>
+          <Text style={styles.intro}>
+            Your portraits are created to live beautifully in your home. Explore our most-loved ways to display your artwork — from timeless matted prints to statement wall art and heirloom portrait boxes.
           </Text>
         </View>
 
-        {/* Categories */}
-        {categories.map((category) => {
-          const isExpanded = expandedCategories.includes(category.id);
-          
-          return (
-            <Pressable
-              key={category.id}
-              style={styles.categoryCard}
-              onPress={() => toggleCategory(category.id)}
-            >
-              <View style={styles.categoryHeader}>
-                <View style={styles.categoryLeft}>
-                  <IconSymbol
-                    ios_icon_name={category.icon}
-                    android_material_icon_name={category.icon}
-                    size={24}
-                    color={colors.primary}
-                    style={styles.categoryIcon}
-                  />
-                  <View style={styles.categoryInfo}>
-                    <Text style={styles.categoryTitle}>{category.title}</Text>
-                    <Text style={styles.categoryDescription}>
-                      {category.description}
-                    </Text>
-                  </View>
-                </View>
-                <IconSymbol
-                  ios_icon_name={isExpanded ? 'chevron.up' : 'chevron.down'}
-                  android_material_icon_name={isExpanded ? 'expand-less' : 'expand-more'}
-                  size={24}
-                  color={colors.textSecondary}
-                  style={styles.expandIcon}
-                />
-              </View>
-
-              {isExpanded && (
-                <View style={styles.itemsList}>
-                  {category.items.map((item) => (
-                    <Pressable
-                      key={item.id}
-                      style={styles.contentItem}
-                      onPress={() => handleContentItemPress(item, item.title)}
-                    >
-                      <IconSymbol
-                        ios_icon_name={getTypeIcon(item.type)}
-                        android_material_icon_name={getTypeIcon(item.type)}
-                        size={20}
-                        color={colors.accent}
-                        style={styles.itemIcon}
-                      />
-                      <View style={styles.itemInfo}>
-                        <Text style={styles.itemTitle}>{item.title}</Text>
-                        <Text style={styles.itemMeta}>
-                          {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                          {item.duration && ` • ${item.duration}`}
-                        </Text>
-                      </View>
-                      {!session && (
-                        <View style={styles.lockedBadge}>
-                          <Text style={styles.lockedText}>LOCKED</Text>
-                        </View>
-                      )}
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </Pressable>
-          );
-        })}
-
-        {/* CTA for non-members */}
-        {!session && (
-          <View style={styles.ctaCard}>
-            <Text style={styles.ctaTitle}>Unlock All Content</Text>
-            <Text style={styles.ctaDescription}>
-              Sign in to access the full library of guides, videos, and checklists
-            </Text>
-            <Pressable style={styles.ctaButton} onPress={handleSignIn}>
-              <Text style={styles.ctaButtonText}>Sign In</Text>
-            </Pressable>
+        {/* Display Option Cards */}
+        {displayOptions.map((option) => (
+          <View key={option.id} style={styles.card}>
+            <Image
+              source={{ uri: option.imageUrl }}
+              style={styles.cardImage}
+              resizeMode="cover"
+              onError={(error) => {
+                console.log('LearnScreen: Image failed to load for', option.title, error.nativeEvent.error);
+              }}
+            />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{option.title}</Text>
+              <Text style={styles.cardBody}>{option.body}</Text>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  pressed && { opacity: 0.8 }
+                ]}
+                onPress={() => handleViewDetails(option)}
+              >
+                <Text style={styles.buttonText}>View Details</Text>
+              </Pressable>
+            </View>
           </View>
-        )}
+        ))}
       </ScrollView>
+
+      {/* WebView Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCloseModal}
+      >
+        <View style={[styles.modalContainer, { paddingTop: insets.top }]}>
+          <View style={styles.modalHeader}>
+            <View style={styles.closeButtonPlaceholder} />
+            <Text style={styles.modalTitle}>Investment</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleCloseModal}
+            >
+              <IconSymbol
+                ios_icon_name="xmark"
+                android_material_icon_name="close"
+                size={18}
+                color={colors.text}
+              />
+            </TouchableOpacity>
+          </View>
+          <WebView
+            source={{ uri: currentUrl }}
+            style={styles.webView}
+            startInLoadingState={true}
+            onError={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              console.log('LearnScreen: WebView error:', nativeEvent);
+            }}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
