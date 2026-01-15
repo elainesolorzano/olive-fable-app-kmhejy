@@ -2,17 +2,18 @@
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking, Image } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
 // Data structures with stable unique IDs to prevent React key warnings
 const selectionProcessSteps = [
-  { id: 'step-1', text: 'View your fully retouched portraits' },
-  { id: 'step-2', text: 'Choose favorites and refine your final set' },
-  { id: 'step-3', text: 'Explore sizes and products that fit your space' },
-  { id: 'step-4', text: 'Finalize your order and delivery timeline' },
+  { id: 'step-1', text: 'View your carefully curated gallery for the first time' },
+  { id: 'step-2', text: 'Narrow down your favorites with our guidance' },
+  { id: 'step-3', text: 'Choose your artwork and sizes that fit your home' },
+  { id: 'step-4', text: 'Select any digital files and heirloom products you'd love to take home' },
+  { id: 'step-5', text: 'Finalize your order and review delivery timing' },
 ];
 
 const revealTips = [
@@ -48,14 +49,31 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     marginBottom: 16,
   },
-  gemmaNote: {
+  gemmaCard: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  gemmaAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.border,
+  },
+  gemmaTextContainer: {
+    flex: 1,
+  },
+  gemmaText: {
     fontSize: 15,
-    color: colors.textTertiary,
-    fontStyle: 'italic',
+    color: colors.textSecondary,
     lineHeight: 22,
-    paddingLeft: 16,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
+    fontStyle: 'italic',
   },
   section: {
     marginBottom: 40,
@@ -170,9 +188,19 @@ export default function RevealPrepScreen() {
           <Text style={styles.subheader}>
             Everything you need to feel relaxed, confident, and excited for your portrait reveal.
           </Text>
-          <Text style={styles.gemmaNote}>
-            Gemma's tip: bring your measurements — it makes choosing artwork effortless.
-          </Text>
+        </View>
+
+        {/* Gemma Intro Card */}
+        <View style={styles.gemmaCard}>
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=200&fit=crop' }}
+            style={styles.gemmaAvatar}
+          />
+          <View style={styles.gemmaTextContainer}>
+            <Text style={styles.gemmaText}>
+              The reveal is one of my favorite moments. You'll see your carefully curated gallery for the first time, and together we'll choose the artwork and products that feel most like you.
+            </Text>
+          </View>
         </View>
 
         {/* Section 1: What to Expect */}
@@ -180,9 +208,9 @@ export default function RevealPrepScreen() {
           <Text style={styles.sectionTitle}>What to Expect</Text>
           
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>The Reveal Experience</Text>
+            <Text style={styles.cardTitle}>The Gallery Reveal</Text>
             <Text style={styles.cardBody}>
-              Your reveal is where everything comes together. You'll see your portraits for the first time, narrow favorites, and design artwork that fits your home beautifully.
+              One to two weeks after your session, we'll meet on Zoom for your gallery reveal. This is where the magic comes together. You'll see your curated set of images for the first time, and we'll walk through each portrait so you can choose your favorite artwork pieces, digital files, and any heirloom products you'd love to bring home.
             </Text>
           </View>
 
