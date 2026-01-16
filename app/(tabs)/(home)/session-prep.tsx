@@ -51,7 +51,7 @@ const whatToBring = [
 
 const whatToExpect = [
   { id: 'expect-space', text: 'A calm, welcoming space where your pet can explore first' },
-  { id: 'expect-pace', text: 'Gentle direction and breaks when needed, we move at your pet's pace' },
+  { id: 'expect-pace', text: 'Gentle direction and breaks when needed, we move at your pet\'s pace' },
   { id: 'expect-focus', text: 'We focus on expression, connection, and the little details that make them who they are' }
 ];
 
