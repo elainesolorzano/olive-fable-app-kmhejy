@@ -1,28 +1,27 @@
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Logo } from '@/components/Logo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { router } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, RefreshControl } from 'react-native';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
-// Progress steps for the client journey
-const PROGRESS_STEPS = [
-  'Inquiry Received',
-  'Consultation Scheduled',
-  'Session Confirmed',
-  'Session Complete',
-  'Gallery Ready',
-  'Reveal Scheduled',
-  'Order In Production',
-  'Delivered',
+// Map order_status enum values to display labels
+const ORDER_STATUS_STEPS = [
+  { status: 'inquiry_received', label: 'Inquiry Received' },
+  { status: 'consultation_scheduled', label: 'Consultation Scheduled' },
+  { status: 'session_confirmed', label: 'Session Confirmed' },
+  { status: 'session_complete', label: 'Session Complete' },
+  { status: 'gallery_ready', label: 'Gallery Ready' },
+  { status: 'reveal_scheduled', label: 'Reveal Scheduled' },
+  { status: 'order_in_production', label: 'Order In Production' },
+  { status: 'delivered', label: 'Delivered' },
 ];
-
-const CURRENT_STEP = 'Session Confirmed'; // Hardcoded for now
 
 const styles = StyleSheet.create({
   container: {
@@ -53,6 +52,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     lineHeight: 24,
+  },
+  debugLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginBottom: 16,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    backgroundColor: colors.backgroundAlt,
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   // Login Screen Styles
   loginContainer: {
@@ -230,8 +240,87 @@ const styles = StyleSheet.create({
 });
 
 export default function MyStudioScreen() {
-  const { session, signOut, loading } = useSupabaseAuth();
+  const { session, user, signOut, loading: authLoading } = useSupabaseAuth();
   const insets = useSafeAreaInsets();
+  
+  const [profile, setProfile] = useState<{ order_status: string | null; email: string | null } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  // Fetch user profile from Supabase
+  const fetchProfile = useCallback(async () => {
+    if (!user) {
+      console.log('No user logged in, skipping profile fetch');
+      setLoadingProfile(false);
+      return;
+    }
+
+    console.log('Fetching profile for user:', user.id);
+    setRefreshing(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('order_status, email')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error.message);
+        // If profile doesn't exist, treat as inquiry_received
+        setProfile({ order_status: null, email: user.email || null });
+      } else {
+        console.log('Profile fetched successfully:', data);
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching profile:', error);
+      setProfile({ order_status: null, email: user.email || null });
+    } finally {
+      setRefreshing(false);
+      setLoadingProfile(false);
+    }
+  }, [user]);
+
+  // Fetch profile on mount and when user changes
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    } else {
+      setLoadingProfile(false);
+    }
+  }, [user, fetchProfile]);
+
+  // Subscribe to realtime changes on profiles table
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('Setting up realtime subscription for user profile');
+
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Profile changed in realtime:', payload);
+          if (payload.new && typeof payload.new === 'object' && 'order_status' in payload.new) {
+            setProfile(payload.new as { order_status: string | null; email: string | null });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up realtime subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const handleEditProfile = () => {
     console.log('User navigating to Edit Profile');
@@ -263,16 +352,21 @@ export default function MyStudioScreen() {
     router.push('/(auth)/login');
   };
 
-  // Determine which steps are complete and which is current
-  const currentStepIndex = PROGRESS_STEPS.indexOf(CURRENT_STEP);
+  // Determine current step index based on order_status
+  const currentStepIndex = profile?.order_status
+    ? ORDER_STATUS_STEPS.findIndex(step => step.status === profile.order_status)
+    : 0; // Default to first step if no status
 
-  const renderProgressStep = (step: string, index: number) => {
-    const isComplete = index < currentStepIndex;
-    const isActive = index === currentStepIndex;
-    const isLast = index === PROGRESS_STEPS.length - 1;
+  // If status not found in list, default to 0
+  const safeCurrentStepIndex = currentStepIndex === -1 ? 0 : currentStepIndex;
+
+  const renderProgressStep = (step: { status: string; label: string }, index: number) => {
+    const isComplete = index < safeCurrentStepIndex;
+    const isActive = index === safeCurrentStepIndex;
+    const isLast = index === ORDER_STATUS_STEPS.length - 1;
 
     return (
-      <View key={step} style={[styles.progressStep, isLast && styles.progressStepLast]}>
+      <View key={step.status} style={[styles.progressStep, isLast && styles.progressStepLast]}>
         <View>
           <View
             style={[
@@ -315,14 +409,14 @@ export default function MyStudioScreen() {
             isComplete && styles.progressStepTextComplete,
           ]}
         >
-          {step}
+          {step.label}
         </Text>
       </View>
     );
   };
 
-  // Show loading spinner while checking auth state
-  if (loading) {
+  // Show loading spinner while checking auth state or loading profile
+  if (authLoading || loadingProfile) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -362,6 +456,14 @@ export default function MyStudioScreen() {
           { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 16 }
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={fetchProfile}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         {/* Header */}
         <View style={styles.header}>
@@ -371,6 +473,11 @@ export default function MyStudioScreen() {
           </Text>
         </View>
 
+        {/* DEBUG Label */}
+        <Text style={styles.debugLabel}>
+          DEBUG: {profile?.order_status || 'null (defaulting to inquiry_received)'}
+        </Text>
+
         {/* My Experience Progress Card */}
         <View style={styles.progressCard}>
           <Text style={styles.progressCardTitle}>My Experience</Text>
@@ -378,7 +485,7 @@ export default function MyStudioScreen() {
             We&apos;ll guide you through each step of the process.
           </Text>
           <View style={styles.progressStepsContainer}>
-            {PROGRESS_STEPS.map((step, index) => renderProgressStep(step, index))}
+            {ORDER_STATUS_STEPS.map((step, index) => renderProgressStep(step, index))}
           </View>
         </View>
 
