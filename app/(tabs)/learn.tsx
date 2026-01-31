@@ -36,7 +36,7 @@ const displayOptions: DisplayOption[] = [
     title: 'Portrait Boxes',
     body: 'An heirloom way to keep and rotate your portraits. A beautifully crafted box designed to hold fine art prints — elegant, intentional, and made to last.',
     imageUrl: 'https://images.squarespace-cdn.com/content/v1/67c1f9d2eb4c2e2665801269/2aa79b86-de47-4a0c-a380-40899fa02380/Reveal_Box_15.jpg',
-    investmentUrl: 'https://www.oliveandfable.com/investment',
+    investmentUrl: 'https://www.oliveandfable.com/portraitbox',
   },
 ];
 
