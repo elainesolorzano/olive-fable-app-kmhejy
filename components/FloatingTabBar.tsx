@@ -17,6 +17,7 @@ export interface TabBarItem {
   route: Href;
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
+  badgeCount?: number;
 }
 
 interface FloatingTabBarProps {
@@ -58,6 +59,37 @@ const styles = StyleSheet.create({
   },
   iconWrapper: {
     opacity: 1, // Explicitly set opacity to 1 to ensure icons are visible
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -10,
+    backgroundColor: '#111F0F',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+    borderWidth: 2,
+    borderColor: '#F5F1E8',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  badgeDot: {
+    position: 'absolute',
+    top: -2,
+    right: -6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#111F0F',
+    borderWidth: 2,
+    borderColor: '#F5F1E8',
   },
 });
 
@@ -105,6 +137,8 @@ export default function FloatingTabBar({
             ? (active ? iconVariants.active : iconVariants.inactive)
             : tab.icon;
 
+          const showBadge = tab.badgeCount !== undefined && tab.badgeCount > 0;
+
           return (
             <TouchableOpacity
               key={tab.name}
@@ -119,6 +153,17 @@ export default function FloatingTabBar({
                   color={color}
                   style={{ opacity: 1 }}
                 />
+                {showBadge && (
+                  tab.badgeCount > 9 ? (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>
+                        {tab.badgeCount > 99 ? '99+' : tab.badgeCount}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.badgeDot} />
+                  )
+                )}
               </View>
               <Text style={[styles.tabLabel, { color }]}>
                 {tab.label}

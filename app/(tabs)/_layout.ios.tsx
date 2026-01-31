@@ -2,8 +2,11 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
+import { useNotificationBadge } from '@/contexts/NotificationBadgeContext';
 
 export default function TabLayout() {
+  const { unreadCount } = useNotificationBadge();
+
   // Define the tabs configuration - exactly 4 tabs with Ionicons
   // Using active/inactive icon variants as specified
   const tabs: TabBarItem[] = [
@@ -30,6 +33,7 @@ export default function TabLayout() {
       route: '/(tabs)/my-studio',
       icon: 'person', // Will use person for active, person-outline for inactive
       label: 'My Studio',
+      badgeCount: unreadCount,
     },
   ];
 

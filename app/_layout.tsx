@@ -17,6 +17,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 import { SupabaseAuthProvider, useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { NotificationBadgeProvider } from "@/contexts/NotificationBadgeContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -136,12 +137,14 @@ export default function RootLayout() {
           value={colorScheme === "dark" ? OliveFableDarkTheme : OliveFableTheme}
         >
           <SupabaseAuthProvider>
-            <WidgetProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <RootLayoutNav />
-                <SystemBars style={"auto"} />
-              </GestureHandlerRootView>
-            </WidgetProvider>
+            <NotificationBadgeProvider>
+              <WidgetProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <RootLayoutNav />
+                  <SystemBars style={"auto"} />
+                </GestureHandlerRootView>
+              </WidgetProvider>
+            </NotificationBadgeProvider>
           </SupabaseAuthProvider>
         </ThemeProvider>
       </SafeAreaProvider>
