@@ -4,7 +4,7 @@ import { Logo } from '@/components/Logo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, RefreshControl } from 'react-native';
@@ -270,6 +270,37 @@ export default function MyStudioScreen() {
       setLoadingProfile(false);
     }
   }, [user]);
+
+  // Mark all unread notifications as read when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const markNotificationsAsRead = async () => {
+        if (!user?.id) {
+          return;
+        }
+
+        console.log('My Studio screen focused - marking all unread notifications as read');
+
+        try {
+          const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false);
+
+          if (error) {
+            console.error('Error marking notifications as read:', error.message);
+          } else {
+            console.log('All unread notifications marked as read successfully');
+          }
+        } catch (error) {
+          console.error('Unexpected error marking notifications as read:', error);
+        }
+      };
+
+      markNotificationsAsRead();
+    }, [user?.id])
+  );
 
   // Fetch profile on mount and when user changes
   useEffect(() => {
