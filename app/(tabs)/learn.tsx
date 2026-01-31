@@ -29,7 +29,7 @@ const displayOptions: DisplayOption[] = [
     title: 'Wall Art',
     body: 'Create a statement piece for your home. Choose a single hero portrait or a collage layout to showcase multiple favorites together in a cohesive, gallery-style display.',
     imageUrl: 'https://images.squarespace-cdn.com/content/v1/67c1f9d2eb4c2e2665801269/a07dea79-e09c-42fd-bae6-44c7bbabaac8/Doramockup.jpg',
-    investmentUrl: 'https://www.oliveandfable.com/investment',
+    investmentUrl: 'https://www.oliveandfable.com/wallart',
   },
   {
     id: 'boxes',
