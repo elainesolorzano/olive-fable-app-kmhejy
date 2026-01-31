@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Href } from 'expo-router';
 import { useRouter, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNotificationBadge } from '@/contexts/NotificationBadgeContext';
 
 export interface TabBarItem {
   name: string;
@@ -110,6 +111,7 @@ export default function FloatingTabBar({
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { hasUnseenUpdate } = useNotificationBadge();
 
   const handleTabPress = (route: Href) => {
     console.log('Tab pressed:', route);
@@ -137,7 +139,8 @@ export default function FloatingTabBar({
             ? (active ? iconVariants.active : iconVariants.inactive)
             : tab.icon;
 
-          const showBadge = tab.badgeCount !== undefined && tab.badgeCount > 0;
+          // Show badge dot on My Studio tab if there's an unseen update
+          const showBadge = tab.name === 'my-studio' ? hasUnseenUpdate : false;
 
           return (
             <TouchableOpacity
@@ -153,17 +156,7 @@ export default function FloatingTabBar({
                   color={color}
                   style={{ opacity: 1 }}
                 />
-                {showBadge && (
-                  tab.badgeCount > 9 ? (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>
-                        {tab.badgeCount > 99 ? '99+' : tab.badgeCount}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.badgeDot} />
-                  )
-                )}
+                {showBadge && <View style={styles.badgeDot} />}
               </View>
               <Text style={[styles.tabLabel, { color }]}>
                 {tab.label}

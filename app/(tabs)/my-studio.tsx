@@ -271,34 +271,33 @@ export default function MyStudioScreen() {
     }
   }, [user]);
 
-  // Mark all unread notifications as read when screen is focused
+  // Update last_seen_at when screen is focused
   useFocusEffect(
     useCallback(() => {
-      const markNotificationsAsRead = async () => {
+      const updateLastSeenAt = async () => {
         if (!user?.id) {
           return;
         }
 
-        console.log('My Studio screen focused - marking all unread notifications as read');
+        console.log('My Studio screen focused - updating last_seen_at to clear notification dot');
 
         try {
           const { error } = await supabase
-            .from('notifications')
-            .update({ is_read: true })
-            .eq('user_id', user.id)
-            .eq('is_read', false);
+            .from('profiles')
+            .update({ last_seen_at: new Date().toISOString() })
+            .eq('user_id', user.id);
 
           if (error) {
-            console.error('Error marking notifications as read:', error.message);
+            console.error('Error updating last_seen_at:', error.message);
           } else {
-            console.log('All unread notifications marked as read successfully');
+            console.log('last_seen_at updated successfully - notification dot should clear');
           }
         } catch (error) {
-          console.error('Unexpected error marking notifications as read:', error);
+          console.error('Unexpected error updating last_seen_at:', error);
         }
       };
 
-      markNotificationsAsRead();
+      updateLastSeenAt();
     }, [user?.id])
   );
 
