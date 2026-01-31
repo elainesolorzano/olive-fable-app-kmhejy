@@ -53,17 +53,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
   },
-  debugLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 16,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    backgroundColor: colors.backgroundAlt,
-    padding: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
   // Login Screen Styles
   loginContainer: {
     flex: 1,
@@ -472,11 +461,6 @@ export default function MyStudioScreen() {
             Your Olive & Fable experience, in one place.
           </Text>
         </View>
-
-        {/* DEBUG Label */}
-        <Text style={styles.debugLabel}>
-          DEBUG: {profile?.order_status || 'null (defaulting to inquiry_received)'}
-        </Text>
 
         {/* My Experience Progress Card */}
         <View style={styles.progressCard}>
