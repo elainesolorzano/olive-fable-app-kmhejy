@@ -261,9 +261,19 @@ export default function LearnScreen() {
             source={{ uri: currentUrl }}
             style={styles.webView}
             startInLoadingState={true}
+            javaScriptEnabled={true}
+            allowsInlineMediaPlayback={true}
+            mediaPlaybackRequiresUserAction={false}
+            allowsFullscreenVideo={true}
             onError={(syntheticEvent) => {
               const { nativeEvent } = syntheticEvent;
               console.log('LearnScreen: WebView error:', nativeEvent);
+            }}
+            onLoadStart={() => {
+              console.log('LearnScreen: WebView started loading:', currentUrl);
+            }}
+            onLoadEnd={() => {
+              console.log('LearnScreen: WebView finished loading:', currentUrl);
             }}
           />
         </View>
