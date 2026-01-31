@@ -22,7 +22,7 @@ const displayOptions: DisplayOption[] = [
     title: 'Matted Fine Art Prints',
     body: 'A classic, museum-style option. Perfect for framing, gifting, or building a collection over time. Clean, timeless, and designed to elevate your portraits.',
     imageUrl: 'https://images.squarespace-cdn.com/content/v1/67c1f9d2eb4c2e2665801269/ebdfbec8-e0b5-4c6e-83d3-9ba1b104dad2/3XM_image.jpg',
-    investmentUrl: 'https://www.oliveandfable.com/investment',
+    investmentUrl: 'https://www.oliveandfable.com/prints',
   },
   {
     id: 'wallart',
