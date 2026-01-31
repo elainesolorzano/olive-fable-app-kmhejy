@@ -8,6 +8,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, RefreshControl } from 'react-native';
+import { useNotificationBadge } from '@/contexts/NotificationBadgeContext';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
@@ -231,6 +232,7 @@ const styles = StyleSheet.create({
 export default function MyStudioScreen() {
   const { session, user, signOut, loading: authLoading } = useSupabaseAuth();
   const insets = useSafeAreaInsets();
+  const { checkUnseenUpdate } = useNotificationBadge();
   
   const [profile, setProfile] = useState<{ order_status: string | null; email: string | null } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -271,34 +273,51 @@ export default function MyStudioScreen() {
     }
   }, [user]);
 
-  // Update last_seen_at when screen is focused
+  // Update last_seen_at and mark order_status notifications as read when screen is focused
   useFocusEffect(
     useCallback(() => {
-      const updateLastSeenAt = async () => {
+      const updateLastSeenAndMarkNotifications = async () => {
         if (!user?.id) {
           return;
         }
 
-        console.log('My Studio screen focused - updating last_seen_at to clear notification dot');
+        console.log('My Studio screen focused - updating last_seen_at and marking order_status notifications as read');
 
         try {
-          const { error } = await supabase
+          // Update last_seen_at to clear the timeline dot
+          const { error: profileError } = await supabase
             .from('profiles')
             .update({ last_seen_at: new Date().toISOString() })
             .eq('user_id', user.id);
 
-          if (error) {
-            console.error('Error updating last_seen_at:', error.message);
+          if (profileError) {
+            console.error('Error updating last_seen_at:', profileError.message);
           } else {
             console.log('last_seen_at updated successfully - notification dot should clear');
+            // Trigger a check to update the badge context
+            await checkUnseenUpdate();
+          }
+
+          // Mark all order_status type notifications as read
+          const { error: notificationsError } = await supabase
+            .from('notifications')
+            .update({ read_at: new Date().toISOString() })
+            .eq('user_id', user.id)
+            .eq('type', 'order_status')
+            .is('read_at', null);
+
+          if (notificationsError) {
+            console.error('Error marking order_status notifications as read:', notificationsError.message);
+          } else {
+            console.log('All order_status notifications marked as read');
           }
         } catch (error) {
-          console.error('Unexpected error updating last_seen_at:', error);
+          console.error('Unexpected error updating last_seen_at or marking notifications:', error);
         }
       };
 
-      updateLastSeenAt();
-    }, [user?.id])
+      updateLastSeenAndMarkNotifications();
+    }, [user?.id, checkUnseenUpdate])
   );
 
   // Fetch profile on mount and when user changes

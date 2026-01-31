@@ -13,7 +13,8 @@ interface Notification {
   title: string;
   body: string;
   link: string | null;
-  is_read: boolean;
+  read_at: string | null;
+  type: string | null;
   created_at: string;
 }
 
@@ -112,14 +113,14 @@ export default function NotificationsScreen() {
     };
   }, [user]);
 
-  // Mark notification as read
+  // Mark notification as read using read_at timestamp
   const markAsRead = async (notificationId: number) => {
     console.log('Marking notification as read:', notificationId);
     
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true })
+        .update({ read_at: new Date().toISOString() })
         .eq('id', notificationId)
         .eq('user_id', user?.id);
 
@@ -151,11 +152,11 @@ export default function NotificationsScreen() {
     }
     if (diffHours < 24) {
       const hoursText = diffHours === 1 ? 'hour' : 'hours';
-      return `${hoursText} ago`;
+      return `${diffHours} ${hoursText} ago`;
     }
     if (diffDays < 7) {
       const daysText = diffDays === 1 ? 'day' : 'days';
-      return `${daysText} ago`;
+      return `${diffDays} ${daysText} ago`;
     }
     
     return date.toLocaleDateString('en-US', { 
@@ -165,8 +166,8 @@ export default function NotificationsScreen() {
     });
   };
 
-  // Calculate unread count
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  // Calculate unread count (where read_at is null)
+  const unreadCount = notifications.filter(n => !n.read_at).length;
 
   if (loading) {
     return (
@@ -245,28 +246,29 @@ export default function NotificationsScreen() {
 
         {notifications.map((notification, index) => {
           const dateText = formatDate(notification.created_at);
+          const isUnread = !notification.read_at;
           
           return (
             <Pressable
               key={index}
               style={[
                 styles.notificationCard,
-                !notification.is_read && styles.notificationCardUnread
+                isUnread && styles.notificationCardUnread
               ]}
               onPress={() => {
-                if (!notification.is_read) {
+                if (isUnread) {
                   markAsRead(notification.id);
                 }
               }}
             >
               <View style={styles.notificationHeader}>
                 <View style={styles.notificationTitleRow}>
-                  {!notification.is_read && (
+                  {isUnread && (
                     <View style={styles.unreadDot} />
                   )}
                   <Text style={[
                     styles.notificationTitle,
-                    !notification.is_read && styles.notificationTitleUnread
+                    isUnread && styles.notificationTitleUnread
                   ]}>
                     {notification.title}
                   </Text>

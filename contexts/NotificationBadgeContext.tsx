@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,6 +7,7 @@ interface NotificationBadgeContextType {
   unreadCount: number;
   setUnreadCount: (count: number) => void;
   hasUnseenUpdate: boolean;
+  checkUnseenUpdate: () => Promise<void>;
 }
 
 const NotificationBadgeContext = createContext<NotificationBadgeContextType | undefined>(undefined);
@@ -29,7 +30,7 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
   const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
 
   // Check if there's an unseen order status update
-  const checkUnseenUpdate = async () => {
+  const checkUnseenUpdate = useCallback(async () => {
     if (!user?.id) {
       setHasUnseenUpdate(false);
       return;
@@ -71,7 +72,34 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
       console.error('Unexpected error checking unseen updates:', error);
       setHasUnseenUpdate(false);
     }
-  };
+  }, [user?.id]);
+
+  // Fetch unread notification count (where read_at is null)
+  const fetchUnreadCount = useCallback(async () => {
+    if (!user?.id) {
+      setUnreadCount(0);
+      return;
+    }
+
+    console.log('Fetching unread notification count for user:', user.id);
+    
+    try {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .is('read_at', null);
+
+      if (error) {
+        console.error('Error fetching unread count:', error.message);
+      } else {
+        console.log('Unread notification count:', count);
+        setUnreadCount(count || 0);
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching unread count:', error);
+    }
+  }, [user?.id]);
 
   // Fetch initial unread count and check for unseen updates
   useEffect(() => {
@@ -81,30 +109,9 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
       return;
     }
 
-    const fetchUnreadCount = async () => {
-      console.log('Fetching unread notification count for user:', user.id);
-      
-      try {
-        const { count, error } = await supabase
-          .from('notifications')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('is_read', false);
-
-        if (error) {
-          console.error('Error fetching unread count:', error.message);
-        } else {
-          console.log('Unread notification count:', count);
-          setUnreadCount(count || 0);
-        }
-      } catch (error) {
-        console.error('Unexpected error fetching unread count:', error);
-      }
-    };
-
     fetchUnreadCount();
     checkUnseenUpdate();
-  }, [user?.id]);
+  }, [user?.id, fetchUnreadCount, checkUnseenUpdate]);
 
   // Subscribe to realtime changes for notifications
   useEffect(() => {
@@ -126,22 +133,7 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
           console.log('Notification badge realtime change:', payload.eventType);
           
           // Refetch the unread count whenever notifications change
-          try {
-            const { count, error } = await supabase
-              .from('notifications')
-              .select('*', { count: 'exact', head: true })
-              .eq('user_id', user.id)
-              .eq('is_read', false);
-
-            if (error) {
-              console.error('Error refetching unread count:', error.message);
-            } else {
-              console.log('Updated unread notification count:', count);
-              setUnreadCount(count || 0);
-            }
-          } catch (error) {
-            console.error('Unexpected error refetching unread count:', error);
-          }
+          await fetchUnreadCount();
         }
       )
       .subscribe();
@@ -150,7 +142,7 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
       console.log('Cleaning up realtime subscription for notification badge');
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, fetchUnreadCount]);
 
   // Subscribe to realtime changes for profile updates (order status changes)
   useEffect(() => {
@@ -179,10 +171,10 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
       console.log('Cleaning up realtime subscription for profile updates');
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, checkUnseenUpdate]);
 
   return (
-    <NotificationBadgeContext.Provider value={{ unreadCount, setUnreadCount, hasUnseenUpdate }}>
+    <NotificationBadgeContext.Provider value={{ unreadCount, setUnreadCount, hasUnseenUpdate, checkUnseenUpdate }}>
       {children}
     </NotificationBadgeContext.Provider>
   );
