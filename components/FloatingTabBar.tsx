@@ -18,7 +18,7 @@ export interface TabBarItem {
   route: Href;
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
-  badgeCount?: number;
+  showNotificationBadge?: boolean; // New prop to indicate if this tab should show notification badge
 }
 
 interface FloatingTabBarProps {
@@ -100,6 +100,7 @@ const iconMap: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive
   book: { active: 'book', inactive: 'book-outline' },
   calendar: { active: 'calendar', inactive: 'calendar-outline' },
   person: { active: 'person', inactive: 'person-outline' },
+  notifications: { active: 'notifications', inactive: 'notifications-outline' },
 };
 
 export default function FloatingTabBar({
@@ -111,7 +112,7 @@ export default function FloatingTabBar({
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
-  const { hasUnseenUpdate } = useNotificationBadge();
+  const { unreadCount } = useNotificationBadge();
 
   const handleTabPress = (route: Href) => {
     console.log('Tab pressed:', route);
@@ -139,8 +140,8 @@ export default function FloatingTabBar({
             ? (active ? iconVariants.active : iconVariants.inactive)
             : tab.icon;
 
-          // Show badge dot on My Studio tab if there's an unseen update
-          const showBadge = tab.name === 'my-studio' ? hasUnseenUpdate : false;
+          // Show badge dot only if this tab has showNotificationBadge flag and there are unread notifications
+          const showBadge = tab.showNotificationBadge && unreadCount > 0;
 
           return (
             <TouchableOpacity

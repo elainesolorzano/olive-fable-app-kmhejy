@@ -8,6 +8,7 @@ interface NotificationBadgeContextType {
   setUnreadCount: (count: number) => void;
   hasUnseenUpdate: boolean;
   checkUnseenUpdate: () => Promise<void>;
+  refreshUnreadCount: () => Promise<void>;
 }
 
 const NotificationBadgeContext = createContext<NotificationBadgeContextType | undefined>(undefined);
@@ -101,6 +102,11 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
     }
   }, [user?.id]);
 
+  // Expose refresh function for manual updates
+  const refreshUnreadCount = useCallback(async () => {
+    await fetchUnreadCount();
+  }, [fetchUnreadCount]);
+
   // Fetch initial unread count and check for unseen updates
   useEffect(() => {
     if (!user?.id) {
@@ -174,7 +180,7 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
   }, [user?.id, checkUnseenUpdate]);
 
   return (
-    <NotificationBadgeContext.Provider value={{ unreadCount, setUnreadCount, hasUnseenUpdate, checkUnseenUpdate }}>
+    <NotificationBadgeContext.Provider value={{ unreadCount, setUnreadCount, hasUnseenUpdate, checkUnseenUpdate, refreshUnreadCount }}>
       {children}
     </NotificationBadgeContext.Provider>
   );

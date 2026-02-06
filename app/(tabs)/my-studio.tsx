@@ -365,11 +365,6 @@ export default function MyStudioScreen() {
     router.push('/my-studio/edit-profile');
   };
 
-  const handleNotifications = () => {
-    console.log('User navigating to Notifications');
-    router.push('/my-studio/notifications');
-  };
-
   const handlePrivacy = () => {
     console.log('User navigating to Privacy & Security');
     router.push('/my-studio/privacy');
@@ -536,26 +531,6 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Edit Profile</Text>
-            </View>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron-right"
-              size={20}
-              color={colors.textSecondary}
-              style={styles.chevron}
-            />
-          </Pressable>
-
-          <Pressable style={styles.menuItem} onPress={handleNotifications}>
-            <IconSymbol
-              ios_icon_name="bell.fill"
-              android_material_icon_name="notifications"
-              size={24}
-              color={colors.primary}
-              style={styles.menuIcon}
-            />
-            <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>Notifications</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"

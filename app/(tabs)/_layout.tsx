@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  // Define the tabs configuration - exactly 4 tabs with Ionicons
+  // Define the tabs configuration - 5 tabs with Ionicons
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
@@ -23,6 +23,13 @@ export default function TabLayout() {
       route: '/(tabs)/workshops',
       icon: 'calendar',
       label: 'Workshops',
+    },
+    {
+      name: 'notifications',
+      route: '/(tabs)/notifications',
+      icon: 'notifications',
+      label: 'Notifications',
+      showNotificationBadge: true, // Show unread badge on this tab
     },
     {
       name: 'my-studio',
@@ -44,6 +51,7 @@ export default function TabLayout() {
         <Stack.Screen key="home" name="(home)" />
         <Stack.Screen key="learn" name="learn" />
         <Stack.Screen key="workshops" name="workshops" />
+        <Stack.Screen key="notifications" name="notifications" />
         <Stack.Screen key="my-studio" name="my-studio" />
         {/* Hide index, book, and profile routes from tab bar */}
         <Stack.Screen name="index" options={{ href: null }} />
