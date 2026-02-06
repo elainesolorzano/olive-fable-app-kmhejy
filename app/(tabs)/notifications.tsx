@@ -18,6 +18,9 @@ interface Notification {
   read_at: string | null;
   type: string | null;
   created_at: string;
+  event_type: string | null;
+  order_id: string | null;
+  dedupe_key: string | null;
 }
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;

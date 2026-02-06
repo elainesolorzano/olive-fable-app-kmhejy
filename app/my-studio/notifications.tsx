@@ -18,6 +18,9 @@ interface Notification {
   read_at: string | null;
   type: string | null;
   created_at: string;
+  event_type: string | null;
+  order_id: string | null;
+  dedupe_key: string | null;
 }
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
@@ -109,7 +112,7 @@ export default function NotificationsScreen() {
   useEffect(() => {
     if (!user) return;
 
-    console.log('Setting up realtime subscription for notifications');
+    console.log('Setting up realtime subscription for notifications screen (user:', user.id, ')');
 
     const channel = supabase
       .channel('notifications-changes')
@@ -122,11 +125,12 @@ export default function NotificationsScreen() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Notification changed in realtime:', payload);
+          console.log('Notification changed in realtime:', payload.eventType, 'for user:', user.id);
           
           if (payload.eventType === 'INSERT') {
             // Add new notification to the top of the list
             const newNotification = payload.new as Notification;
+            console.log('New notification received:', newNotification.title, 'dedupe_key:', newNotification.dedupe_key);
             setNotifications(prev => [newNotification, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
             // Update existing notification
@@ -144,7 +148,7 @@ export default function NotificationsScreen() {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription for notifications');
+      console.log('Cleaning up realtime subscription for notifications screen (user:', user.id, ')');
       supabase.removeChannel(channel);
     };
   }, [user]);

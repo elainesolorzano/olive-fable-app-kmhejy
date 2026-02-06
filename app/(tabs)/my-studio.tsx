@@ -310,7 +310,7 @@ export default function MyStudioScreen() {
   useEffect(() => {
     if (!user) return;
 
-    console.log('Setting up realtime subscription for user profile');
+    console.log('Setting up realtime subscription for user profile (user:', user.id, ')');
 
     const channel = supabase
       .channel('profile-changes')
@@ -323,16 +323,18 @@ export default function MyStudioScreen() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Profile changed in realtime:', payload);
+          console.log('Profile changed in realtime:', payload.eventType, 'for user:', user.id);
           if (payload.new && typeof payload.new === 'object' && 'order_status' in payload.new) {
-            setProfile(payload.new as { order_status: string | null; email: string | null });
+            const newProfile = payload.new as { order_status: string | null; email: string | null };
+            console.log('Profile order_status updated to:', newProfile.order_status);
+            setProfile(newProfile);
           }
         }
       )
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription');
+      console.log('Cleaning up realtime subscription for user profile (user:', user.id, ')');
       supabase.removeChannel(channel);
     };
   }, [user]);

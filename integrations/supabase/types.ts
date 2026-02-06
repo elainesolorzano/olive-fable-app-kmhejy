@@ -97,6 +97,9 @@ export interface Database {
           read_at: string | null;
           type: string | null;
           created_at: string;
+          event_type: string | null;
+          order_id: string | null;
+          dedupe_key: string | null;
         };
         Insert: {
           id?: number;
@@ -107,6 +110,9 @@ export interface Database {
           read_at?: string | null;
           type?: string | null;
           created_at?: string;
+          event_type?: string | null;
+          order_id?: string | null;
+          dedupe_key?: string | null;
         };
         Update: {
           id?: number;
@@ -117,6 +123,9 @@ export interface Database {
           read_at?: string | null;
           type?: string | null;
           created_at?: string;
+          event_type?: string | null;
+          order_id?: string | null;
+          dedupe_key?: string | null;
         };
       };
       workshop_waitlist: {

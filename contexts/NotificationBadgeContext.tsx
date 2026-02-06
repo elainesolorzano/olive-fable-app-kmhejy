@@ -74,7 +74,7 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
   useEffect(() => {
     if (!user?.id) return;
 
-    console.log('Setting up realtime subscription for notification badge');
+    console.log('Setting up realtime subscription for notification badge (user:', user.id, ')');
 
     const channel = supabase
       .channel('notification-badge-changes')
@@ -87,7 +87,7 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
           filter: `user_id=eq.${user.id}`,
         },
         async (payload) => {
-          console.log('Notification badge realtime change:', payload.eventType);
+          console.log('Notification badge realtime change:', payload.eventType, 'for user:', user.id);
           
           // Refetch the unread count whenever notifications change
           await fetchUnreadCount();
@@ -96,7 +96,7 @@ export function NotificationBadgeProvider({ children }: NotificationBadgeProvide
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription for notification badge');
+      console.log('Cleaning up realtime subscription for notification badge (user:', user.id, ')');
       supabase.removeChannel(channel);
     };
   }, [user?.id, fetchUnreadCount]);
