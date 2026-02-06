@@ -1,15 +1,14 @@
-
 {
   "expo": {
     "name": "Olive & Fable",
     "slug": "Olive & Fable",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
+    "icon": "./assets/images/logo-139b9ca7-cb0b-4c8f-a83e-c08db754caa0.png.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
+      "image": "./assets/images/logo-139b9ca7-cb0b-4c8f-a83e-c08db754caa0.png.png",
       "resizeMode": "contain",
       "backgroundColor": "#1a3a2e"
     },
@@ -22,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
+        "foregroundImage": "./assets/images/logo-139b9ca7-cb0b-4c8f-a83e-c08db754caa0.png.png",
         "backgroundColor": "#1a3a2e"
       },
       "edgeToEdgeEnabled": true,
