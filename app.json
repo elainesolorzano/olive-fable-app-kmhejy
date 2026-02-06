@@ -1,16 +1,17 @@
+
 {
   "expo": {
     "name": "Olive & Fable",
     "slug": "Olive & Fable",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/natively-dark.png",
+    "icon": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/natively-dark.png",
+      "image": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#1a3a2e"
     },
     "ios": {
       "supportsTablet": true,
@@ -21,14 +22,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/natively-dark.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
+        "backgroundColor": "#1a3a2e"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.oliveandfable.studio"
     },
     "web": {
-      "favicon": "./assets/images/final_quest_240x240.png",
+      "favicon": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
       "bundler": "metro"
     },
     "plugins": [
