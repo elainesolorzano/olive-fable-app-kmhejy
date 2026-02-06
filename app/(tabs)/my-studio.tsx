@@ -212,6 +212,21 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: 8,
   },
+  notificationBadge: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    marginLeft: 8,
+  },
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   signOutButton: {
     backgroundColor: colors.backgroundAlt,
     borderRadius: 12,
@@ -232,7 +247,7 @@ const styles = StyleSheet.create({
 export default function MyStudioScreen() {
   const { session, user, signOut, loading: authLoading } = useSupabaseAuth();
   const insets = useSafeAreaInsets();
-  const { checkUnseenUpdate } = useNotificationBadge();
+  const { unreadCount, refreshUnreadCount } = useNotificationBadge();
   
   const [profile, setProfile] = useState<{ order_status: string | null; email: string | null } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -273,51 +288,13 @@ export default function MyStudioScreen() {
     }
   }, [user]);
 
-  // Update last_seen_at and mark order_status notifications as read when screen is focused
+  // When My Studio screen is focused, refresh the unread count
+  // This ensures the badge is updated when returning from the notifications screen
   useFocusEffect(
     useCallback(() => {
-      const updateLastSeenAndMarkNotifications = async () => {
-        if (!user?.id) {
-          return;
-        }
-
-        console.log('My Studio screen focused - updating last_seen_at and marking order_status notifications as read');
-
-        try {
-          // Update last_seen_at to clear the timeline dot
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({ last_seen_at: new Date().toISOString() })
-            .eq('user_id', user.id);
-
-          if (profileError) {
-            console.error('Error updating last_seen_at:', profileError.message);
-          } else {
-            console.log('last_seen_at updated successfully - notification dot should clear');
-            // Trigger a check to update the badge context
-            await checkUnseenUpdate();
-          }
-
-          // Mark all order_status type notifications as read
-          const { error: notificationsError } = await supabase
-            .from('notifications')
-            .update({ read_at: new Date().toISOString() })
-            .eq('user_id', user.id)
-            .eq('type', 'order_status')
-            .is('read_at', null);
-
-          if (notificationsError) {
-            console.error('Error marking order_status notifications as read:', notificationsError.message);
-          } else {
-            console.log('All order_status notifications marked as read');
-          }
-        } catch (error) {
-          console.error('Unexpected error updating last_seen_at or marking notifications:', error);
-        }
-      };
-
-      updateLastSeenAndMarkNotifications();
-    }, [user?.id, checkUnseenUpdate])
+      console.log('My Studio screen focused - refreshing unread count');
+      refreshUnreadCount();
+    }, [refreshUnreadCount])
   );
 
   // Fetch profile on mount and when user changes
@@ -363,6 +340,11 @@ export default function MyStudioScreen() {
   const handleEditProfile = () => {
     console.log('User navigating to Edit Profile');
     router.push('/my-studio/edit-profile');
+  };
+
+  const handleNotifications = () => {
+    console.log('User navigating to Notifications');
+    router.push('/my-studio/notifications');
   };
 
   const handlePrivacy = () => {
@@ -521,6 +503,31 @@ export default function MyStudioScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account & Settings</Text>
           
+          <Pressable style={styles.menuItem} onPress={handleNotifications}>
+            <IconSymbol
+              ios_icon_name="bell.fill"
+              android_material_icon_name="notifications"
+              size={24}
+              color={colors.primary}
+              style={styles.menuIcon}
+            />
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>Notifications</Text>
+            </View>
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+              </View>
+            )}
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron-right"
+              size={20}
+              color={colors.textSecondary}
+              style={styles.chevron}
+            />
+          </Pressable>
+
           <Pressable style={styles.menuItem} onPress={handleEditProfile}>
             <IconSymbol
               ios_icon_name="person.circle.fill"

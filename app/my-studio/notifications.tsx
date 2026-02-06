@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, RefreshControl, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Platform } from 'react-native';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { useNotificationBadge } from '@/contexts/NotificationBadgeContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 
 interface Notification {
   id: number;
@@ -23,6 +25,7 @@ const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 export default function NotificationsScreen() {
   const { user } = useSupabaseAuth();
   const insets = useSafeAreaInsets();
+  const { refreshUnreadCount } = useNotificationBadge();
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +62,39 @@ export default function NotificationsScreen() {
       setLoading(false);
     }
   }, [user]);
+
+  // Mark ALL unread notifications as read when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const markAllAsRead = async () => {
+        if (!user?.id) {
+          return;
+        }
+
+        console.log('My Studio -> Notifications screen focused - marking all unread notifications as read');
+
+        try {
+          const { error } = await supabase
+            .from('notifications')
+            .update({ read_at: new Date().toISOString() })
+            .eq('user_id', user.id)
+            .is('read_at', null);
+
+          if (error) {
+            console.error('Error marking notifications as read:', error.message);
+          } else {
+            console.log('All unread notifications marked as read');
+            // Refresh the unread count in the badge context
+            await refreshUnreadCount();
+          }
+        } catch (error) {
+          console.error('Unexpected error marking notifications as read:', error);
+        }
+      };
+
+      markAllAsRead();
+    }, [user?.id, refreshUnreadCount])
+  );
 
   // Fetch notifications on mount and when user changes
   useEffect(() => {
@@ -113,27 +149,6 @@ export default function NotificationsScreen() {
     };
   }, [user]);
 
-  // Mark notification as read using read_at timestamp
-  const markAsRead = async (notificationId: number) => {
-    console.log('Marking notification as read:', notificationId);
-    
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('id', notificationId)
-        .eq('user_id', user?.id);
-
-      if (error) {
-        console.error('Error marking notification as read:', error.message);
-      } else {
-        console.log('Notification marked as read successfully');
-      }
-    } catch (error) {
-      console.error('Unexpected error marking notification as read:', error);
-    }
-  };
-
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -165,9 +180,6 @@ export default function NotificationsScreen() {
       year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
     });
   };
-
-  // Calculate unread count (where read_at is null)
-  const unreadCount = notifications.filter(n => !n.read_at).length;
 
   if (loading) {
     return (
@@ -235,31 +247,17 @@ export default function NotificationsScreen() {
           />
         }
       >
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          {unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
-            </View>
-          )}
-        </View>
-
         {notifications.map((notification, index) => {
           const dateText = formatDate(notification.created_at);
           const isUnread = !notification.read_at;
           
           return (
-            <Pressable
+            <View
               key={index}
               style={[
                 styles.notificationCard,
                 isUnread && styles.notificationCardUnread
               ]}
-              onPress={() => {
-                if (isUnread) {
-                  markAsRead(notification.id);
-                }
-              }}
             >
               <View style={styles.notificationHeader}>
                 <View style={styles.notificationTitleRow}>
@@ -279,7 +277,7 @@ export default function NotificationsScreen() {
               <Text style={styles.notificationBody}>
                 {notification.body}
               </Text>
-            </Pressable>
+            </View>
           );
         })}
       </ScrollView>
@@ -298,12 +296,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   emptyContentContainer: {
-    paddingTop: 60,
+    paddingTop: 20,
     paddingHorizontal: 20,
     alignItems: 'center',
   },
   contentContainer: {
-    paddingTop: 60,
+    paddingTop: 20,
     paddingHorizontal: 20,
   },
   iconContainer: {
@@ -323,31 +321,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     lineHeight: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginLeft: 12,
-    minWidth: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  unreadBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
   },
   notificationCard: {
     backgroundColor: colors.backgroundAlt,
