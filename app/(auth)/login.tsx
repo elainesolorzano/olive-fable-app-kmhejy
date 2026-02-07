@@ -196,13 +196,15 @@ export default function LoginScreen() {
       });
 
       if (resendError) {
+        // Log unexpected errors only
         console.error('Resend verification error:', resendError);
       } else {
         console.log('Verification email resent successfully');
         setEmailResent(true);
       }
     } catch (err) {
-      console.error('Error resending verification email:', err);
+      // Log network errors or unhandled exceptions
+      console.error('Network error while resending verification email:', err);
     } finally {
       setResendingEmail(false);
     }
@@ -214,11 +216,13 @@ export default function LoginScreen() {
     setEmailResent(false);
 
     if (!email.trim() || !password) {
+      // Expected user input error - no console.error
       setError('invalid');
       return;
     }
 
     if (!validateEmail(email)) {
+      // Expected user input error - no console.error
       setError('invalid');
       return;
     }
@@ -229,14 +233,28 @@ export default function LoginScreen() {
       const { error: signInError } = await signIn(email, password);
 
       if (signInError) {
-        console.error('Sign in error:', signInError);
+        // Check if this is an expected user input error (invalid credentials)
+        const isInvalidCredentials = 
+          signInError.message?.toLowerCase().includes('invalid login credentials') ||
+          signInError.message?.toLowerCase().includes('invalid email or password') ||
+          signInError.message?.toLowerCase().includes('email not found') ||
+          signInError.message?.toLowerCase().includes('incorrect password');
 
         // Check for unconfirmed email
-        if (signInError.message?.includes('Email not confirmed') || 
-            signInError.message?.includes('not confirmed')) {
+        const isUnverified = 
+          signInError.message?.toLowerCase().includes('email not confirmed') || 
+          signInError.message?.toLowerCase().includes('not confirmed');
+
+        if (isUnverified) {
+          // Expected user state - no console.error
           setError('unverified');
+        } else if (isInvalidCredentials) {
+          // Expected user input error - DO NOT log with console.error
+          // This is normal user behavior, not an application error
+          setError('invalid');
         } else {
-          // All other errors (invalid credentials, etc.)
+          // Unexpected error - log it for debugging
+          console.error('Unexpected sign in error:', signInError);
           setError('invalid');
         }
       } else {
@@ -244,7 +262,8 @@ export default function LoginScreen() {
         // Router will automatically redirect to /(tabs) via _layout.tsx
       }
     } catch (err: any) {
-      console.error('Sign in exception:', err);
+      // Network errors or unhandled exceptions - log these
+      console.error('Network error or exception during sign in:', err);
       setError('invalid');
     } finally {
       setLoading(false);
