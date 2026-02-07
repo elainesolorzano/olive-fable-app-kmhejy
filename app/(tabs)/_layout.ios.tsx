@@ -17,7 +17,7 @@ export default function TabLayout() {
       name: 'learn',
       route: '/(tabs)/learn',
       icon: 'image', // Will use image for active, image-outline for inactive
-      label: 'Art',
+      label: 'Artwork',
     },
     {
       name: 'workshops',
