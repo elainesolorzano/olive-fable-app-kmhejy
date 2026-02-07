@@ -199,7 +199,7 @@ export default function LearnScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Learn</Text>
+          <Text style={styles.title}>Art</Text>
           <Text style={styles.subtitle}>Display Options</Text>
           <Text style={styles.intro}>
             Your portraits are created to live beautifully in your home. Explore our most-loved ways to display your artwork — from timeless matted prints to statement wall art and heirloom portrait boxes.
