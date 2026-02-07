@@ -8,7 +8,6 @@ import {
   TextInput, 
   Pressable, 
   ScrollView, 
-  Alert, 
   ActivityIndicator, 
   useWindowDimensions 
 } from 'react-native';
@@ -68,11 +67,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   inputError: {
-    borderColor: colors.error,
+    borderColor: '#DC2626',
   },
   errorText: {
     fontSize: 13,
-    color: colors.error,
+    color: '#DC2626',
     marginTop: 6,
   },
   signUpButton: {
@@ -87,9 +86,9 @@ const styles = StyleSheet.create({
     ...buttonStyles.primaryText,
   },
   successMessage: {
-    backgroundColor: colors.success + '20',
+    backgroundColor: '#10B98115',
     borderWidth: 1,
-    borderColor: colors.success,
+    borderColor: '#10B981',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -97,10 +96,29 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.success,
+    color: '#059669',
     marginBottom: 8,
   },
   successText: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  errorMessage: {
+    backgroundColor: '#DC262615',
+    borderWidth: 1,
+    borderColor: '#DC2626',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#DC2626',
+    marginBottom: 8,
+  },
+  errorDescription: {
     fontSize: 14,
     color: colors.text,
     lineHeight: 20,
@@ -120,6 +138,20 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '600',
     marginLeft: 4,
+  },
+  continueButton: {
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: '#111F0F',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
+  },
+  continueButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 
@@ -180,6 +212,8 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
+    console.log('User tapped Sign Up button');
+    
     if (!validateForm()) {
       return;
     }
@@ -188,34 +222,40 @@ export default function SignUpScreen() {
     setErrors({});
 
     try {
-      const { requiresVerification } = await signUp(email, password, name);
+      const { error: signUpError } = await signUp(email, password);
 
-      if (requiresVerification) {
-        setShowSuccess(true);
-      } else {
-        // Auto sign-in successful, router will redirect
-        Alert.alert('Success', 'Account created successfully!');
-      }
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      
-      let errorMessage = 'Failed to create account. Please try again.';
-      
-      if (error.message) {
-        if (error.message.includes('already registered')) {
-          errorMessage = 'This email is already registered. Please sign in instead.';
-        } else if (error.message.includes('Password')) {
-          errorMessage = error.message;
-        } else {
-          errorMessage = error.message;
+      if (signUpError) {
+        console.error('Sign up error:', signUpError);
+        
+        let errorMessage = 'Failed to create account. Please try again.';
+        
+        if (signUpError.message) {
+          if (signUpError.message.includes('already registered') || 
+              signUpError.message.includes('already exists')) {
+            errorMessage = 'This email is already registered. Please sign in instead.';
+          } else if (signUpError.message.includes('Password')) {
+            errorMessage = signUpError.message;
+          } else {
+            errorMessage = signUpError.message;
+          }
         }
-      }
 
-      setErrors({ general: errorMessage });
+        setErrors({ general: errorMessage });
+      } else {
+        console.log('Sign up successful - showing success message');
+        setShowSuccess(true);
+      }
+    } catch (err: any) {
+      console.error('Sign up exception:', err);
+      setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
+
+  const successTitleText = '✓ Account Created Successfully!';
+  const successDescriptionText = 'We\'ve sent a verification email to your inbox. Please check your email and click the verification link to activate your account.';
+  const continueButtonText = 'Continue to Sign In';
 
   if (showSuccess) {
     return (
@@ -233,17 +273,18 @@ export default function SignUpScreen() {
             <Text style={styles.title}>Check Your Email</Text>
             
             <View style={styles.successMessage}>
-              <Text style={styles.successTitle}>✓ Account Created</Text>
-              <Text style={styles.successText}>
-                Check your email to verify your account, then return and sign in.
-              </Text>
+              <Text style={styles.successTitle}>{successTitleText}</Text>
+              <Text style={styles.successText}>{successDescriptionText}</Text>
             </View>
 
             <Pressable
-              style={styles.signUpButton}
-              onPress={() => router.replace('/(auth)/login')}
+              style={styles.continueButton}
+              onPress={() => {
+                console.log('User tapped Continue to Sign In');
+                router.replace('/(auth)/login');
+              }}
             >
-              <Text style={styles.signUpButtonText}>Go to Sign In</Text>
+              <Text style={styles.continueButtonText}>{continueButtonText}</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -268,9 +309,9 @@ export default function SignUpScreen() {
           <Text style={styles.subtitle}>Join Olive & Fable Studio</Text>
 
           {errors.general && (
-            <View style={[styles.successMessage, { backgroundColor: colors.error + '20', borderColor: colors.error }]}>
-              <Text style={[styles.successTitle, { color: colors.error }]}>Error</Text>
-              <Text style={styles.successText}>{errors.general}</Text>
+            <View style={styles.errorMessage}>
+              <Text style={styles.errorTitle}>Sign Up Failed</Text>
+              <Text style={styles.errorDescription}>{errors.general}</Text>
             </View>
           )}
 

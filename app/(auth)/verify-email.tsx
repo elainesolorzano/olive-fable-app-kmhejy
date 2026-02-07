@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
@@ -19,13 +18,16 @@ export default function VerifyEmailScreen() {
   const { user, signOut } = useSupabaseAuth();
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [emailResent, setEmailResent] = useState(false);
 
   const handleResendEmail = async () => {
+    console.log('User tapped Resend Verification Email');
     try {
       setResending(true);
+      setEmailResent(false);
       
       if (!user?.email) {
-        Alert.alert("Error", "No email address found");
+        console.error('No email address found');
         return;
       }
 
@@ -36,22 +38,19 @@ export default function VerifyEmailScreen() {
 
       if (error) {
         console.error('Resend error:', error);
-        Alert.alert("Error", error.message || "Failed to resend verification email");
       } else {
-        Alert.alert(
-          "Email Sent",
-          "A new verification email has been sent. Please check your inbox and spam folder."
-        );
+        console.log('Verification email resent successfully');
+        setEmailResent(true);
       }
     } catch (error: any) {
       console.error('Resend error:', error);
-      Alert.alert("Error", error.message || "Failed to resend verification email");
     } finally {
       setResending(false);
     }
   };
 
   const handleCheckVerification = async () => {
+    console.log('User tapped Check Verification button');
     try {
       setChecking(true);
       
@@ -60,45 +59,34 @@ export default function VerifyEmailScreen() {
       
       if (error) {
         console.error('Error refreshing session:', error);
-        Alert.alert("Error", "Failed to check verification status");
         return;
       }
 
       // Check if email is now verified
       if (data.session?.user?.email_confirmed_at) {
-        Alert.alert(
-          "Email Verified! ✅",
-          "Your email has been verified. You can now access the app.",
-          [
-            {
-              text: "Continue",
-              onPress: () => router.replace("/(tabs)"),
-            },
-          ]
-        );
+        console.log('Email verified successfully');
+        router.replace("/(tabs)");
       } else {
-        Alert.alert(
-          "Not Verified Yet",
-          "Please click the verification link in your email. Check your spam folder if you don't see it."
-        );
+        console.log('Email not yet verified');
       }
     } catch (error: any) {
       console.error('Check verification error:', error);
-      Alert.alert("Error", "Failed to check verification status");
     } finally {
       setChecking(false);
     }
   };
 
   const handleSignOut = async () => {
+    console.log('User tapped Sign Out');
     try {
       await signOut();
       router.replace("/(auth)/login");
     } catch (error: any) {
       console.error('Sign out error:', error);
-      Alert.alert("Error", "Failed to sign out");
     }
   };
+
+  const emailResentText = '✓ Verification email sent! Check your inbox.';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -122,6 +110,12 @@ export default function VerifyEmailScreen() {
       <Text style={styles.instructions}>
         Please check your inbox and click the verification link to activate your account.
       </Text>
+
+      {emailResent && (
+        <View style={styles.successMessage}>
+          <Text style={styles.successText}>{emailResentText}</Text>
+        </View>
+      )}
 
       <View style={styles.tipsContainer}>
         <Text style={styles.tipsTitle}>Can&apos;t find the email?</Text>
@@ -225,8 +219,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     textAlign: "center",
-    marginBottom: 32,
+    marginBottom: 24,
     lineHeight: 24,
+  },
+  successMessage: {
+    backgroundColor: '#10B98115',
+    borderWidth: 1,
+    borderColor: '#10B981',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    width: '100%',
+  },
+  successText: {
+    fontSize: 15,
+    color: '#059669',
+    textAlign: 'center',
   },
   tipsContainer: {
     width: "100%",
