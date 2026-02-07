@@ -39,21 +39,21 @@ const APPOINTMENT_OPTIONS = [
     title: 'Schedule your Zoom Gallery Reveal',
     description: 'For virtual gallery reveals and ordering appointments via Zoom.',
     url: 'https://clients.oliveandfable.com/schedule/68af8842d7f926003559d94e',
-    icon: 'videocam' as const,
+    icon: 'computer' as const,
   },
   {
     id: 'in-person-reveal',
     title: 'Schedule your In-Person Gallery Reveal',
     description: 'For in-studio gallery reveal and artwork ordering appointments.',
     url: 'https://clients.oliveandfable.com/schedule/68af88f5fbccb80036d1da81',
-    icon: 'event' as const,
+    icon: 'store' as const,
   },
   {
     id: 'seasonal-outdoor',
     title: 'Seasonal Outdoor Sessions',
     description: 'Limited-time outdoor sessions available during select seasons.',
     url: 'https://www.oliveandfable.com/seasons',
-    icon: 'wb-sunny' as const,
+    icon: 'park' as const,
   },
 ];
 
