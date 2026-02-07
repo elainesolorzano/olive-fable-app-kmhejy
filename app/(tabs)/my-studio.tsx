@@ -9,6 +9,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, RefreshControl } from 'react-native';
 import { useNotificationBadge } from '@/contexts/NotificationBadgeContext';
+import * as WebBrowser from 'expo-web-browser';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
@@ -22,6 +23,38 @@ const ORDER_STATUS_STEPS = [
   { status: 'reveal_scheduled', label: 'Reveal Scheduled' },
   { status: 'order_in_production', label: 'Order In Production' },
   { status: 'delivered', label: 'Delivered' },
+];
+
+// Appointment options
+const APPOINTMENT_OPTIONS = [
+  {
+    id: 'studio-session',
+    title: 'Schedule your Studio Session',
+    description: 'For in-studio portrait sessions and custom photography appointments.',
+    url: 'https://clients.oliveandfable.com/schedule/687eb2d8a6ab79001f981471',
+    icon: 'camera' as const,
+  },
+  {
+    id: 'zoom-reveal',
+    title: 'Schedule your Zoom Gallery Reveal',
+    description: 'For virtual gallery reveals and ordering appointments via Zoom.',
+    url: 'https://clients.oliveandfable.com/schedule/68af8842d7f926003559d94e',
+    icon: 'videocam' as const,
+  },
+  {
+    id: 'in-person-reveal',
+    title: 'Schedule your In-Person Gallery Reveal',
+    description: 'For in-studio gallery reveal and artwork ordering appointments.',
+    url: 'https://clients.oliveandfable.com/schedule/68af88f5fbccb80036d1da81',
+    icon: 'event' as const,
+  },
+  {
+    id: 'seasonal-outdoor',
+    title: 'Seasonal Outdoor Sessions',
+    description: 'Limited-time outdoor sessions available during select seasons.',
+    url: 'https://www.oliveandfable.com/seasons',
+    icon: 'wb-sunny' as const,
+  },
 ];
 
 const styles = StyleSheet.create({
@@ -95,6 +128,67 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
+  },
+  // Appointments Card Styles
+  appointmentsCard: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  appointmentsCardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  appointmentsCardHelper: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  appointmentItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  appointmentItemLast: {
+    marginBottom: 0,
+  },
+  appointmentIcon: {
+    marginRight: 16,
+    marginTop: 2,
+  },
+  appointmentContent: {
+    flex: 1,
+  },
+  appointmentTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  appointmentDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  appointmentChevron: {
+    marginLeft: 12,
+    marginTop: 2,
   },
   // Progress Card Styles
   progressCard: {
@@ -369,6 +463,18 @@ export default function MyStudioScreen() {
     router.push('/(auth)/login');
   };
 
+  const handleOpenAppointment = async (url: string, title: string) => {
+    console.log('User opening appointment:', title);
+    try {
+      await WebBrowser.openBrowserAsync(url, {
+        presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+        controlsColor: colors.primary,
+      });
+    } catch (error) {
+      console.error('Error opening appointment link:', error);
+    }
+  };
+
   // Determine current step index based on order_status
   const currentStepIndex = profile?.order_status
     ? ORDER_STATUS_STEPS.findIndex(step => step.status === profile.order_status)
@@ -488,6 +594,43 @@ export default function MyStudioScreen() {
           <Text style={styles.subtitle}>
             Your Olive & Fable experience, in one place.
           </Text>
+        </View>
+
+        {/* Appointments Card */}
+        <View style={styles.appointmentsCard}>
+          <Text style={styles.appointmentsCardTitle}>Appointments</Text>
+          <Text style={styles.appointmentsCardHelper}>
+            Schedule your next step with Olive & Fable.
+          </Text>
+          {APPOINTMENT_OPTIONS.map((option, index) => (
+            <Pressable
+              key={option.id}
+              style={[
+                styles.appointmentItem,
+                index === APPOINTMENT_OPTIONS.length - 1 && styles.appointmentItemLast,
+              ]}
+              onPress={() => handleOpenAppointment(option.url, option.title)}
+            >
+              <IconSymbol
+                ios_icon_name={option.icon}
+                android_material_icon_name={option.icon}
+                size={24}
+                color={colors.primary}
+                style={styles.appointmentIcon}
+              />
+              <View style={styles.appointmentContent}>
+                <Text style={styles.appointmentTitle}>{option.title}</Text>
+                <Text style={styles.appointmentDescription}>{option.description}</Text>
+              </View>
+              <IconSymbol
+                ios_icon_name="chevron.right"
+                android_material_icon_name="chevron-right"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.appointmentChevron}
+              />
+            </Pressable>
+          ))}
         </View>
 
         {/* My Experience Progress Card */}
