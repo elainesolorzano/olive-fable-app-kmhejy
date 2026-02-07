@@ -6,6 +6,7 @@ import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { router, useFocusEffect } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
+import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/styles/commonStyles';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, RefreshControl } from 'react-native';
 import { useNotificationBadge } from '@/contexts/NotificationBadgeContext';
@@ -25,35 +26,35 @@ const ORDER_STATUS_STEPS = [
   { status: 'delivered', label: 'Delivered' },
 ];
 
-// Appointment options
+// Appointment options with MaterialIcons names
 const APPOINTMENT_OPTIONS = [
   {
     id: 'studio-session',
     title: 'Schedule your Studio Session',
     description: 'For in-studio portrait sessions and custom photography appointments.',
     url: 'https://clients.oliveandfable.com/schedule/687eb2d8a6ab79001f981471',
-    icon: 'camera' as const,
+    iconName: 'camera-alt' as const,
   },
   {
     id: 'zoom-reveal',
     title: 'Schedule your Zoom Gallery Reveal',
     description: 'For virtual gallery reveals and ordering appointments via Zoom.',
     url: 'https://clients.oliveandfable.com/schedule/68af8842d7f926003559d94e',
-    icon: 'computer' as const,
+    iconName: 'laptop' as const,
   },
   {
     id: 'in-person-reveal',
     title: 'Schedule your In-Person Gallery Reveal',
     description: 'For in-studio gallery reveal and artwork ordering appointments.',
     url: 'https://clients.oliveandfable.com/schedule/68af88f5fbccb80036d1da81',
-    icon: 'store' as const,
+    iconName: 'store' as const,
   },
   {
     id: 'seasonal-outdoor',
     title: 'Seasonal Outdoor Sessions',
     description: 'Limited-time outdoor sessions available during select seasons.',
     url: 'https://www.oliveandfable.com/seasons',
-    icon: 'park' as const,
+    iconName: 'park' as const,
   },
 ];
 
@@ -603,21 +604,19 @@ export default function MyStudioScreen() {
               ]}
               onPress={() => handleOpenAppointment(option.url, option.title)}
             >
-              <IconSymbol
-                ios_icon_name={option.icon}
-                android_material_icon_name={option.icon}
-                size={24}
-                color={colors.primary}
+              <MaterialIcons
+                name={option.iconName}
+                size={22}
+                color={colors.text}
                 style={styles.appointmentIcon}
               />
               <View style={styles.appointmentContent}>
                 <Text style={styles.appointmentTitle}>{option.title}</Text>
                 <Text style={styles.appointmentDescription}>{option.description}</Text>
               </View>
-              <IconSymbol
-                ios_icon_name="chevron.right"
-                android_material_icon_name="chevron-right"
-                size={20}
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
                 color={colors.textSecondary}
                 style={styles.appointmentChevron}
               />
