@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
 const iconMap: Record<string, { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }> = {
   home: { active: 'home', inactive: 'home-outline' },
   book: { active: 'book', inactive: 'book-outline' },
+  image: { active: 'image', inactive: 'image-outline' },
   calendar: { active: 'calendar', inactive: 'calendar-outline' },
   person: { active: 'person', inactive: 'person-outline' },
   notifications: { active: 'notifications', inactive: 'notifications-outline' },

@@ -16,8 +16,8 @@ export default function TabLayout() {
     {
       name: 'learn',
       route: '/(tabs)/learn',
-      icon: 'book', // Will use book for active, book-outline for inactive
-      label: 'Learn',
+      icon: 'image', // Will use image for active, image-outline for inactive
+      label: 'Art',
     },
     {
       name: 'workshops',
