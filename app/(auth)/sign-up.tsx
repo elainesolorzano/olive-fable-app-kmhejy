@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Logo } from '@/components/Logo';
+import { getFriendlyAuthError } from '@/utils/authErrorMessages';
 
 const styles = StyleSheet.create({
   container: {
@@ -167,7 +168,7 @@ export default function SignUpScreen() {
     email?: string;
     password?: string;
     confirmPassword?: string;
-    general?: string;
+    general?: { title: string; body: string };
   }>({});
 
   const { signUp } = useSupabaseAuth();
@@ -222,39 +223,27 @@ export default function SignUpScreen() {
     setErrors({});
 
     try {
-      const { error: signUpError } = await signUp(email, password);
+      const { error: signUpError } = await signUp(email, password, name);
 
       if (signUpError) {
-        console.error('Sign up error:', signUpError);
-        
-        let errorMessage = 'Failed to create account. Please try again.';
-        
-        if (signUpError.message) {
-          if (signUpError.message.includes('already registered') || 
-              signUpError.message.includes('already exists')) {
-            errorMessage = 'This email is already registered. Please sign in instead.';
-          } else if (signUpError.message.includes('Password')) {
-            errorMessage = signUpError.message;
-          } else {
-            errorMessage = signUpError.message;
-          }
-        }
-
-        setErrors({ general: errorMessage });
+        console.log('Sign up error:', signUpError.message);
+        const friendlyError = getFriendlyAuthError(signUpError, 'signup');
+        setErrors({ general: friendlyError });
       } else {
         console.log('Sign up successful - showing success message');
         setShowSuccess(true);
       }
     } catch (err: any) {
-      console.error('Sign up exception:', err);
-      setErrors({ general: 'An unexpected error occurred. Please try again.' });
+      console.log('Sign up exception');
+      const friendlyError = getFriendlyAuthError(err, 'signup');
+      setErrors({ general: friendlyError });
     } finally {
       setLoading(false);
     }
   };
 
   const successTitleText = '✓ Account Created Successfully!';
-  const successDescriptionText = 'We\'ve sent a verification email to your inbox. Please check your email and click the verification link to activate your account.';
+  const successDescriptionText = 'We have sent a verification email to your inbox. Please check your email and click the verification link to activate your account.';
   const continueButtonText = 'Continue to Sign In';
 
   if (showSuccess) {
@@ -310,8 +299,8 @@ export default function SignUpScreen() {
 
           {errors.general && (
             <View style={styles.errorMessage}>
-              <Text style={styles.errorTitle}>Sign Up Failed</Text>
-              <Text style={styles.errorDescription}>{errors.general}</Text>
+              <Text style={styles.errorTitle}>{errors.general.title}</Text>
+              <Text style={styles.errorDescription}>{errors.general.body}</Text>
             </View>
           )}
 

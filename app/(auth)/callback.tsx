@@ -2,7 +2,11 @@
 /**
  * Auth Callback Handler
  * 
- * Handles deep link callbacks from email verification and OAuth flows
+ * Handles deep link callbacks from:
+ * - Email verification
+ * - Password reset
+ * - OAuth flows
+ * 
  * Route: olivefable://auth/callback
  */
 
@@ -22,12 +26,14 @@ export default function AuthCallbackScreen() {
 
   const handleCallback = async () => {
     try {
-      // Get the current session to check if email verification succeeded
+      console.log('Auth callback triggered with params:', params);
+
+      // Get the current session to check auth state
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
-        console.error("Session error:", sessionError);
-        setError("Failed to verify email. Please try again.");
+        console.log("Session error:", sessionError.message);
+        setError("Failed to verify. Please try again.");
         setTimeout(() => {
           router.replace("/(auth)/login");
         }, 3000);
@@ -35,23 +41,36 @@ export default function AuthCallbackScreen() {
       }
 
       if (session?.user) {
-        // Check if email is verified
+        // Check if this is a password recovery flow
+        // Supabase sets a recovery token when user clicks password reset link
+        const isPasswordRecovery = params.type === 'recovery' || 
+                                   params.recovery === 'true' ||
+                                   session.user.recovery_sent_at;
+
+        if (isPasswordRecovery) {
+          console.log('Password recovery flow detected - redirecting to reset password');
+          router.replace('/(auth)/reset-password');
+          return;
+        }
+
+        // Check if email is verified (email verification flow)
         if (session.user.email_confirmed_at) {
-          // Email verified successfully, navigate to main app
+          console.log('Email verified successfully - redirecting to app');
           router.replace("/(tabs)");
         } else {
-          // Session exists but email not verified yet
+          console.log('Session exists but email not verified yet');
           router.replace("/(auth)/verify-email");
         }
       } else {
         // No session found
-        setError("Failed to verify email. Please try again.");
+        console.log('No session found in callback');
+        setError("Failed to verify. Please try again.");
         setTimeout(() => {
           router.replace("/(auth)/login");
         }, 3000);
       }
     } catch (err) {
-      console.error("Auth callback error:", err);
+      console.log("Auth callback error:", err);
       setError("An error occurred during verification.");
       setTimeout(() => {
         router.replace("/(auth)/login");
@@ -59,17 +78,20 @@ export default function AuthCallbackScreen() {
     }
   };
 
+  const loadingText = 'Processing...';
+  const redirectText = 'Redirecting to login...';
+
   return (
     <View style={styles.container}>
       {error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.redirectText}>Redirecting to login...</Text>
+          <Text style={styles.redirectText}>{redirectText}</Text>
         </View>
       ) : (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Verifying your email...</Text>
+          <Text style={styles.loadingText}>{loadingText}</Text>
         </View>
       )}
     </View>

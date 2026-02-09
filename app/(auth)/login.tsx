@@ -6,6 +6,7 @@ import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Logo } from '@/components/Logo';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { supabase } from '@/integrations/supabase/client';
+import { getFriendlyAuthError } from '@/utils/authErrorMessages';
 
 const styles = StyleSheet.create({
   container: {
@@ -70,10 +71,16 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
   },
-  errorText: {
-    fontSize: 15,
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#DC2626',
-    lineHeight: 22,
+    marginBottom: 8,
+  },
+  errorBody: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
     marginBottom: 12,
   },
   forgotPasswordInError: {
@@ -89,10 +96,16 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
   },
-  unverifiedText: {
-    fontSize: 15,
+  unverifiedTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#D97706',
-    lineHeight: 22,
+    marginBottom: 8,
+  },
+  unverifiedBody: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
     marginBottom: 12,
   },
   resendButton: {
@@ -168,7 +181,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<'invalid' | 'unverified' | null>(null);
+  const [error, setError] = useState<{ title: string; body: string; type: 'invalid' | 'unverified' } | null>(null);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [emailResent, setEmailResent] = useState(false);
 
@@ -196,15 +209,13 @@ export default function LoginScreen() {
       });
 
       if (resendError) {
-        // Log unexpected errors only
-        console.error('Resend verification error:', resendError);
+        console.log('Resend verification error:', resendError.message);
       } else {
         console.log('Verification email resent successfully');
         setEmailResent(true);
       }
     } catch (err) {
-      // Log network errors or unhandled exceptions
-      console.error('Network error while resending verification email:', err);
+      console.log('Network error while resending verification email');
     } finally {
       setResendingEmail(false);
     }
@@ -216,14 +227,20 @@ export default function LoginScreen() {
     setEmailResent(false);
 
     if (!email.trim() || !password) {
-      // Expected user input error - no console.error
-      setError('invalid');
+      setError({
+        title: 'Missing information',
+        body: 'Please enter your email and password.',
+        type: 'invalid',
+      });
       return;
     }
 
     if (!validateEmail(email)) {
-      // Expected user input error - no console.error
-      setError('invalid');
+      setError({
+        title: 'Invalid email',
+        body: 'Please enter a valid email address.',
+        type: 'invalid',
+      });
       return;
     }
 
@@ -233,46 +250,41 @@ export default function LoginScreen() {
       const { error: signInError } = await signIn(email, password);
 
       if (signInError) {
-        // Check if this is an expected user input error (invalid credentials)
-        const isInvalidCredentials = 
-          signInError.message?.toLowerCase().includes('invalid login credentials') ||
-          signInError.message?.toLowerCase().includes('invalid email or password') ||
-          signInError.message?.toLowerCase().includes('email not found') ||
-          signInError.message?.toLowerCase().includes('incorrect password');
-
         // Check for unconfirmed email
         const isUnverified = 
           signInError.message?.toLowerCase().includes('email not confirmed') || 
           signInError.message?.toLowerCase().includes('not confirmed');
 
         if (isUnverified) {
-          // Expected user state - no console.error
-          setError('unverified');
-        } else if (isInvalidCredentials) {
-          // Expected user input error - DO NOT log with console.error
-          // This is normal user behavior, not an application error
-          setError('invalid');
+          const friendlyError = getFriendlyAuthError(signInError, 'login');
+          setError({
+            ...friendlyError,
+            type: 'unverified',
+          });
         } else {
-          // Unexpected error - log it for debugging
-          console.error('Unexpected sign in error:', signInError);
-          setError('invalid');
+          const friendlyError = getFriendlyAuthError(signInError, 'login');
+          setError({
+            ...friendlyError,
+            type: 'invalid',
+          });
         }
       } else {
         console.log('Sign in successful');
-        // Router will automatically redirect to /(tabs) via _layout.tsx
       }
     } catch (err: any) {
-      // Network errors or unhandled exceptions - log these
-      console.error('Network error or exception during sign in:', err);
-      setError('invalid');
+      console.log('Network error or exception during sign in');
+      const friendlyError = getFriendlyAuthError(err, 'login');
+      setError({
+        ...friendlyError,
+        type: 'invalid',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const errorMessageText = 'Email or password is incorrect.';
-  const unverifiedMessageText = 'Please verify your email to continue.';
   const emailResentText = '✓ Verification email sent! Check your inbox.';
+  const resendButtonText = 'Resend verification email';
 
   return (
     <View style={styles.container}>
@@ -290,18 +302,20 @@ export default function LoginScreen() {
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
 
-          {error === 'invalid' && (
+          {error && error.type === 'invalid' && (
             <View style={styles.errorMessage}>
-              <Text style={styles.errorText}>{errorMessageText}</Text>
+              <Text style={styles.errorTitle}>{error.title}</Text>
+              <Text style={styles.errorBody}>{error.body}</Text>
               <Pressable onPress={() => router.push('/(auth)/forgot-password')}>
                 <Text style={styles.forgotPasswordInError}>Forgot password?</Text>
               </Pressable>
             </View>
           )}
 
-          {error === 'unverified' && (
+          {error && error.type === 'unverified' && (
             <View style={styles.unverifiedMessage}>
-              <Text style={styles.unverifiedText}>{unverifiedMessageText}</Text>
+              <Text style={styles.unverifiedTitle}>{error.title}</Text>
+              <Text style={styles.unverifiedBody}>{error.body}</Text>
               <Pressable
                 style={styles.resendButton}
                 onPress={handleResendVerification}
@@ -310,7 +324,7 @@ export default function LoginScreen() {
                 {resendingEmail ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.resendButtonText}>Resend verification email</Text>
+                  <Text style={styles.resendButtonText}>{resendButtonText}</Text>
                 )}
               </Pressable>
             </View>
