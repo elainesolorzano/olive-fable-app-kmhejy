@@ -4,10 +4,10 @@
  * 
  * Handles deep link callbacks from:
  * - Email verification
- * - Password reset
+ * - Password reset (recovery)
  * - OAuth flows
  * 
- * Route: olivefable://auth/callback
+ * Route: oliveandfable://auth/callback
  */
 
 import React, { useEffect, useState } from "react";
@@ -28,7 +28,79 @@ export default function AuthCallbackScreen() {
     try {
       console.log('Auth callback triggered with params:', params);
 
-      // Get the current session to check auth state
+      // Extract token_hash and type from URL params
+      // Supabase sends these in the URL fragment for password recovery
+      const tokenHash = params.token_hash as string;
+      const type = params.type as string;
+
+      // Handle password recovery flow
+      if (type === 'recovery' && tokenHash) {
+        console.log('Password recovery flow detected - exchanging token');
+        
+        try {
+          // Exchange the token hash for a session
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery',
+          });
+
+          if (verifyError) {
+            console.log('Token verification error:', verifyError.message);
+            // Token is invalid or expired - redirect to reset password with error flag
+            router.replace('/(auth)/reset-password?expired=true');
+            return;
+          }
+
+          if (data.session) {
+            console.log('Recovery session established successfully');
+            // Session is now active, redirect to reset password screen
+            router.replace('/(auth)/reset-password');
+            return;
+          }
+        } catch (err) {
+          console.log('Error during token exchange:', err);
+          router.replace('/(auth)/reset-password?expired=true');
+          return;
+        }
+      }
+
+      // Handle email verification flow
+      if (type === 'signup' || type === 'email') {
+        console.log('Email verification flow detected');
+        
+        if (tokenHash) {
+          try {
+            const { data, error: verifyError } = await supabase.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: 'email',
+            });
+
+            if (verifyError) {
+              console.log('Email verification error:', verifyError.message);
+              setError("Failed to verify email. Please try again.");
+              setTimeout(() => {
+                router.replace("/(auth)/login");
+              }, 3000);
+              return;
+            }
+
+            if (data.session) {
+              console.log('Email verified successfully - redirecting to app');
+              router.replace("/(tabs)");
+              return;
+            }
+          } catch (err) {
+            console.log('Error during email verification:', err);
+            setError("Failed to verify email. Please try again.");
+            setTimeout(() => {
+              router.replace("/(auth)/login");
+            }, 3000);
+            return;
+          }
+        }
+      }
+
+      // Fallback: Check current session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
@@ -41,21 +113,9 @@ export default function AuthCallbackScreen() {
       }
 
       if (session?.user) {
-        // Check if this is a password recovery flow
-        // Supabase sets a recovery token when user clicks password reset link
-        const isPasswordRecovery = params.type === 'recovery' || 
-                                   params.recovery === 'true' ||
-                                   session.user.recovery_sent_at;
-
-        if (isPasswordRecovery) {
-          console.log('Password recovery flow detected - redirecting to reset password');
-          router.replace('/(auth)/reset-password');
-          return;
-        }
-
-        // Check if email is verified (email verification flow)
+        // Check if email is verified
         if (session.user.email_confirmed_at) {
-          console.log('Email verified successfully - redirecting to app');
+          console.log('Session exists and email verified - redirecting to app');
           router.replace("/(tabs)");
         } else {
           console.log('Session exists but email not verified yet');

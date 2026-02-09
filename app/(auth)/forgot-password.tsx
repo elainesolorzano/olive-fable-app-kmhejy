@@ -6,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { getFriendlyAuthError, AUTH_SUCCESS_MESSAGES } from '@/utils/authErrorMessages';
-import * as Linking from 'expo-linking';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -45,9 +44,9 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // Build the redirect URL for the app
-      // This will open the reset-password screen in the app
-      const redirectUrl = Linking.createURL('/(auth)/reset-password');
+      // Use the oliveandfable:// deep link scheme
+      // This will open the app and trigger the callback handler
+      const redirectUrl = 'oliveandfable://auth/callback';
       
       console.log('Sending password reset email to:', trimmedEmail);
       console.log('Redirect URL:', redirectUrl);

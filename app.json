@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "Olive & Fable",
@@ -25,7 +26,23 @@
         "backgroundColor": "#1a3a2e"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.oliveandfable.studio"
+      "package": "com.oliveandfable.studio",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "oliveandfable",
+              "host": "*"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/images/cf4cfcd5-5040-4829-aaa7-a1b46ac67fda.png",
@@ -44,7 +61,6 @@
         "origin": false
       }
     },
-    "scheme": "Olive & Fable"
-  },
-  "scheme": "Olive & Fable"
+    "scheme": "oliveandfable"
+  }
 }

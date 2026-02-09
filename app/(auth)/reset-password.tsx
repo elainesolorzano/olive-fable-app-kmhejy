@@ -8,13 +8,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndicator } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/integrations/supabase/client';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { getFriendlyAuthError, AUTH_SUCCESS_MESSAGES } from '@/utils/authErrorMessages';
 
 export default function ResetPasswordScreen() {
+  const params = useLocalSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,19 @@ export default function ResetPasswordScreen() {
 
   const validateResetSession = async () => {
     console.log('Validating password reset session');
+    
+    // Check if we came here with an expired flag
+    if (params.expired === 'true') {
+      console.log('Link marked as expired from callback');
+      setHasValidSession(false);
+      setError({
+        title: 'Link expired',
+        body: 'This password reset link has expired or is invalid. Please request a new one.',
+      });
+      setValidatingSession(false);
+      return;
+    }
+
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
@@ -56,7 +70,7 @@ export default function ResetPasswordScreen() {
   };
 
   const handleResetPassword = async () => {
-    console.log('User tapped Reset Password button');
+    console.log('User tapped Save New Password button');
     setError(null);
 
     // Validation
@@ -99,6 +113,9 @@ export default function ResetPasswordScreen() {
         console.log('Password reset successful');
         setSuccess(true);
         
+        // Sign out the user after password reset
+        await supabase.auth.signOut();
+        
         // Redirect to login after 2 seconds
         setTimeout(() => {
           router.replace('/(auth)/login');
@@ -113,12 +130,12 @@ export default function ResetPasswordScreen() {
     }
   };
 
-  const titleText = 'Set New Password';
+  const titleText = 'Reset password';
   const subtitleText = 'Enter your new password below';
   const passwordLabelText = 'New Password';
-  const confirmPasswordLabelText = 'Confirm New Password';
-  const buttonText = 'Reset Password';
-  const backToLoginText = 'Back to Sign In';
+  const confirmPasswordLabelText = 'Confirm Password';
+  const buttonText = 'Save new password';
+  const backToLoginText = 'Return to Sign In';
 
   if (validatingSession) {
     return (
@@ -217,6 +234,13 @@ export default function ResetPasswordScreen() {
           <View style={styles.successMessage}>
             <Text style={styles.redirectText}>Redirecting to sign in...</Text>
           </View>
+
+          <Pressable 
+            style={buttonStyles.primaryButton}
+            onPress={() => router.replace('/(auth)/login')}
+          >
+            <Text style={buttonStyles.buttonText}>{backToLoginText}</Text>
+          </Pressable>
         </ScrollView>
       </View>
     );
@@ -390,7 +414,7 @@ const styles = StyleSheet.create({
     borderColor: '#10B981',
     borderRadius: 12,
     padding: 16,
-    marginTop: 24,
+    marginBottom: 24,
     alignItems: 'center',
   },
   redirectText: {
