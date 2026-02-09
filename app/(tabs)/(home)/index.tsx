@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
 import { GemmaMessage } from '@/components/GemmaMessage';
+import * as WebBrowser from 'expo-web-browser';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
@@ -92,10 +93,44 @@ const styles = StyleSheet.create({
   gemmaContainer: {
     marginBottom: 24,
   },
+  updatesCard: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  updatesDescription: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  updatesButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  updatesButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
 });
 
 export default function ClientLoungeScreen() {
   const insets = useSafeAreaInsets();
+
+  const handleOpenUpdates = async () => {
+    console.log('User tapped View Updates & Events button');
+    try {
+      await WebBrowser.openBrowserAsync('https://www.oliveandfable.com/updates');
+    } catch (error) {
+      console.error('Error opening updates URL:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -211,23 +246,19 @@ export default function ClientLoungeScreen() {
           </Pressable>
         </View>
 
-        {/* Featured Tip */}
+        {/* Updates & Events */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Featured Posing Tip</Text>
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <IconSymbol
-                ios_icon_name="lightbulb.fill"
-                android_material_icon_name="lightbulb"
-                size={24}
-                color={colors.accent}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>Natural Light is Your Friend</Text>
-            </View>
-            <Text style={styles.cardDescription}>
-              Position your pet near a window for soft, flattering light. Avoid harsh overhead lighting and direct sunlight for the best results.
+          <Text style={styles.sectionTitle}>Updates & Events</Text>
+          <View style={styles.updatesCard}>
+            <Text style={styles.updatesDescription}>
+              Stay in the loop with Olive & Fable. See our latest updates, seasonal offerings, and upcoming events—plus where we'll be next.
             </Text>
+            <Pressable 
+              style={styles.updatesButton}
+              onPress={handleOpenUpdates}
+            >
+              <Text style={styles.updatesButtonText}>View Updates & Events</Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>
