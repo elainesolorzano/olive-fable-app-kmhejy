@@ -52,7 +52,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      console.error('Error saving session to secure storage:', error);
+      console.log('Error saving session to secure storage - non-critical');
     }
   }, []);
 
@@ -110,7 +110,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       await saveSession(validSession);
       return validSession;
     } catch (error) {
-      console.error('Error loading session from secure storage:', error);
+      console.log('Error loading session from secure storage - non-critical');
       return null;
     }
   }, [saveSession]);
@@ -146,7 +146,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.log('Error initializing auth - non-critical');
         if (mounted) {
           setLoading(false);
         }
@@ -183,7 +183,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       }
     });
     if (error) {
-      console.error('Sign up error:', error.message);
+      console.log('Sign up failed - error will be handled by UI');
     } else {
       console.log('Sign up successful');
     }
@@ -194,7 +194,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     console.log('User signing in with email:', email);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      console.error('Sign in error:', error.message);
+      console.log('Sign in failed - error will be handled by UI');
     } else {
       console.log('Sign in successful');
     }
