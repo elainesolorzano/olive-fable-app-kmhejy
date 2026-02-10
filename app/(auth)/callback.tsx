@@ -13,6 +13,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import * as Linking from "expo-linking";
 import { supabase } from "@/integrations/supabase/client";
 import { colors } from "@/styles/commonStyles";
 
@@ -26,12 +27,43 @@ export default function AuthCallbackScreen() {
 
   const handleCallback = async () => {
     try {
-      console.log('Auth callback triggered with params:', params);
+      console.log('Auth callback triggered');
 
-      // Extract token_hash and type from URL params
-      // Supabase sends these in the URL fragment for password recovery
-      const tokenHash = params.token_hash as string;
-      const type = params.type as string;
+      // Get the initial URL that opened the app
+      const initialUrl = await Linking.getInitialURL();
+      console.log('Initial URL:', initialUrl);
+
+      // Parse URL to extract tokens from hash/fragment
+      // Supabase sends tokens in the URL fragment (after #)
+      let tokenHash: string | null = null;
+      let type: string | null = null;
+
+      if (initialUrl) {
+        // Parse the URL - Supabase uses hash fragment for tokens
+        const url = new URL(initialUrl);
+        
+        // Check if tokens are in the hash (after #)
+        if (url.hash) {
+          const hashParams = new URLSearchParams(url.hash.substring(1)); // Remove the # character
+          tokenHash = hashParams.get('token_hash');
+          type = hashParams.get('type');
+          console.log('Parsed from hash - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing');
+        }
+        
+        // Fallback: check if tokens are in query params (some flows)
+        if (!tokenHash || !type) {
+          tokenHash = url.searchParams.get('token_hash');
+          type = url.searchParams.get('type');
+          console.log('Parsed from query - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing');
+        }
+      }
+
+      // Also check the route params (expo-router might parse them)
+      if (!tokenHash || !type) {
+        tokenHash = params.token_hash as string;
+        type = params.type as string;
+        console.log('Using route params - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing');
+      }
 
       // Handle password recovery flow
       if (type === 'recovery' && tokenHash) {
@@ -56,6 +88,10 @@ export default function AuthCallbackScreen() {
             // Session is now active, redirect to reset password screen
             router.replace('/(auth)/reset-password');
             return;
+          } else {
+            console.log('No session returned from verifyOtp');
+            router.replace('/(auth)/reset-password?expired=true');
+            return;
           }
         } catch (err) {
           console.log('Error during token exchange:', err);
@@ -65,47 +101,46 @@ export default function AuthCallbackScreen() {
       }
 
       // Handle email verification flow
-      if (type === 'signup' || type === 'email') {
+      if ((type === 'signup' || type === 'email') && tokenHash) {
         console.log('Email verification flow detected');
         
-        if (tokenHash) {
-          try {
-            const { data, error: verifyError } = await supabase.auth.verifyOtp({
-              token_hash: tokenHash,
-              type: 'email',
-            });
+        try {
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'email',
+          });
 
-            if (verifyError) {
-              console.log('Email verification error:', verifyError.message);
-              setError("Failed to verify email. Please try again.");
-              setTimeout(() => {
-                router.replace("/(auth)/login");
-              }, 3000);
-              return;
-            }
-
-            if (data.session) {
-              console.log('Email verified successfully - redirecting to app');
-              router.replace("/(tabs)");
-              return;
-            }
-          } catch (err) {
-            console.log('Error during email verification:', err);
-            setError("Failed to verify email. Please try again.");
+          if (verifyError) {
+            console.log('Email verification error:', verifyError.message);
+            setError("We couldn't verify your email. Please try again.");
             setTimeout(() => {
               router.replace("/(auth)/login");
             }, 3000);
             return;
           }
+
+          if (data.session) {
+            console.log('Email verified successfully - redirecting to app');
+            router.replace("/(tabs)");
+            return;
+          }
+        } catch (err) {
+          console.log('Error during email verification:', err);
+          setError("We couldn't verify your email. Please try again.");
+          setTimeout(() => {
+            router.replace("/(auth)/login");
+          }, 3000);
+          return;
         }
       }
 
       // Fallback: Check current session
+      console.log('No specific flow detected, checking current session');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
         console.log("Session error:", sessionError.message);
-        setError("Failed to verify. Please try again.");
+        setError("Something went wrong. Please try again.");
         setTimeout(() => {
           router.replace("/(auth)/login");
         }, 3000);
@@ -124,14 +159,14 @@ export default function AuthCallbackScreen() {
       } else {
         // No session found
         console.log('No session found in callback');
-        setError("Failed to verify. Please try again.");
+        setError("Something went wrong. Please try again.");
         setTimeout(() => {
           router.replace("/(auth)/login");
         }, 3000);
       }
     } catch (err) {
       console.log("Auth callback error:", err);
-      setError("An error occurred during verification.");
+      setError("Something went wrong. Please try again.");
       setTimeout(() => {
         router.replace("/(auth)/login");
       }, 3000);
@@ -139,7 +174,7 @@ export default function AuthCallbackScreen() {
   };
 
   const loadingText = 'Processing...';
-  const redirectText = 'Redirecting to login...';
+  const redirectText = 'Redirecting...';
 
   return (
     <View style={styles.container}>
@@ -181,7 +216,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: colors.error,
+    color: colors.text,
     textAlign: "center",
   },
   redirectText: {
