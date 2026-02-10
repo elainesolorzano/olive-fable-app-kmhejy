@@ -7,7 +7,8 @@
  * - Password reset (flow=recovery or type=recovery)
  * - OAuth flows (access_token + refresh_token)
  * 
- * Route: oliveandfable://auth/callback
+ * Universal HTTPS Link: https://oliveandfable.com/reset-password
+ * Custom Scheme: oliveandfable://auth/callback
  * 
  * This is the ONLY deep link destination for Supabase auth.
  * All email links redirect here with different query params to indicate the flow.

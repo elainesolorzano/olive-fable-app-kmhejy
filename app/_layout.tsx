@@ -31,19 +31,52 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  // Handle deep links - UNIFIED CALLBACK ENTRY POINT
-  // All Supabase email links (password reset, email verification) redirect to:
-  // oliveandfable://auth/callback
+  // Handle deep links - Universal HTTPS links for password reset
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
       const url = event.url;
-      console.log('Deep link received in app:', url);
+      console.log('=== Deep link received in app ===');
+      console.log('URL:', url);
 
-      // Check if this is the unified auth callback
-      if (url.startsWith('oliveandfable://auth/callback')) {
-        console.log('Auth callback deep link detected, navigating to callback handler');
-        // The callback screen will parse flow/type params and route accordingly
-        router.push('/(auth)/callback');
+      try {
+        const urlObj = new URL(url);
+        console.log('Parsed URL - protocol:', urlObj.protocol, 'hostname:', urlObj.hostname, 'pathname:', urlObj.pathname);
+
+        // Handle universal HTTPS link for password reset
+        // https://oliveandfable.com/reset-password?token_hash=...&type=recovery
+        if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/reset-password') {
+          console.log('✅ Universal HTTPS link detected for password reset');
+          
+          // Extract token_hash and type from query params
+          const tokenHash = urlObj.searchParams.get('token_hash');
+          const type = urlObj.searchParams.get('type');
+          
+          console.log('Token hash:', tokenHash ? 'present' : 'missing');
+          console.log('Type:', type);
+
+          if (tokenHash && type === 'recovery') {
+            console.log('Navigating to callback with recovery flow');
+            // Navigate to callback handler with the recovery parameters
+            router.push(`/(auth)/callback?token_hash=${tokenHash}&type=recovery&flow=recovery`);
+          } else {
+            console.log('⚠️ Missing token_hash or type, redirecting to forgot password');
+            router.push('/(auth)/forgot-password');
+          }
+          return;
+        }
+
+        // Handle custom scheme deep links (oliveandfable://)
+        if (urlObj.protocol === 'oliveandfable:') {
+          console.log('Custom scheme deep link detected');
+          
+          // Check if it's the auth callback
+          if (urlObj.pathname.includes('auth/callback') || urlObj.pathname.includes('/callback')) {
+            console.log('Auth callback deep link, navigating to callback handler');
+            router.push('/(auth)/callback');
+          }
+        }
+      } catch (err) {
+        console.log('Error parsing deep link URL:', err);
       }
     };
 
@@ -53,13 +86,47 @@ function RootLayoutNav() {
     // Check if app was opened by a deep link
     Linking.getInitialURL().then((url) => {
       if (url) {
-        console.log('App opened with initial deep link:', url);
-        if (url.startsWith('oliveandfable://auth/callback')) {
-          console.log('Initial deep link is auth callback, navigating to callback handler');
-          // Small delay to ensure navigation is ready
-          setTimeout(() => {
-            router.push('/(auth)/callback');
-          }, 100);
+        console.log('=== App opened with initial deep link ===');
+        console.log('Initial URL:', url);
+        
+        try {
+          const urlObj = new URL(url);
+          
+          // Handle universal HTTPS link for password reset
+          if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/reset-password') {
+            console.log('✅ Initial URL is universal HTTPS link for password reset');
+            
+            const tokenHash = urlObj.searchParams.get('token_hash');
+            const type = urlObj.searchParams.get('type');
+            
+            console.log('Token hash:', tokenHash ? 'present' : 'missing');
+            console.log('Type:', type);
+
+            if (tokenHash && type === 'recovery') {
+              console.log('Navigating to callback with recovery flow');
+              // Small delay to ensure navigation is ready
+              setTimeout(() => {
+                router.push(`/(auth)/callback?token_hash=${tokenHash}&type=recovery&flow=recovery`);
+              }, 100);
+            } else {
+              console.log('⚠️ Missing token_hash or type, redirecting to forgot password');
+              setTimeout(() => {
+                router.push('/(auth)/forgot-password');
+              }, 100);
+            }
+            return;
+          }
+
+          // Handle custom scheme auth callback
+          if (urlObj.protocol === 'oliveandfable:' && 
+              (urlObj.pathname.includes('auth/callback') || urlObj.pathname.includes('/callback'))) {
+            console.log('Initial URL is auth callback, navigating to callback handler');
+            setTimeout(() => {
+              router.push('/(auth)/callback');
+            }, 100);
+          }
+        } catch (err) {
+          console.log('Error parsing initial URL:', err);
         }
       }
     });

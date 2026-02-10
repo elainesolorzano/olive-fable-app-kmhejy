@@ -44,19 +44,13 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // CRITICAL: URL-encode the deep link to ensure the email contains
-      // redirect_to=oliveandfable%3A%2F%2Freset-password (not the raw URL)
-      const rawRedirectUrl = 'oliveandfable://reset-password';
-      const encodedRedirectUrl = encodeURIComponent(rawRedirectUrl);
-      
       console.log('Sending password reset email to:', trimmedEmail);
-      console.log('Raw redirect URL:', rawRedirectUrl);
-      console.log('URL-encoded redirect:', encodedRedirectUrl);
-      console.log('Expected in email link: redirect_to=' + encodedRedirectUrl);
+      console.log('Using universal HTTPS link: https://oliveandfable.com/reset-password');
 
-      // Pass the URL-encoded value to Supabase
+      // Use universal HTTPS link for password reset
+      // This will open the app via universal link on iOS/Android
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-        redirectTo: rawRedirectUrl, // Supabase will URL-encode this automatically
+        redirectTo: 'https://oliveandfable.com/reset-password',
       });
 
       if (resetError) {
@@ -64,8 +58,8 @@ export default function ForgotPasswordScreen() {
         const friendlyError = getFriendlyAuthError(resetError, 'forgotPassword');
         setError(friendlyError);
       } else {
-        console.log('Password reset email sent successfully');
-        console.log('✅ Check your email - the link should contain: redirect_to=oliveandfable%3A%2F%2Freset-password');
+        console.log('✅ Password reset email sent successfully');
+        console.log('Email link will redirect to: https://oliveandfable.com/reset-password');
         setSuccess(true);
       }
     } catch (err: any) {

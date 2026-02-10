@@ -18,7 +18,10 @@
       "bundleIdentifier": "com.oliveandfable.studio",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "associatedDomains": [
+        "applinks:oliveandfable.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -35,6 +38,11 @@
             {
               "scheme": "oliveandfable",
               "host": "*"
+            },
+            {
+              "scheme": "https",
+              "host": "oliveandfable.com",
+              "pathPrefix": "/reset-password"
             }
           ],
           "category": [
