@@ -44,12 +44,12 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // CRITICAL: Use the website reset-password page as redirectTo
-      // This ensures the email link goes to the correct destination
-      const redirectUrl = 'https://oliveandfable.com/reset-password';
+      // CRITICAL: Use deep link redirect so the app opens directly
+      // This ensures password reset completes in-app, not on the website
+      const redirectUrl = 'oliveandfable://auth/callback';
       
       console.log('Sending password reset email to:', trimmedEmail);
-      console.log('Redirect URL:', redirectUrl);
+      console.log('Redirect URL (deep link):', redirectUrl);
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
         redirectTo: redirectUrl,
