@@ -44,9 +44,9 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // Use the oliveandfable:// deep link scheme
-      // This will open the app and trigger the callback handler
-      const redirectUrl = 'oliveandfable://auth/callback';
+      // CRITICAL: Use the website reset-password page as redirectTo
+      // This ensures the email link goes to the correct destination
+      const redirectUrl = 'https://oliveandfable.com/reset-password';
       
       console.log('Sending password reset email to:', trimmedEmail);
       console.log('Redirect URL:', redirectUrl);
