@@ -44,16 +44,19 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // CRITICAL: Use the deep link that opens directly to the reset password screen
-      // This ensures the email link contains redirect_to=oliveandfable%3A%2F%2Freset-password
-      const redirectUrl = 'oliveandfable://reset-password';
+      // CRITICAL: URL-encode the deep link to ensure the email contains
+      // redirect_to=oliveandfable%3A%2F%2Freset-password (not the raw URL)
+      const rawRedirectUrl = 'oliveandfable://reset-password';
+      const encodedRedirectUrl = encodeURIComponent(rawRedirectUrl);
       
       console.log('Sending password reset email to:', trimmedEmail);
-      console.log('Redirect URL (deep link):', redirectUrl);
-      console.log('Expected email link format: redirect_to=oliveandfable%3A%2F%2Freset-password');
+      console.log('Raw redirect URL:', rawRedirectUrl);
+      console.log('URL-encoded redirect:', encodedRedirectUrl);
+      console.log('Expected in email link: redirect_to=' + encodedRedirectUrl);
 
+      // Pass the URL-encoded value to Supabase
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-        redirectTo: redirectUrl,
+        redirectTo: rawRedirectUrl, // Supabase will URL-encode this automatically
       });
 
       if (resetError) {
