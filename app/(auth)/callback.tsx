@@ -27,47 +27,62 @@ export default function AuthCallbackScreen() {
 
   const handleCallback = async () => {
     try {
-      console.log('Auth callback triggered');
+      console.log('=== Auth Callback Handler Started ===');
 
       // Get the initial URL that opened the app
       const initialUrl = await Linking.getInitialURL();
       console.log('Initial URL:', initialUrl);
+      console.log('Route params:', params);
 
-      // Parse URL to extract tokens from hash/fragment
-      // Supabase sends tokens in the URL fragment (after #)
+      // Parse URL to extract tokens from hash/fragment or query params
+      // Supabase sends tokens in the URL fragment (after #) or query params
       let tokenHash: string | null = null;
       let type: string | null = null;
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
 
       if (initialUrl) {
-        // Parse the URL - Supabase uses hash fragment for tokens
-        const url = new URL(initialUrl);
-        
-        // Check if tokens are in the hash (after #)
-        if (url.hash) {
-          const hashParams = new URLSearchParams(url.hash.substring(1)); // Remove the # character
-          tokenHash = hashParams.get('token_hash');
-          type = hashParams.get('type');
-          console.log('Parsed from hash - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing');
-        }
-        
-        // Fallback: check if tokens are in query params (some flows)
-        if (!tokenHash || !type) {
-          tokenHash = url.searchParams.get('token_hash');
-          type = url.searchParams.get('type');
-          console.log('Parsed from query - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing');
+        try {
+          // Parse the URL - Supabase uses hash fragment for tokens
+          const url = new URL(initialUrl);
+          console.log('Parsed URL - pathname:', url.pathname, 'hash:', url.hash, 'search:', url.search);
+          
+          // Check if tokens are in the hash (after #)
+          if (url.hash) {
+            const hashParams = new URLSearchParams(url.hash.substring(1)); // Remove the # character
+            tokenHash = hashParams.get('token_hash');
+            type = hashParams.get('type');
+            accessToken = hashParams.get('access_token');
+            refreshToken = hashParams.get('refresh_token');
+            console.log('Parsed from hash - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing', 'access_token:', accessToken ? 'present' : 'missing');
+          }
+          
+          // Fallback: check if tokens are in query params (some flows)
+          if (!tokenHash && !accessToken) {
+            tokenHash = url.searchParams.get('token_hash');
+            type = url.searchParams.get('type');
+            accessToken = url.searchParams.get('access_token');
+            refreshToken = url.searchParams.get('refresh_token');
+            console.log('Parsed from query - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing', 'access_token:', accessToken ? 'present' : 'missing');
+          }
+        } catch (urlError) {
+          console.log('Error parsing URL:', urlError);
         }
       }
 
       // Also check the route params (expo-router might parse them)
-      if (!tokenHash || !type) {
+      if (!tokenHash && !accessToken) {
         tokenHash = params.token_hash as string;
         type = params.type as string;
-        console.log('Using route params - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing');
+        accessToken = params.access_token as string;
+        refreshToken = params.refresh_token as string;
+        console.log('Using route params - type:', type, 'token_hash:', tokenHash ? 'present' : 'missing', 'access_token:', accessToken ? 'present' : 'missing');
       }
 
       // Handle password recovery flow
       if (type === 'recovery' && tokenHash) {
-        console.log('Password recovery flow detected - exchanging token');
+        console.log('=== Password Recovery Flow Detected ===');
+        console.log('Exchanging token_hash for session...');
         
         try {
           // Exchange the token hash for a session
@@ -84,17 +99,18 @@ export default function AuthCallbackScreen() {
           }
 
           if (data.session) {
-            console.log('Recovery session established successfully');
+            console.log('✅ Recovery session established successfully');
+            console.log('Session user:', data.session.user.email);
             // Session is now active, redirect to reset password screen
             router.replace('/(auth)/reset-password');
             return;
           } else {
-            console.log('No session returned from verifyOtp');
+            console.log('❌ No session returned from verifyOtp');
             router.replace('/(auth)/reset-password?expired=true');
             return;
           }
         } catch (err) {
-          console.log('Error during token exchange:', err);
+          console.log('❌ Error during token exchange:', err);
           router.replace('/(auth)/reset-password?expired=true');
           return;
         }
@@ -102,7 +118,7 @@ export default function AuthCallbackScreen() {
 
       // Handle email verification flow
       if ((type === 'signup' || type === 'email') && tokenHash) {
-        console.log('Email verification flow detected');
+        console.log('=== Email Verification Flow Detected ===');
         
         try {
           const { data, error: verifyError } = await supabase.auth.verifyOtp({
@@ -120,12 +136,12 @@ export default function AuthCallbackScreen() {
           }
 
           if (data.session) {
-            console.log('Email verified successfully - redirecting to app');
+            console.log('✅ Email verified successfully - redirecting to app');
             router.replace("/(tabs)");
             return;
           }
         } catch (err) {
-          console.log('Error during email verification:', err);
+          console.log('❌ Error during email verification:', err);
           setError("We couldn't verify your email. Please try again.");
           setTimeout(() => {
             router.replace("/(auth)/login");
@@ -134,12 +150,45 @@ export default function AuthCallbackScreen() {
         }
       }
 
+      // Handle OAuth callback with access_token and refresh_token
+      if (accessToken && refreshToken) {
+        console.log('=== OAuth Callback Detected ===');
+        try {
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (sessionError) {
+            console.log('❌ Error setting session:', sessionError.message);
+            setError("We couldn't sign you in. Please try again.");
+            setTimeout(() => {
+              router.replace("/(auth)/login");
+            }, 3000);
+            return;
+          }
+
+          if (data.session) {
+            console.log('✅ OAuth session established successfully');
+            router.replace("/(tabs)");
+            return;
+          }
+        } catch (err) {
+          console.log('❌ Error during OAuth callback:', err);
+          setError("We couldn't sign you in. Please try again.");
+          setTimeout(() => {
+            router.replace("/(auth)/login");
+          }, 3000);
+          return;
+        }
+      }
+
       // Fallback: Check current session
-      console.log('No specific flow detected, checking current session');
+      console.log('=== No Specific Flow Detected - Checking Current Session ===');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
-        console.log("Session error:", sessionError.message);
+        console.log("❌ Session error:", sessionError.message);
         setError("Something went wrong. Please try again.");
         setTimeout(() => {
           router.replace("/(auth)/login");
@@ -150,22 +199,22 @@ export default function AuthCallbackScreen() {
       if (session?.user) {
         // Check if email is verified
         if (session.user.email_confirmed_at) {
-          console.log('Session exists and email verified - redirecting to app');
+          console.log('✅ Session exists and email verified - redirecting to app');
           router.replace("/(tabs)");
         } else {
-          console.log('Session exists but email not verified yet');
+          console.log('⚠️ Session exists but email not verified yet');
           router.replace("/(auth)/verify-email");
         }
       } else {
         // No session found
-        console.log('No session found in callback');
+        console.log('❌ No session found in callback');
         setError("Something went wrong. Please try again.");
         setTimeout(() => {
           router.replace("/(auth)/login");
         }, 3000);
       }
     } catch (err) {
-      console.log("Auth callback error:", err);
+      console.log("❌ Auth callback error:", err);
       setError("Something went wrong. Please try again.");
       setTimeout(() => {
         router.replace("/(auth)/login");

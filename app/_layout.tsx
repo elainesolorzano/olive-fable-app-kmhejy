@@ -35,12 +35,12 @@ function RootLayoutNav() {
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
       const url = event.url;
-      console.log('Deep link received:', url);
+      console.log('Deep link received in app:', url);
 
-      // Check if this is an auth callback
-      if (url.includes('oliveandfable://auth/callback') || url.includes('oliveandfable://reset-password')) {
+      // Check if this is an auth callback (password reset or email verification)
+      if (url.startsWith('oliveandfable://auth/callback')) {
         console.log('Auth callback deep link detected, navigating to callback handler');
-        // The callback screen will handle the token exchange
+        // The callback screen will handle the token exchange and routing
         router.push('/(auth)/callback');
       }
     };
@@ -51,10 +51,13 @@ function RootLayoutNav() {
     // Check if app was opened by a deep link
     Linking.getInitialURL().then((url) => {
       if (url) {
-        console.log('App opened with deep link:', url);
-        if (url.includes('oliveandfable://auth/callback') || url.includes('oliveandfable://reset-password')) {
+        console.log('App opened with initial deep link:', url);
+        if (url.startsWith('oliveandfable://auth/callback')) {
           console.log('Initial deep link is auth callback, navigating to callback handler');
-          router.push('/(auth)/callback');
+          // Small delay to ensure navigation is ready
+          setTimeout(() => {
+            router.push('/(auth)/callback');
+          }, 100);
         }
       }
     });
