@@ -44,10 +44,10 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // CRITICAL: Use deep link redirect so the app opens directly
-      // This ensures password reset completes in-app, not on the website
-      // The deep link MUST match what's configured in Supabase Dashboard
-      const redirectUrl = 'oliveandfable://auth/callback?type=recovery';
+      // CRITICAL: Use ONE standardized deep link for ALL Supabase email flows
+      // This ensures password reset completes in-app via oliveandfable://auth/callback
+      // The flow=recovery parameter tells the callback handler this is a password reset
+      const redirectUrl = 'oliveandfable://auth/callback?flow=recovery';
       
       console.log('Sending password reset email to:', trimmedEmail);
       console.log('Redirect URL (deep link):', redirectUrl);

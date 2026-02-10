@@ -31,16 +31,18 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  // Handle deep links for password reset and email verification
+  // Handle deep links - UNIFIED CALLBACK ENTRY POINT
+  // All Supabase email links (password reset, email verification) redirect to:
+  // oliveandfable://auth/callback
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
       const url = event.url;
       console.log('Deep link received in app:', url);
 
-      // Check if this is an auth callback (password reset or email verification)
+      // Check if this is the unified auth callback
       if (url.startsWith('oliveandfable://auth/callback')) {
         console.log('Auth callback deep link detected, navigating to callback handler');
-        // The callback screen will handle the token exchange and routing
+        // The callback screen will parse flow/type params and route accordingly
         router.push('/(auth)/callback');
       }
     };
