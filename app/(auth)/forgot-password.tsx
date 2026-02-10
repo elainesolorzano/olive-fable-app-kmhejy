@@ -44,13 +44,13 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // CRITICAL: Use ONE standardized deep link for ALL Supabase email flows
-      // This ensures password reset completes in-app via oliveandfable://auth/callback
-      // The flow=recovery parameter tells the callback handler this is a password reset
-      const redirectUrl = 'oliveandfable://auth/callback?flow=recovery';
+      // CRITICAL: Use the deep link that opens directly to the reset password screen
+      // This ensures the email link contains redirect_to=oliveandfable%3A%2F%2Freset-password
+      const redirectUrl = 'oliveandfable://reset-password';
       
       console.log('Sending password reset email to:', trimmedEmail);
       console.log('Redirect URL (deep link):', redirectUrl);
+      console.log('Expected email link format: redirect_to=oliveandfable%3A%2F%2Freset-password');
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
         redirectTo: redirectUrl,
@@ -62,6 +62,7 @@ export default function ForgotPasswordScreen() {
         setError(friendlyError);
       } else {
         console.log('Password reset email sent successfully');
+        console.log('✅ Check your email - the link should contain: redirect_to=oliveandfable%3A%2F%2Freset-password');
         setSuccess(true);
       }
     } catch (err: any) {
