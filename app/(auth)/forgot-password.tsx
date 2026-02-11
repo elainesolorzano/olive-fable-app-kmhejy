@@ -82,14 +82,14 @@ export default function ForgotPasswordScreen() {
   };
 
   const titleText = 'Reset your password';
-  const subtitleText = 'Enter your email address and we will send you a 6-digit code to reset your password';
+  const subtitleText = 'Enter your email address and we will send you a code to reset your password';
   const emailLabelText = 'Email Address';
   const buttonText = 'Send Reset Code';
   const backToLoginText = 'Back to Sign In';
 
   if (success) {
     const successTitle = 'Check your email';
-    const successBody = 'We have sent you a 6-digit code. Enter the code on the next screen to reset your password.';
+    const successBody = 'We have sent you a reset code. Enter the code on the next screen to reset your password.';
 
     return (
       <View style={commonStyles.container}>
@@ -149,7 +149,7 @@ export default function ForgotPasswordScreen() {
           </View>
 
           <Pressable 
-            style={buttonStyles.primaryButton}
+            style={buttonStyles.primary}
             onPress={() => {
               console.log('Navigating to OTP verification screen with email:', email);
               router.push({
@@ -158,7 +158,7 @@ export default function ForgotPasswordScreen() {
               });
             }}
           >
-            <Text style={buttonStyles.buttonText}>Continue</Text>
+            <Text style={buttonStyles.primaryText}>Continue</Text>
           </Pressable>
 
           <View style={styles.toggleContainer}>
@@ -228,7 +228,7 @@ export default function ForgotPasswordScreen() {
 
           <Pressable 
             style={({ pressed }) => [
-              buttonStyles.primaryButton,
+              buttonStyles.primary,
               styles.submitButton,
               pressed && styles.pressed,
               loading && styles.disabled
@@ -239,7 +239,7 @@ export default function ForgotPasswordScreen() {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={buttonStyles.buttonText}>{buttonText}</Text>
+              <Text style={buttonStyles.primaryText}>{buttonText}</Text>
             )}
           </Pressable>
 

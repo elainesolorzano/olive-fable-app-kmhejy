@@ -21,22 +21,22 @@ export default function ResetPasswordOTPScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleResetPassword = async () => {
-    console.log('User tapped Reset Password button');
+    console.log('User tapped Update Password button');
     setError(null);
 
     // Validation
     if (!otpCode) {
       setError({
         title: 'Code required',
-        body: 'Please enter the 6-digit code from your email.',
+        body: 'Please enter the reset code from your email.',
       });
       return;
     }
 
-    if (otpCode.length !== 6) {
+    if (otpCode.length < 6 || otpCode.length > 8) {
       setError({
         title: 'Invalid code',
-        body: 'The code must be 6 digits.',
+        body: 'The code must be 6-8 digits.',
       });
       return;
     }
@@ -68,12 +68,12 @@ export default function ResetPasswordOTPScreen() {
     setLoading(true);
 
     try {
-      console.log('=== STEP 1: Verifying OTP ===');
+      console.log('=== STEP A: Verifying OTP ===');
       console.log('Email:', passedEmail);
       console.log('OTP Code:', otpCode);
       console.log('Using Supabase REST API: /auth/v1/verify');
 
-      // STEP 1: Verify OTP
+      // STEP A: Verify OTP
       const verifyResponse = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
         method: 'POST',
         headers: {
@@ -114,11 +114,11 @@ export default function ResetPasswordOTPScreen() {
         return;
       }
 
-      console.log('=== STEP 2: Updating Password ===');
+      console.log('=== STEP B: Updating Password ===');
       console.log('Using access token from OTP verification');
       console.log('Using Supabase REST API: /auth/v1/user');
 
-      // STEP 2: Update password
+      // STEP B: Update password
       const updateResponse = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
         method: 'PUT',
         headers: {
@@ -152,7 +152,7 @@ export default function ResetPasswordOTPScreen() {
       router.replace({
         pathname: '/(auth)/login',
         params: { 
-          message: 'Password successfully updated. You can now sign in with your new password.',
+          message: 'Password updated. Please sign in.',
         },
       });
 
@@ -168,10 +168,10 @@ export default function ResetPasswordOTPScreen() {
 
   const titleText = 'Enter Reset Code';
   const emailLabelText = 'Email';
-  const codeLabelText = 'Enter Code';
+  const codeLabelText = 'Reset code';
   const newPasswordLabelText = 'New Password';
   const confirmPasswordLabelText = 'Confirm Password';
-  const buttonText = 'Reset Password';
+  const buttonText = 'Update Password';
   const backText = 'Back';
 
   return (
@@ -199,7 +199,7 @@ export default function ResetPasswordOTPScreen() {
             />
           </View>
           <Text style={styles.title}>{titleText}</Text>
-          <Text style={styles.subtitle}>Enter the 6-digit code from your email and choose a new password</Text>
+          <Text style={styles.subtitle}>Enter the code from your email and choose a new password</Text>
         </View>
 
         {error && (
@@ -221,17 +221,17 @@ export default function ResetPasswordOTPScreen() {
             <Text style={styles.label}>{codeLabelText}</Text>
             <TextInput
               style={[styles.input, error && styles.inputError]}
-              placeholder="000000"
+              placeholder="Enter code"
               placeholderTextColor={colors.textSecondary}
               value={otpCode}
               onChangeText={(text) => {
-                // Only allow numbers and limit to 6 digits
-                const numericText = text.replace(/[^0-9]/g, '').slice(0, 6);
+                // Only allow numbers and limit to 8 digits
+                const numericText = text.replace(/[^0-9]/g, '').slice(0, 8);
                 setOtpCode(numericText);
                 if (error) setError(null);
               }}
               keyboardType="number-pad"
-              maxLength={6}
+              maxLength={8}
               editable={!loading}
             />
           </View>
@@ -300,7 +300,7 @@ export default function ResetPasswordOTPScreen() {
 
           <Pressable 
             style={({ pressed }) => [
-              buttonStyles.primaryButton,
+              buttonStyles.primary,
               styles.submitButton,
               pressed && styles.pressed,
               loading && styles.disabled
@@ -311,7 +311,7 @@ export default function ResetPasswordOTPScreen() {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={buttonStyles.buttonText}>{buttonText}</Text>
+              <Text style={buttonStyles.primaryText}>{buttonText}</Text>
             )}
           </Pressable>
 
