@@ -4,6 +4,9 @@
  * 
  * Allows users to set a new password after clicking the reset link in their email.
  * This screen is accessed via the callback handler after the recovery session is established.
+ * 
+ * CRITICAL: This screen requires an active Supabase session (established via setSession in callback.tsx)
+ * to allow password updates. Without a valid session, the user will see an error.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -28,27 +31,41 @@ export default function ResetPasswordScreen() {
   }, []);
 
   const validateResetSession = async () => {
-    console.log('Validating password reset session');
+    console.log('=== Validating Password Reset Session ===');
     
     try {
+      // Get the current session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError || !session) {
-        console.log('❌ No valid reset session found');
+      console.log('Session check result:');
+      console.log('- Session exists:', !!session);
+      console.log('- Session error:', sessionError?.message);
+      
+      if (sessionError) {
+        console.log('❌ Session error:', sessionError.message);
         setHasValidSession(false);
         setError({
-          title: 'Link expired',
+          title: 'Invalid or expired link',
+          body: 'This password reset link has expired or is invalid. Please request a new one.',
+        });
+      } else if (!session) {
+        console.log('❌ No session found - user must use reset link');
+        setHasValidSession(false);
+        setError({
+          title: 'Invalid or expired link',
           body: 'This password reset link has expired or is invalid. Please request a new one.',
         });
       } else {
         console.log('✅ Valid reset session found');
+        console.log('User email:', session.user.email);
+        console.log('Session expires at:', session.expires_at);
         setHasValidSession(true);
       }
     } catch (err) {
-      console.log('Error validating reset session:', err);
+      console.log('❌ Error validating reset session:', err);
       setHasValidSession(false);
       setError({
-        title: 'Link expired',
+        title: 'Invalid or expired link',
         body: 'This password reset link has expired or is invalid. Please request a new one.',
       });
     } finally {
@@ -85,10 +102,23 @@ export default function ResetPasswordScreen() {
       return;
     }
 
+    // Double-check session before attempting update
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log('❌ No session found when attempting password update');
+      setError({
+        title: 'Invalid or expired link',
+        body: 'Your session has expired. Please request a new password reset link.',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      console.log('Updating user password...');
+      console.log('=== Updating User Password ===');
+      console.log('Current session user:', session.user.email);
+      
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
@@ -102,6 +132,7 @@ export default function ResetPasswordScreen() {
         setSuccess(true);
         
         // Sign out the user after password reset
+        console.log('Signing out user after password reset');
         await supabase.auth.signOut();
         
         // Redirect to login after 2 seconds

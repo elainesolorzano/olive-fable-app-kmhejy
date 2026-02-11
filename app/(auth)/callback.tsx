@@ -23,6 +23,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/integrations/supabase/client";
 import { colors } from "@/styles/commonStyles";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import * as Linking from "expo-linking";
 
 export default function AuthCallbackScreen() {
   const params = useLocalSearchParams();
@@ -38,8 +39,18 @@ export default function AuthCallbackScreen() {
       console.log('=== Auth Callback Handler Started ===');
       console.log('Route params:', params);
 
-      // Get the URL from params
-      const urlParam = params.url as string;
+      // Get the URL - either from params or from initial URL
+      let urlParam = params.url as string;
+      
+      if (!urlParam) {
+        console.log('No URL in params, checking initial URL...');
+        const initialUrl = await Linking.getInitialURL();
+        if (initialUrl) {
+          console.log('Found initial URL:', initialUrl);
+          urlParam = initialUrl;
+        }
+      }
+
       if (!urlParam) {
         console.log('❌ No URL parameter provided');
         setError("Invalid callback URL");
@@ -47,45 +58,74 @@ export default function AuthCallbackScreen() {
         return;
       }
 
-      const decodedUrl = decodeURIComponent(urlParam);
-      console.log('Decoded URL:', decodedUrl);
-
-      const urlObj = new URL(decodedUrl);
-      console.log('Parsed URL - pathname:', urlObj.pathname, 'hash:', urlObj.hash, 'search:', urlObj.search);
+      console.log('Processing URL:', urlParam);
 
       // ============================================================
-      // STEP 1: Extract redirect parameter (from Squarespace bridge)
+      // STEP 1: Parse the URL and extract redirect parameter if present
       // ============================================================
-      let rawAuthUrl = decodedUrl;
-      const redirectParam = urlObj.searchParams.get('redirect');
+      let rawAuthUrl = urlParam;
       
-      if (redirectParam) {
-        console.log('Found redirect parameter from bridge page');
-        rawAuthUrl = decodeURIComponent(redirectParam);
-        console.log('Decoded redirect URL:', rawAuthUrl);
+      try {
+        const urlObj = new URL(urlParam);
+        console.log('Parsed URL - pathname:', urlObj.pathname, 'hash:', urlObj.hash, 'search:', urlObj.search);
+
+        // Check for redirect parameter (from Squarespace bridge)
+        const redirectParam = urlObj.searchParams.get('redirect');
+        
+        if (redirectParam) {
+          console.log('✅ Found redirect parameter from bridge page');
+          rawAuthUrl = decodeURIComponent(redirectParam);
+          console.log('Decoded redirect URL:', rawAuthUrl);
+        }
+      } catch (urlError) {
+        console.log('Error parsing URL, will try to extract tokens directly:', urlError);
       }
 
       // ============================================================
-      // STEP 2: Parse tokens/code from the auth URL
+      // STEP 2: Extract tokens/code from the auth URL
       // ============================================================
-      const authUrlObj = new URL(rawAuthUrl);
-      const authParams = new URLSearchParams(authUrlObj.search);
-      const authHashParams = new URLSearchParams(authUrlObj.hash.substring(1));
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
+      let code: string | null = null;
+      let type: string | null = null;
+      let errorCode: string | null = null;
+      let errorDescription: string | null = null;
 
-      // Extract all possible auth parameters
-      const code = authParams.get('code');
-      const accessToken = authHashParams.get('access_token') || authParams.get('access_token');
-      const refreshToken = authHashParams.get('refresh_token') || authParams.get('refresh_token');
-      const type = authHashParams.get('type') || authParams.get('type');
-      const errorCode = authHashParams.get('error') || authParams.get('error');
-      const errorDescription = authHashParams.get('error_description') || authParams.get('error_description');
+      try {
+        const authUrlObj = new URL(rawAuthUrl);
+        const authParams = new URLSearchParams(authUrlObj.search);
+        const authHashParams = new URLSearchParams(authUrlObj.hash.substring(1));
 
-      console.log('Parsed auth parameters:');
-      console.log('- code:', code ? 'present' : 'missing');
-      console.log('- access_token:', accessToken ? 'present' : 'missing');
-      console.log('- refresh_token:', refreshToken ? 'present' : 'missing');
-      console.log('- type:', type);
-      console.log('- error:', errorCode);
+        // Extract all possible auth parameters
+        code = authParams.get('code');
+        accessToken = authHashParams.get('access_token') || authParams.get('access_token');
+        refreshToken = authHashParams.get('refresh_token') || authParams.get('refresh_token');
+        type = authHashParams.get('type') || authParams.get('type');
+        errorCode = authHashParams.get('error') || authParams.get('error');
+        errorDescription = authHashParams.get('error_description') || authParams.get('error_description');
+
+        console.log('Parsed auth parameters:');
+        console.log('- code:', code ? 'present' : 'missing');
+        console.log('- access_token:', accessToken ? 'present' : 'missing');
+        console.log('- refresh_token:', refreshToken ? 'present' : 'missing');
+        console.log('- type:', type);
+        console.log('- error:', errorCode);
+      } catch (parseError) {
+        console.log('Error parsing auth URL:', parseError);
+        
+        // Fallback: Try to extract tokens from raw string
+        const hashMatch = rawAuthUrl.match(/#(.+)/);
+        if (hashMatch) {
+          const hashString = hashMatch[1];
+          const hashParams = new URLSearchParams(hashString);
+          accessToken = hashParams.get('access_token');
+          refreshToken = hashParams.get('refresh_token');
+          type = hashParams.get('type');
+          console.log('Extracted from hash string - access_token:', accessToken ? 'present' : 'missing');
+          console.log('Extracted from hash string - refresh_token:', refreshToken ? 'present' : 'missing');
+          console.log('Extracted from hash string - type:', type);
+        }
+      }
 
       // Check for errors in the callback
       if (errorCode) {
@@ -122,16 +162,17 @@ export default function AuthCallbackScreen() {
 
           if (data.session) {
             console.log('✅ Session established via code exchange');
+            console.log('Session user:', data.session.user.email);
             
             // Refresh auth state
             await refreshAuthAndUser();
 
             // Navigate based on type
             if (type === 'recovery') {
-              console.log('Recovery flow - navigating to reset password screen');
+              console.log('🔐 Recovery flow - navigating to reset password screen');
               router.replace('/(auth)/reset-password');
             } else {
-              console.log('Signup/email confirmation - navigating to app');
+              console.log('✅ Signup/email confirmation - navigating to app');
               router.replace('/(tabs)');
             }
             return;
@@ -147,9 +188,12 @@ export default function AuthCallbackScreen() {
       // Option B: Set session from tokens (direct token flow)
       if (accessToken && refreshToken) {
         console.log('=== Token Flow ===');
-        console.log('Setting session from tokens...');
+        console.log('Setting session from access_token and refresh_token...');
+        console.log('Token type:', type);
         
         try {
+          // CRITICAL: Set the session with the tokens from the URL
+          // This establishes the recovery session needed for password reset
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -170,21 +214,29 @@ export default function AuthCallbackScreen() {
 
           if (data.session) {
             console.log('✅ Session established via setSession');
+            console.log('Session user:', data.session.user.email);
+            console.log('Session expires at:', data.session.expires_at);
             
-            // Refresh auth state
+            // Refresh auth state to update context
             await refreshAuthAndUser();
 
             // Navigate based on type
             if (type === 'recovery') {
-              console.log('Recovery flow - navigating to reset password screen');
+              console.log('🔐 Recovery flow - navigating to reset password screen');
+              console.log('User can now update their password');
               router.replace('/(auth)/reset-password');
             } else {
-              console.log('Signup/email confirmation - navigating to app');
+              console.log('✅ Signup/email confirmation - navigating to app');
               router.replace('/(tabs)');
             }
             return;
+          } else {
+            console.log('❌ setSession returned no session');
+            setError("Failed to establish session");
+            setTimeout(() => router.replace("/(auth)/login"), 3000);
+            return;
           }
-        } catch (err) {
+        } catch (err: any) {
           console.log('❌ Error during setSession:', err);
           setError("Failed to complete authentication");
           setTimeout(() => router.replace("/(auth)/login"), 3000);
