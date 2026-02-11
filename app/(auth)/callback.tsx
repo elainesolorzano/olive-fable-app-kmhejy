@@ -3,27 +3,31 @@
  * Auth Callback Handler
  * 
  * UNIFIED ENTRY POINT for all Supabase email deep links:
- * - Email verification (flow=signup or type=email)
- * - Password reset (flow=recovery or type=recovery)
- * - OAuth flows (access_token + refresh_token)
+ * - Email verification (signup confirmation)
+ * - Password reset (recovery)
+ * - OAuth flows
  * 
- * Universal HTTPS Link: https://oliveandfable.com/reset-password
- * Custom Scheme: oliveandfable://auth/callback
+ * Handles both:
+ * 1. Custom scheme: oliveandfable://auth?redirect=<ENCODED_FULL_URL>
+ * 2. Universal HTTPS: https://oliveandfable.com/appconfirmed or /reset-password
  * 
- * This is the ONLY deep link destination for Supabase auth.
- * All email links redirect here with different query params to indicate the flow.
+ * The Squarespace bridge page opens: oliveandfable://auth?redirect=<SUPABASE_URL>
+ * where SUPABASE_URL contains either:
+ * - Hash tokens: #access_token=...&refresh_token=...&type=signup|recovery
+ * - Query code: ?code=... (PKCE style)
  */
 
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import * as Linking from "expo-linking";
 import { supabase } from "@/integrations/supabase/client";
 import { colors } from "@/styles/commonStyles";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function AuthCallbackScreen() {
   const params = useLocalSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const { refreshAuthAndUser } = useSupabaseAuth();
 
   useEffect(() => {
     handleCallback();
@@ -32,175 +36,119 @@ export default function AuthCallbackScreen() {
   const handleCallback = async () => {
     try {
       console.log('=== Auth Callback Handler Started ===');
-
-      // Get the initial URL that opened the app
-      const initialUrl = await Linking.getInitialURL();
-      console.log('Initial URL:', initialUrl);
       console.log('Route params:', params);
 
-      // Parse URL to extract tokens and flow indicators
-      let flow: string | null = null;
-      let type: string | null = null;
-      let tokenHash: string | null = null;
-      let accessToken: string | null = null;
-      let refreshToken: string | null = null;
-
-      if (initialUrl) {
-        try {
-          const url = new URL(initialUrl);
-          console.log('Parsed URL - pathname:', url.pathname, 'hash:', url.hash, 'search:', url.search);
-          
-          // Check query params first (our custom flow parameter)
-          flow = url.searchParams.get('flow');
-          type = url.searchParams.get('type');
-          
-          // Check hash fragment (Supabase sends tokens here)
-          if (url.hash) {
-            const hashParams = new URLSearchParams(url.hash.substring(1));
-            if (!flow) flow = hashParams.get('flow');
-            if (!type) type = hashParams.get('type');
-            tokenHash = hashParams.get('token_hash');
-            accessToken = hashParams.get('access_token');
-            refreshToken = hashParams.get('refresh_token');
-            console.log('Parsed from hash - flow:', flow, 'type:', type, 'token_hash:', tokenHash ? 'present' : 'missing', 'access_token:', accessToken ? 'present' : 'missing');
-          }
-          
-          // Also check query params for tokens (fallback)
-          if (!tokenHash && !accessToken) {
-            tokenHash = url.searchParams.get('token_hash');
-            accessToken = url.searchParams.get('access_token');
-            refreshToken = url.searchParams.get('refresh_token');
-            console.log('Parsed from query - token_hash:', tokenHash ? 'present' : 'missing', 'access_token:', accessToken ? 'present' : 'missing');
-          }
-        } catch (urlError) {
-          console.log('Error parsing URL:', urlError);
-        }
+      // Get the URL from params
+      const urlParam = params.url as string;
+      if (!urlParam) {
+        console.log('❌ No URL parameter provided');
+        setError("Invalid callback URL");
+        setTimeout(() => router.replace("/(auth)/login"), 2000);
+        return;
       }
 
-      // Also check route params (expo-router might parse them)
-      if (!flow && !type) {
-        flow = params.flow as string;
-        type = params.type as string;
-      }
-      if (!tokenHash && !accessToken) {
-        tokenHash = params.token_hash as string;
-        accessToken = params.access_token as string;
-        refreshToken = params.refresh_token as string;
-      }
+      const decodedUrl = decodeURIComponent(urlParam);
+      console.log('Decoded URL:', decodedUrl);
 
-      console.log('Final parsed values - flow:', flow, 'type:', type);
+      const urlObj = new URL(decodedUrl);
+      console.log('Parsed URL - pathname:', urlObj.pathname, 'hash:', urlObj.hash, 'search:', urlObj.search);
 
       // ============================================================
-      // PASSWORD RECOVERY FLOW (flow=recovery or type=recovery)
+      // STEP 1: Extract redirect parameter (from Squarespace bridge)
       // ============================================================
-      if (flow === 'recovery' || type === 'recovery') {
-        console.log('=== Password Recovery Flow Detected ===');
-        
-        // If we have access_token and refresh_token directly, set session
-        if (accessToken && refreshToken) {
-          console.log('Direct tokens available, setting session...');
-          try {
-            const { data, error: sessionError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
+      let rawAuthUrl = decodedUrl;
+      const redirectParam = urlObj.searchParams.get('redirect');
+      
+      if (redirectParam) {
+        console.log('Found redirect parameter from bridge page');
+        rawAuthUrl = decodeURIComponent(redirectParam);
+        console.log('Decoded redirect URL:', rawAuthUrl);
+      }
 
-            if (sessionError) {
-              console.log('❌ Error setting recovery session:', sessionError.message);
-              router.replace('/(auth)/reset-password?expired=true');
-              return;
-            }
+      // ============================================================
+      // STEP 2: Parse tokens/code from the auth URL
+      // ============================================================
+      const authUrlObj = new URL(rawAuthUrl);
+      const authParams = new URLSearchParams(authUrlObj.search);
+      const authHashParams = new URLSearchParams(authUrlObj.hash.substring(1));
 
-            if (data.session) {
-              console.log('✅ Recovery session established via setSession');
-              router.replace('/(auth)/reset-password');
-              return;
-            }
-          } catch (err) {
-            console.log('❌ Error during setSession:', err);
-            router.replace('/(auth)/reset-password?expired=true');
-            return;
-          }
-        }
-        
-        // If we have token_hash, exchange it for a session
-        if (tokenHash) {
-          console.log('Token hash available, exchanging for session...');
-          try {
-            const { data, error: verifyError } = await supabase.auth.verifyOtp({
-              token_hash: tokenHash,
-              type: 'recovery',
-            });
+      // Extract all possible auth parameters
+      const code = authParams.get('code');
+      const accessToken = authHashParams.get('access_token') || authParams.get('access_token');
+      const refreshToken = authHashParams.get('refresh_token') || authParams.get('refresh_token');
+      const type = authHashParams.get('type') || authParams.get('type');
+      const errorCode = authHashParams.get('error') || authParams.get('error');
+      const errorDescription = authHashParams.get('error_description') || authParams.get('error_description');
 
-            if (verifyError) {
-              console.log('❌ Token verification error:', verifyError.message);
-              router.replace('/(auth)/reset-password?expired=true');
-              return;
-            }
+      console.log('Parsed auth parameters:');
+      console.log('- code:', code ? 'present' : 'missing');
+      console.log('- access_token:', accessToken ? 'present' : 'missing');
+      console.log('- refresh_token:', refreshToken ? 'present' : 'missing');
+      console.log('- type:', type);
+      console.log('- error:', errorCode);
 
-            if (data.session) {
-              console.log('✅ Recovery session established via verifyOtp');
-              router.replace('/(auth)/reset-password');
-              return;
-            } else {
-              console.log('❌ No session returned from verifyOtp');
-              router.replace('/(auth)/reset-password?expired=true');
-              return;
-            }
-          } catch (err) {
-            console.log('❌ Error during token exchange:', err);
-            router.replace('/(auth)/reset-password?expired=true');
-            return;
-          }
-        }
-
-        // No tokens found for recovery flow
-        console.log('❌ Recovery flow detected but no tokens found');
-        router.replace('/(auth)/reset-password?expired=true');
+      // Check for errors in the callback
+      if (errorCode) {
+        console.log('❌ Error in callback:', errorCode, errorDescription);
+        setError(errorDescription || "Authentication failed");
+        setTimeout(() => router.replace("/(auth)/login"), 3000);
         return;
       }
 
       // ============================================================
-      // EMAIL VERIFICATION FLOW (type=signup or type=email)
+      // STEP 3: Complete Supabase auth flow
       // ============================================================
-      if ((type === 'signup' || type === 'email') && tokenHash) {
-        console.log('=== Email Verification Flow Detected ===');
+
+      // Option A: Exchange code for session (PKCE flow)
+      if (code) {
+        console.log('=== Code Exchange Flow ===');
+        console.log('Exchanging code for session...');
         
         try {
-          const { data, error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: 'email',
-          });
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-          if (verifyError) {
-            console.log('❌ Email verification error:', verifyError.message);
-            setError("We couldn't verify your email. Please try again.");
+          if (exchangeError) {
+            console.log('❌ Code exchange error:', exchangeError.message);
+            setError("Link expired or invalid. Please try again.");
             setTimeout(() => {
-              router.replace("/(auth)/login");
+              if (type === 'recovery') {
+                router.replace("/(auth)/forgot-password");
+              } else {
+                router.replace("/(auth)/login");
+              }
             }, 3000);
             return;
           }
 
           if (data.session) {
-            console.log('✅ Email verified successfully - redirecting to app');
-            router.replace("/(tabs)");
+            console.log('✅ Session established via code exchange');
+            
+            // Refresh auth state
+            await refreshAuthAndUser();
+
+            // Navigate based on type
+            if (type === 'recovery') {
+              console.log('Recovery flow - navigating to reset password screen');
+              router.replace('/(auth)/reset-password');
+            } else {
+              console.log('Signup/email confirmation - navigating to app');
+              router.replace('/(tabs)');
+            }
             return;
           }
         } catch (err) {
-          console.log('❌ Error during email verification:', err);
-          setError("We couldn't verify your email. Please try again.");
-          setTimeout(() => {
-            router.replace("/(auth)/login");
-          }, 3000);
+          console.log('❌ Error during code exchange:', err);
+          setError("Failed to complete authentication");
+          setTimeout(() => router.replace("/(auth)/login"), 3000);
           return;
         }
       }
 
-      // ============================================================
-      // OAUTH CALLBACK (access_token + refresh_token)
-      // ============================================================
-      if (accessToken && refreshToken && !flow && !type) {
-        console.log('=== OAuth Callback Detected ===');
+      // Option B: Set session from tokens (direct token flow)
+      if (accessToken && refreshToken) {
+        console.log('=== Token Flow ===');
+        console.log('Setting session from tokens...');
+        
         try {
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -208,71 +156,83 @@ export default function AuthCallbackScreen() {
           });
 
           if (sessionError) {
-            console.log('❌ Error setting OAuth session:', sessionError.message);
-            setError("We couldn't sign you in. Please try again.");
+            console.log('❌ Set session error:', sessionError.message);
+            setError("Link expired or invalid. Please try again.");
             setTimeout(() => {
-              router.replace("/(auth)/login");
+              if (type === 'recovery') {
+                router.replace("/(auth)/forgot-password");
+              } else {
+                router.replace("/(auth)/login");
+              }
             }, 3000);
             return;
           }
 
           if (data.session) {
-            console.log('✅ OAuth session established successfully');
-            router.replace("/(tabs)");
+            console.log('✅ Session established via setSession');
+            
+            // Refresh auth state
+            await refreshAuthAndUser();
+
+            // Navigate based on type
+            if (type === 'recovery') {
+              console.log('Recovery flow - navigating to reset password screen');
+              router.replace('/(auth)/reset-password');
+            } else {
+              console.log('Signup/email confirmation - navigating to app');
+              router.replace('/(tabs)');
+            }
             return;
           }
         } catch (err) {
-          console.log('❌ Error during OAuth callback:', err);
-          setError("We couldn't sign you in. Please try again.");
-          setTimeout(() => {
-            router.replace("/(auth)/login");
-          }, 3000);
+          console.log('❌ Error during setSession:', err);
+          setError("Failed to complete authentication");
+          setTimeout(() => router.replace("/(auth)/login"), 3000);
           return;
         }
       }
 
       // ============================================================
-      // FALLBACK: Check current session
+      // STEP 4: Fallback - check if we already have a session
       // ============================================================
-      console.log('=== No Specific Flow Detected - Checking Current Session ===');
+      console.log('=== No code or tokens found - checking current session ===');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
         console.log("❌ Session error:", sessionError.message);
         setError("Something went wrong. Please try again.");
-        setTimeout(() => {
-          router.replace("/(auth)/login");
-        }, 3000);
+        setTimeout(() => router.replace("/(auth)/login"), 3000);
         return;
       }
 
       if (session?.user) {
+        console.log('✅ Existing session found');
+        
+        // Refresh auth state
+        await refreshAuthAndUser();
+
         // Check if email is verified
         if (session.user.email_confirmed_at) {
-          console.log('✅ Session exists and email verified - redirecting to app');
+          console.log('Email verified - navigating to app');
           router.replace("/(tabs)");
         } else {
-          console.log('⚠️ Session exists but email not verified yet');
+          console.log('Email not verified yet');
           router.replace("/(auth)/verify-email");
         }
       } else {
         // No session found
         console.log('❌ No session found in callback');
-        setError("Something went wrong. Please try again.");
-        setTimeout(() => {
-          router.replace("/(auth)/login");
-        }, 3000);
+        setError("Authentication failed. Please try again.");
+        setTimeout(() => router.replace("/(auth)/login"), 3000);
       }
     } catch (err) {
       console.log("❌ Auth callback error:", err);
       setError("Something went wrong. Please try again.");
-      setTimeout(() => {
-        router.replace("/(auth)/login");
-      }, 3000);
+      setTimeout(() => router.replace("/(auth)/login"), 3000);
     }
   };
 
-  const loadingText = 'Processing...';
+  const loadingText = 'Processing authentication...';
   const redirectText = 'Redirecting...';
 
   return (
