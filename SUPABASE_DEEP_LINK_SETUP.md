@@ -1,78 +1,149 @@
 
-# Supabase Deep Link Configuration for Password Reset
+# Supabase Deep Link Setup for Password Reset
 
 ## Problem
-Password reset emails are redirecting to the website (`https://oliveandfable.com`) instead of opening the app.
+Password reset links were showing "Link expired" because the app was opening directly to the reset-password screen WITHOUT processing the authentication tokens first.
 
 ## Solution
-You need to configure Supabase to allow deep link redirects.
+ALL Supabase auth links (signup confirmation AND password reset) must go through the callback handler to establish the session before showing the reset password form.
 
-## Steps to Fix in Supabase Dashboard
+## Configuration
 
-### 1. Go to Supabase Dashboard
-- Navigate to: https://supabase.com/dashboard/project/lynqyzidefvwttxbwarb
-- Go to **Authentication** → **URL Configuration**
+### 1. Supabase Dashboard Settings
 
-### 2. Add Deep Link to Redirect URLs
-In the **Redirect URLs** section, add:
+Go to: Authentication → URL Configuration
+
+**Redirect URLs** (add both):
 ```
-oliveandfable://*
+https://oliveandfable.com/appconfirmed
+https://oliveandfable.com/reset-password
 ```
 
-**IMPORTANT:** Make sure to include the wildcard (`*`) at the end so all deep link paths are allowed.
-
-### 3. Verify Site URL
-The **Site URL** should be set to:
+**Site URL**:
 ```
 https://oliveandfable.com
 ```
 
-This is the fallback URL if the deep link doesn't work.
+### 2. Email Templates
 
-### 4. Save Changes
-Click **Save** at the bottom of the page.
+Both signup confirmation and password reset emails should use:
+```
+{{ .ConfirmationURL }}
+```
 
-## How to Test
+This URL will contain the tokens needed to establish the session.
 
-1. **Trigger Password Reset:**
-   - Open the app
-   - Go to Login → "Forgot password?"
-   - Enter your email
-   - Tap "Send Reset Link"
+### 3. Bridge Page Setup
 
-2. **Check Your Email:**
-   - Open the password reset email
-   - The link should look like: `oliveandfable://auth/callback?type=recovery&token_hash=...`
+On your Squarespace site (oliveandfable.com), create two pages:
 
-3. **Tap the Link:**
-   - The app should open (not the website)
-   - You should see the "Reset Password" screen
-   - Enter your new password
-   - Success!
+#### /appconfirmed (for signup confirmation)
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirming...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Confirming your email...</h1>
+    <p>Opening Olive & Fable app...</p>
+    <script>
+        // Get the full URL with all parameters
+        const fullUrl = window.location.href;
+        console.log('Full URL:', fullUrl);
+        
+        // Encode the full URL and pass it to the app
+        const appUrl = 'oliveandfable://auth?redirect=' + encodeURIComponent(fullUrl);
+        console.log('Opening app with:', appUrl);
+        
+        // Try to open the app
+        window.location.href = appUrl;
+        
+        // Fallback: Show App Store link after 2 seconds
+        setTimeout(function() {
+            document.body.innerHTML = '<h1>Don\'t have the app?</h1><p><a href="https://apps.apple.com/app/olive-fable">Download from App Store</a></p>';
+        }, 2000);
+    </script>
+</body>
+</html>
+```
 
-## Troubleshooting
+#### /reset-password (for password recovery)
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resetting Password...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Resetting your password...</h1>
+    <p>Opening Olive & Fable app...</p>
+    <script>
+        // Get the full URL with all parameters
+        const fullUrl = window.location.href;
+        console.log('Full URL:', fullUrl);
+        
+        // Encode the full URL and pass it to the app
+        const appUrl = 'oliveandfable://auth?redirect=' + encodeURIComponent(fullUrl);
+        console.log('Opening app with:', appUrl);
+        
+        // Try to open the app
+        window.location.href = appUrl;
+        
+        // Fallback: Show App Store link after 2 seconds
+        setTimeout(function() {
+            document.body.innerHTML = '<h1>Don\'t have the app?</h1><p><a href="https://apps.apple.com/app/olive-fable">Download from App Store</a></p>';
+        }, 2000);
+    </script>
+</body>
+</html>
+```
 
-### If the link still opens the website:
-1. Double-check that `oliveandfable://*` is in the Redirect URLs list
-2. Make sure you saved the changes in Supabase Dashboard
-3. Try requesting a new password reset email (old emails may still have the old URL)
+### 4. How It Works
 
-### If the app doesn't open:
-1. Make sure the app is installed on your device
-2. Check that the deep link scheme is configured in `app.json` (it is: `"scheme": "oliveandfable"`)
-3. On iOS, you may need to reinstall the app for deep link changes to take effect
+1. User clicks "Reset Password" in app
+2. App calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: 'https://oliveandfable.com/reset-password' })`
+3. Supabase sends email with link like: `https://oliveandfable.com/reset-password#access_token=...&refresh_token=...&type=recovery`
+4. User clicks link in email → Opens Safari
+5. Safari loads the bridge page at oliveandfable.com/reset-password
+6. Bridge page JavaScript extracts the full URL (including tokens in hash)
+7. Bridge page opens: `oliveandfable://auth?redirect=<ENCODED_URL_WITH_TOKENS>`
+8. iOS shows "Open in Olive & Fable?" prompt
+9. User taps "Open"
+10. App opens and deep link listener in `app/_layout.tsx` catches it
+11. Deep link listener navigates to `/(auth)/callback?url=<ENCODED_URL>`
+12. Callback handler extracts tokens and calls `supabase.auth.setSession()` or `supabase.auth.verifyOtp()`
+13. Session is established
+14. Callback handler navigates to `/(auth)/reset-password`
+15. Reset password screen checks for session → ✅ Session exists!
+16. User can now enter new password
 
-### If you see "Link expired":
-1. Password reset links expire after a certain time
-2. Request a new password reset email
-3. Tap the link within a few minutes
+### 5. Testing
 
-## Technical Details
+To test password reset:
+1. Request password reset from app
+2. Check email (including spam folder)
+3. Click the reset link
+4. Should see "Resetting your password..." page briefly
+5. Should see "Open in Olive & Fable?" prompt
+6. Tap "Open"
+7. App should open and show the reset password form (NOT "Link expired")
+8. Enter new password and save
+9. Should see success message and redirect to login
 
-The app is configured to:
-- Send password reset emails with redirect URL: `oliveandfable://auth/callback?type=recovery`
-- Listen for deep links starting with `oliveandfable://auth/callback`
-- Parse the token from the URL and exchange it for a session
-- Show the Reset Password screen where users can set a new password
+### 6. Troubleshooting
 
-All of this happens **inside the app** - no website redirect needed!
+If you see "Link expired":
+- Check the console logs in the app (use `read_frontend_logs`)
+- Look for "=== Auth Callback Handler Started ===" - if you don't see this, the callback handler was not triggered
+- Check if the deep link listener in `app/_layout.tsx` is catching the URL
+- Verify the bridge page is correctly encoding the full URL with tokens
+- Make sure the app is installed and the custom scheme `oliveandfable://` is registered
+
+Common issues:
+- **Bridge page not encoding tokens**: The hash fragment (#access_token=...) must be included in the redirect parameter
+- **App not catching deep link**: Check app.json scheme configuration
+- **Session not being set**: Check callback.tsx logs for token extraction and setSession calls
+- **Direct navigation to reset-password**: The app should NEVER navigate directly to /(auth)/reset-password without going through callback first

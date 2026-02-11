@@ -15,6 +15,7 @@
  * where SUPABASE_URL contains either:
  * - Hash tokens: #access_token=...&refresh_token=...&type=signup|recovery
  * - Query code: ?code=... (PKCE style)
+ * - Token hash: ?token_hash=...&type=recovery (for password reset)
  */
 
 import React, { useEffect, useState } from "react";
@@ -29,12 +30,21 @@ export default function AuthCallbackScreen() {
   const params = useLocalSearchParams();
   const [error, setError] = useState<string | null>(null);
   const { refreshAuthAndUser } = useSupabaseAuth();
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
+    // Prevent double processing
+    if (processing) {
+      console.log('Already processing callback, skipping...');
+      return;
+    }
+    
     handleCallback();
   }, []);
 
   const handleCallback = async () => {
+    setProcessing(true);
+    
     try {
       console.log('=== Auth Callback Handler Started ===');
       console.log('Route params:', params);
@@ -87,6 +97,7 @@ export default function AuthCallbackScreen() {
       let accessToken: string | null = null;
       let refreshToken: string | null = null;
       let code: string | null = null;
+      let tokenHash: string | null = null;
       let type: string | null = null;
       let errorCode: string | null = null;
       let errorDescription: string | null = null;
@@ -98,6 +109,7 @@ export default function AuthCallbackScreen() {
 
         // Extract all possible auth parameters
         code = authParams.get('code');
+        tokenHash = authParams.get('token_hash') || authHashParams.get('token_hash');
         accessToken = authHashParams.get('access_token') || authParams.get('access_token');
         refreshToken = authHashParams.get('refresh_token') || authParams.get('refresh_token');
         type = authHashParams.get('type') || authParams.get('type');
@@ -106,6 +118,7 @@ export default function AuthCallbackScreen() {
 
         console.log('Parsed auth parameters:');
         console.log('- code:', code ? 'present' : 'missing');
+        console.log('- token_hash:', tokenHash ? 'present' : 'missing');
         console.log('- access_token:', accessToken ? 'present' : 'missing');
         console.log('- refresh_token:', refreshToken ? 'present' : 'missing');
         console.log('- type:', type);
@@ -120,9 +133,11 @@ export default function AuthCallbackScreen() {
           const hashParams = new URLSearchParams(hashString);
           accessToken = hashParams.get('access_token');
           refreshToken = hashParams.get('refresh_token');
+          tokenHash = hashParams.get('token_hash');
           type = hashParams.get('type');
           console.log('Extracted from hash string - access_token:', accessToken ? 'present' : 'missing');
           console.log('Extracted from hash string - refresh_token:', refreshToken ? 'present' : 'missing');
+          console.log('Extracted from hash string - token_hash:', tokenHash ? 'present' : 'missing');
           console.log('Extracted from hash string - type:', type);
         }
       }
@@ -139,7 +154,59 @@ export default function AuthCallbackScreen() {
       // STEP 3: Complete Supabase auth flow
       // ============================================================
 
-      // Option A: Exchange code for session (PKCE flow)
+      // Option A: Token hash flow (password reset with token_hash)
+      if (tokenHash && type === 'recovery') {
+        console.log('=== Token Hash Recovery Flow ===');
+        console.log('Verifying OTP with token_hash for password reset...');
+        
+        try {
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery',
+          });
+
+          if (verifyError) {
+            console.log('❌ Token hash verification error:', verifyError.message);
+            
+            // Check if token is expired or already used
+            if (verifyError.message.includes('expired') || verifyError.message.includes('invalid')) {
+              setError("This password reset link has expired or is invalid. Please request a new one.");
+            } else {
+              setError(verifyError.message);
+            }
+            
+            setTimeout(() => {
+              router.replace("/(auth)/forgot-password");
+            }, 3000);
+            return;
+          }
+
+          if (data.session) {
+            console.log('✅ Recovery session established via token_hash');
+            console.log('Session user:', data.session.user.email);
+            console.log('Session expires at:', data.session.expires_at);
+            
+            // Refresh auth state
+            await refreshAuthAndUser();
+
+            console.log('🔐 Navigating to reset password screen');
+            router.replace('/(auth)/reset-password');
+            return;
+          } else {
+            console.log('❌ verifyOtp returned no session');
+            setError("Failed to establish recovery session");
+            setTimeout(() => router.replace("/(auth)/forgot-password"), 3000);
+            return;
+          }
+        } catch (err: any) {
+          console.log('❌ Error during token hash verification:', err);
+          setError("Failed to verify reset link");
+          setTimeout(() => router.replace("/(auth)/forgot-password"), 3000);
+          return;
+        }
+      }
+
+      // Option B: Exchange code for session (PKCE flow)
       if (code) {
         console.log('=== Code Exchange Flow ===');
         console.log('Exchanging code for session...');
@@ -185,7 +252,7 @@ export default function AuthCallbackScreen() {
         }
       }
 
-      // Option B: Set session from tokens (direct token flow)
+      // Option C: Set session from tokens (direct token flow)
       if (accessToken && refreshToken) {
         console.log('=== Token Flow ===');
         console.log('Setting session from access_token and refresh_token...');
@@ -247,7 +314,7 @@ export default function AuthCallbackScreen() {
       // ============================================================
       // STEP 4: Fallback - check if we already have a session
       // ============================================================
-      console.log('=== No code or tokens found - checking current session ===');
+      console.log('=== No code, token_hash, or tokens found - checking current session ===');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {

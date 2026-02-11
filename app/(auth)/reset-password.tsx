@@ -32,6 +32,7 @@ export default function ResetPasswordScreen() {
 
   const validateResetSession = async () => {
     console.log('=== Validating Password Reset Session ===');
+    console.log('Timestamp:', new Date().toISOString());
     
     try {
       // Get the current session
@@ -40,6 +41,13 @@ export default function ResetPasswordScreen() {
       console.log('Session check result:');
       console.log('- Session exists:', !!session);
       console.log('- Session error:', sessionError?.message);
+      
+      if (session) {
+        console.log('- User email:', session.user.email);
+        console.log('- Session expires at:', session.expires_at);
+        console.log('- Session created at:', new Date(session.user.created_at).toISOString());
+        console.log('- Access token (first 20 chars):', session.access_token.substring(0, 20) + '...');
+      }
       
       if (sessionError) {
         console.log('❌ Session error:', sessionError.message);
@@ -50,6 +58,11 @@ export default function ResetPasswordScreen() {
         });
       } else if (!session) {
         console.log('❌ No session found - user must use reset link');
+        console.log('This means the callback handler did not establish a session');
+        console.log('Possible causes:');
+        console.log('1. User navigated directly to /reset-password without clicking email link');
+        console.log('2. The callback handler failed to process the tokens');
+        console.log('3. The session expired between callback and this screen');
         setHasValidSession(false);
         setError({
           title: 'Invalid or expired link',
@@ -57,8 +70,7 @@ export default function ResetPasswordScreen() {
         });
       } else {
         console.log('✅ Valid reset session found');
-        console.log('User email:', session.user.email);
-        console.log('Session expires at:', session.expires_at);
+        console.log('User can now update their password');
         setHasValidSession(true);
       }
     } catch (err) {

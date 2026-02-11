@@ -1,6 +1,6 @@
 
 import "react-native-reanimated";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -30,11 +30,19 @@ function RootLayoutNav() {
   const { session, loading, refreshAuthAndUser } = useSupabaseAuth();
   const segments = useSegments();
   const router = useRouter();
+  const processedUrls = useRef(new Set<string>());
 
   // Handle deep links - Universal HTTPS links and custom scheme for auth callbacks
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
       const url = event.url;
+      
+      // Prevent processing the same URL twice
+      if (processedUrls.current.has(url)) {
+        console.log('URL already processed, skipping:', url);
+        return;
+      }
+      
       console.log('=== Deep link received ===');
       console.log('URL:', url);
 
@@ -42,47 +50,26 @@ function RootLayoutNav() {
         const urlObj = new URL(url);
         console.log('Parsed URL - protocol:', urlObj.protocol, 'hostname:', urlObj.hostname, 'pathname:', urlObj.pathname);
 
-        // Handle custom scheme: oliveandfable://auth?redirect=<ENCODED_FULL_URL>
-        if (urlObj.protocol === 'oliveandfable:' && urlObj.pathname.includes('auth')) {
-          console.log('✅ Custom scheme auth deep link detected');
-          const redirectParam = urlObj.searchParams.get('redirect');
-          
-          if (redirectParam) {
-            console.log('Redirect parameter found, navigating to callback with full URL');
-            // Pass the full URL to callback handler
-            router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-          } else {
-            console.log('No redirect parameter, navigating to callback with URL');
-            router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-          }
+        // Check if this is an auth-related URL
+        const isAuthUrl = 
+          (urlObj.protocol === 'oliveandfable:' && urlObj.pathname.includes('auth')) ||
+          (urlObj.hostname === 'oliveandfable.com' && (urlObj.pathname === '/appconfirmed' || urlObj.pathname === '/reset-password')) ||
+          url.includes('auth/v1/verify') ||
+          urlObj.searchParams.has('token_hash') ||
+          urlObj.searchParams.has('code') ||
+          urlObj.hash.includes('access_token');
+
+        if (!isAuthUrl) {
+          console.log('Not an auth URL, ignoring');
           return;
         }
 
-        // Handle universal HTTPS link for email confirmation
-        // https://oliveandfable.com/appconfirmed
-        if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/appconfirmed') {
-          console.log('✅ Email confirmation link detected (appconfirmed)');
-          console.log('Navigating to callback handler');
-          router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-          return;
-        }
-
-        // Handle universal HTTPS link for password reset
-        // https://oliveandfable.com/reset-password
-        if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/reset-password') {
-          console.log('✅ Password reset link detected');
-          console.log('Navigating to callback handler');
-          router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-          return;
-        }
-
-        // Check if URL contains auth/v1/verify (Supabase email confirmation)
-        if (url.includes('auth/v1/verify')) {
-          console.log('✅ Supabase email verification link detected');
-          console.log('Navigating to callback handler');
-          router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-          return;
-        }
+        // Mark URL as processed
+        processedUrls.current.add(url);
+        console.log('✅ Auth-related URL detected, navigating to callback');
+        
+        // Navigate to callback handler with the full URL
+        router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
       } catch (err) {
         console.log('Error parsing deep link URL:', err);
       }
@@ -97,44 +84,36 @@ function RootLayoutNav() {
         console.log('=== App opened with initial deep link ===');
         console.log('Initial URL:', url);
         
+        // Prevent processing the same URL twice
+        if (processedUrls.current.has(url)) {
+          console.log('Initial URL already processed, skipping');
+          return;
+        }
+        
         try {
           const urlObj = new URL(url);
           
-          // Handle custom scheme: oliveandfable://auth?redirect=<ENCODED_FULL_URL>
-          if (urlObj.protocol === 'oliveandfable:' && urlObj.pathname.includes('auth')) {
-            console.log('✅ Initial URL is custom scheme auth deep link');
-            setTimeout(() => {
-              router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-            }, 100);
+          // Check if this is an auth-related URL
+          const isAuthUrl = 
+            (urlObj.protocol === 'oliveandfable:' && urlObj.pathname.includes('auth')) ||
+            (urlObj.hostname === 'oliveandfable.com' && (urlObj.pathname === '/appconfirmed' || urlObj.pathname === '/reset-password')) ||
+            url.includes('auth/v1/verify') ||
+            urlObj.searchParams.has('token_hash') ||
+            urlObj.searchParams.has('code') ||
+            urlObj.hash.includes('access_token');
+
+          if (!isAuthUrl) {
+            console.log('Initial URL is not an auth URL, ignoring');
             return;
           }
 
-          // Handle universal HTTPS link for email confirmation
-          if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/appconfirmed') {
-            console.log('✅ Initial URL is email confirmation link (appconfirmed)');
-            setTimeout(() => {
-              router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-            }, 100);
-            return;
-          }
-
-          // Handle universal HTTPS link for password reset
-          if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/reset-password') {
-            console.log('✅ Initial URL is password reset link');
-            setTimeout(() => {
-              router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-            }, 100);
-            return;
-          }
-
-          // Check if URL contains auth/v1/verify
-          if (url.includes('auth/v1/verify')) {
-            console.log('✅ Initial URL contains email verification');
-            setTimeout(() => {
-              router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
-            }, 100);
-            return;
-          }
+          // Mark URL as processed
+          processedUrls.current.add(url);
+          console.log('✅ Initial URL is auth-related, navigating to callback');
+          
+          setTimeout(() => {
+            router.push(`/(auth)/callback?url=${encodeURIComponent(url)}`);
+          }, 100);
         } catch (err) {
           console.log('Error parsing initial URL:', err);
         }
