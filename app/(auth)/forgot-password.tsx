@@ -5,9 +5,7 @@ import { router, Stack } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { getFriendlyAuthError } from '@/utils/authErrorMessages';
-
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -45,26 +43,17 @@ export default function ForgotPasswordScreen() {
     try {
       console.log('=== Requesting Password Reset OTP ===');
       console.log('Email:', email);
-      console.log('Using Supabase REST API: /auth/v1/recover');
+      console.log('Using Supabase SDK: supabase.auth.resetPasswordForEmail()');
       
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-        }),
-      });
+      // Use Supabase SDK - NO redirectTo for OTP flow
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.log('❌ Password reset OTP request error:', data);
+      if (resetError) {
+        console.log('❌ Password reset OTP request error:', resetError);
+        const friendlyError = getFriendlyAuthError(resetError, 'reset');
         setError({
-          title: 'Request failed',
-          body: data.error_description || data.msg || 'Could not send reset code. Please try again.',
+          title: friendlyError.title,
+          body: friendlyError.body,
         });
       } else {
         console.log('✅ Password reset OTP email sent successfully');
@@ -158,7 +147,7 @@ export default function ForgotPasswordScreen() {
               });
             }}
           >
-            <Text style={buttonStyles.primaryText}>Continue</Text>
+            <Text style={buttonStyles.primaryText}>I have a code</Text>
           </Pressable>
 
           <View style={styles.toggleContainer}>

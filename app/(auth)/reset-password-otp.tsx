@@ -4,14 +4,14 @@ import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndic
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+import { supabase } from '@/integrations/supabase/client';
+import { getFriendlyAuthError } from '@/utils/authErrorMessages';
 
 export default function ResetPasswordOTPScreen() {
   const params = useLocalSearchParams();
   const passedEmail = (params.email as string) || '';
 
+  const [email, setEmail] = useState(passedEmail);
   const [otpCode, setOtpCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,10 +21,18 @@ export default function ResetPasswordOTPScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleResetPassword = async () => {
-    console.log('User tapped Update Password button');
+    console.log('User tapped Reset Password button');
     setError(null);
 
     // Validation
+    if (!email) {
+      setError({
+        title: 'Email required',
+        body: 'Please enter your email address.',
+      });
+      return;
+    }
+
     if (!otpCode) {
       setError({
         title: 'Code required',
@@ -33,10 +41,10 @@ export default function ResetPasswordOTPScreen() {
       return;
     }
 
-    if (otpCode.length < 6 || otpCode.length > 8) {
+    if (otpCode.length < 6 || otpCode.length > 10) {
       setError({
         title: 'Invalid code',
-        body: 'The code must be 6-8 digits.',
+        body: 'The code must be 6-10 digits.',
       });
       return;
     }
@@ -68,29 +76,20 @@ export default function ResetPasswordOTPScreen() {
     setLoading(true);
 
     try {
-      console.log('=== STEP A: Verifying OTP ===');
-      console.log('Email:', passedEmail);
+      console.log('=== STEP 1: Verifying OTP ===');
+      console.log('Email:', email);
       console.log('OTP Code:', otpCode);
-      console.log('Using Supabase REST API: /auth/v1/verify');
+      console.log('Using Supabase SDK: supabase.auth.verifyOtp()');
 
-      // STEP A: Verify OTP
-      const verifyResponse = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'recovery',
-          email: passedEmail,
-          token: otpCode,
-        }),
+      // STEP 1: Verify OTP using Supabase SDK
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: otpCode,
+        type: 'recovery',
       });
 
-      const verifyData = await verifyResponse.json();
-
-      if (!verifyResponse.ok) {
-        console.log('❌ OTP verification failed:', verifyData);
+      if (verifyError) {
+        console.log('❌ OTP verification failed:', verifyError);
         setError({
           title: 'Invalid or expired code',
           body: 'The code you entered is invalid or has expired. Please request a new code.',
@@ -100,50 +99,31 @@ export default function ResetPasswordOTPScreen() {
       }
 
       console.log('✅ OTP verified successfully');
-      
-      const accessToken = verifyData.access_token;
-      const refreshToken = verifyData.refresh_token;
 
-      if (!accessToken) {
-        console.log('❌ No access token in verify response');
-        setError({
-          title: 'Verification failed',
-          body: 'Could not verify your code. Please try again.',
-        });
-        setLoading(false);
-        return;
-      }
+      console.log('=== STEP 2: Updating Password ===');
+      console.log('Using Supabase SDK: supabase.auth.updateUser()');
 
-      console.log('=== STEP B: Updating Password ===');
-      console.log('Using access token from OTP verification');
-      console.log('Using Supabase REST API: /auth/v1/user');
-
-      // STEP B: Update password
-      const updateResponse = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        method: 'PUT',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          password: newPassword,
-        }),
+      // STEP 2: Update password using Supabase SDK
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
       });
 
-      const updateData = await updateResponse.json();
-
-      if (!updateResponse.ok) {
-        console.log('❌ Password update failed:', updateData);
+      if (updateError) {
+        console.log('❌ Password update failed:', updateError);
+        const friendlyError = getFriendlyAuthError(updateError, 'reset');
         setError({
-          title: 'Password update failed',
-          body: updateData.error_description || updateData.msg || 'Could not update your password. Please try again.',
+          title: friendlyError.title,
+          body: friendlyError.body,
         });
         setLoading(false);
         return;
       }
 
       console.log('✅ Password updated successfully');
+
+      // Optional: Sign out to ensure clean login flow
+      console.log('Signing out to ensure clean login flow');
+      await supabase.auth.signOut();
 
       // Show success message and navigate to login
       setLoading(false);
@@ -166,12 +146,12 @@ export default function ResetPasswordOTPScreen() {
     }
   };
 
-  const titleText = 'Enter Reset Code';
+  const titleText = 'Reset your password';
   const emailLabelText = 'Email';
-  const codeLabelText = 'Reset code';
+  const codeLabelText = 'Reset code (8 digits)';
   const newPasswordLabelText = 'New Password';
   const confirmPasswordLabelText = 'Confirm Password';
-  const buttonText = 'Update Password';
+  const buttonText = 'Reset Password';
   const backText = 'Back';
 
   return (
@@ -212,26 +192,37 @@ export default function ResetPasswordOTPScreen() {
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{emailLabelText}</Text>
-            <View style={styles.readOnlyInput}>
-              <Text style={styles.readOnlyText}>{passedEmail}</Text>
-            </View>
+            <TextInput
+              style={[styles.input, error && styles.inputError]}
+              placeholder="your@email.com"
+              placeholderTextColor={colors.textSecondary}
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (error) setError(null);
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{codeLabelText}</Text>
             <TextInput
-              style={[styles.input, error && styles.inputError]}
-              placeholder="Enter code"
+              style={[styles.input, styles.codeInput, error && styles.inputError]}
+              placeholder="Enter 8-digit code"
               placeholderTextColor={colors.textSecondary}
               value={otpCode}
               onChangeText={(text) => {
-                // Only allow numbers and limit to 8 digits
-                const numericText = text.replace(/[^0-9]/g, '').slice(0, 8);
+                // Only allow numbers and limit to 10 digits
+                const numericText = text.replace(/[^0-9]/g, '').slice(0, 10);
                 setOtpCode(numericText);
                 if (error) setError(null);
               }}
               keyboardType="number-pad"
-              maxLength={8}
+              maxLength={10}
               editable={!loading}
             />
           </View>
@@ -400,20 +391,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accent,
   },
+  codeInput: {
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: 4,
+    textAlign: 'center',
+  },
   inputError: {
     borderColor: '#DC2626',
-  },
-  readOnlyInput: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    opacity: 0.6,
-  },
-  readOnlyText: {
-    fontSize: 16,
-    color: colors.text,
   },
   passwordContainer: {
     position: 'relative',
