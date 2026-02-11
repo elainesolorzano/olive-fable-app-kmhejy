@@ -8,8 +8,6 @@ import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndic
 import { supabase } from '@/integrations/supabase/client';
 import { getFriendlyAuthError } from '@/utils/authErrorMessages';
 
-const BUILD_INFO = `Build: ${new Date().toLocaleString()} | Env: production`;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -176,18 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#059669',
     lineHeight: 22,
-  },
-  buildInfo: {
-    marginTop: 32,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  buildInfoText: {
-    fontSize: 11,
-    color: colors.textLight,
-    textAlign: 'center',
-    fontFamily: 'monospace',
   },
 });
 
@@ -438,11 +424,6 @@ export default function LoginScreen() {
             <Pressable onPress={() => router.push('/(auth)/sign-up')} disabled={loading}>
               <Text style={styles.signUpLink}>Sign Up</Text>
             </Pressable>
-          </View>
-
-          {/* 🔍 BUILD INFO FOOTER */}
-          <View style={styles.buildInfo}>
-            <Text style={styles.buildInfoText}>{BUILD_INFO}</Text>
           </View>
         </View>
       </ScrollView>

@@ -7,23 +7,11 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { getFriendlyAuthError } from '@/utils/authErrorMessages';
 import { supabase } from '@/integrations/supabase/client';
 
-const BUILD_INFO = `Build: ${new Date().toLocaleString()} | Env: production`;
-
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ title: string; body: string } | null>(null);
   const [success, setSuccess] = useState(false);
-
-  // 🔍 DEBUG STATE - Always visible
-  const [debugInfo, setDebugInfo] = useState({
-    lastAction: 'idle',
-    lastSupabaseCall: null as string | null,
-    success: null as boolean | null,
-    error: null as string | null,
-    returnedSessionExists: null as boolean | null,
-    timestamp: '',
-  });
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,26 +20,9 @@ export default function ForgotPasswordScreen() {
 
   const handleSendResetCode = async () => {
     console.log('User tapped Send Reset Code button');
-    
-    // 🔍 CHECKPOINT 1: Starting
-    setDebugInfo({
-      lastAction: 'sending_code',
-      lastSupabaseCall: null,
-      success: null,
-      error: null,
-      returnedSessionExists: null,
-      timestamp: new Date().toISOString(),
-    });
     setError(null);
 
     if (!email) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'resetPasswordForEmail',
-        success: false,
-        error: 'Email is required.',
-        lastAction: 'send_failed',
-      }));
       setError({
         title: 'Email required',
         body: 'Please enter your email address.',
@@ -60,13 +31,6 @@ export default function ForgotPasswordScreen() {
     }
 
     if (!validateEmail(email)) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'resetPasswordForEmail',
-        success: false,
-        error: 'Invalid email format.',
-        lastAction: 'send_failed',
-      }));
       setError({
         title: 'Invalid email',
         body: 'Please enter a valid email address.',
@@ -81,48 +45,22 @@ export default function ForgotPasswordScreen() {
       console.log('Email:', email);
       console.log('Using Supabase SDK: supabase.auth.resetPasswordForEmail()');
       
-      // 🔍 CHECKPOINT 2: Calling Supabase
+      // Use Supabase SDK - NO redirectTo for OTP flow
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
 
       if (resetError) {
-        // 🔍 CHECKPOINT 3: Error from Supabase
         console.log('❌ Password reset OTP request error:', resetError);
-        setDebugInfo(prev => ({
-          ...prev,
-          lastSupabaseCall: 'resetPasswordForEmail',
-          success: false,
-          error: resetError.message,
-          lastAction: 'send_failed',
-        }));
-        
         const friendlyError = getFriendlyAuthError(resetError, 'reset');
         setError({
           title: friendlyError.title,
           body: friendlyError.body,
         });
       } else {
-        // 🔍 CHECKPOINT 4: Success from Supabase
         console.log('✅ Password reset OTP email sent successfully');
-        setDebugInfo(prev => ({
-          ...prev,
-          lastSupabaseCall: 'resetPasswordForEmail',
-          success: true,
-          error: null,
-          lastAction: 'send_success',
-        }));
         setSuccess(true);
       }
     } catch (err: any) {
-      // 🔍 CHECKPOINT 5: Network/unexpected error
       console.log('❌ Unexpected error during password reset OTP request:', err);
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'resetPasswordForEmail',
-        success: false,
-        error: err.message || 'Network error',
-        lastAction: 'send_failed',
-      }));
-      
       setError({
         title: 'Connection issue',
         body: 'We could not reach our server. Please try again in a moment.',
@@ -135,7 +73,7 @@ export default function ForgotPasswordScreen() {
   const titleText = 'Reset your password';
   const subtitleText = 'Enter your email address and we will send you a code to reset your password';
   const emailLabelText = 'Email Address';
-  const buttonText = 'Send reset code';
+  const buttonText = 'Send Reset Code';
   const backToLoginText = 'Back to Sign In';
 
   if (success) {
@@ -156,16 +94,6 @@ export default function ForgotPasswordScreen() {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
-          {/* 🔍 DEBUG PANEL - Always visible */}
-          <View style={styles.debugPanel}>
-            <Text style={styles.debugTitle}>🔍 Auth Debug Panel</Text>
-            <Text style={styles.debugText}>lastAction: {debugInfo.lastAction}</Text>
-            <Text style={styles.debugText}>lastSupabaseCall: {debugInfo.lastSupabaseCall || 'null'}</Text>
-            <Text style={styles.debugText}>success: {debugInfo.success !== null ? String(debugInfo.success) : 'null'}</Text>
-            <Text style={styles.debugText}>error: {debugInfo.error || 'null'}</Text>
-            <Text style={styles.debugText}>returnedSessionExists: {debugInfo.returnedSessionExists !== null ? String(debugInfo.returnedSessionExists) : 'N/A'}</Text>
-          </View>
-
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <IconSymbol 
@@ -228,11 +156,6 @@ export default function ForgotPasswordScreen() {
               <Text style={styles.toggleLink}>Try again</Text>
             </Pressable>
           </View>
-
-          {/* 🔍 BUILD INFO FOOTER */}
-          <View style={styles.buildInfo}>
-            <Text style={styles.buildInfoText}>{BUILD_INFO}</Text>
-          </View>
         </ScrollView>
       </View>
     );
@@ -253,16 +176,6 @@ export default function ForgotPasswordScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* 🔍 DEBUG PANEL - Always visible */}
-        <View style={styles.debugPanel}>
-          <Text style={styles.debugTitle}>🔍 Auth Debug Panel</Text>
-          <Text style={styles.debugText}>lastAction: {debugInfo.lastAction}</Text>
-          <Text style={styles.debugText}>lastSupabaseCall: {debugInfo.lastSupabaseCall || 'null'}</Text>
-          <Text style={styles.debugText}>success: {debugInfo.success !== null ? String(debugInfo.success) : 'null'}</Text>
-          <Text style={styles.debugText}>error: {debugInfo.error || 'null'}</Text>
-          <Text style={styles.debugText}>returnedSessionExists: {debugInfo.returnedSessionExists !== null ? String(debugInfo.returnedSessionExists) : 'N/A'}</Text>
-        </View>
-
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <IconSymbol 
@@ -328,11 +241,6 @@ export default function ForgotPasswordScreen() {
             </Pressable>
           </View>
         </View>
-
-        {/* 🔍 BUILD INFO FOOTER */}
-        <View style={styles.buildInfo}>
-          <Text style={styles.buildInfoText}>{BUILD_INFO}</Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -343,29 +251,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 20,
+    paddingTop: 40,
     paddingHorizontal: 20,
     paddingBottom: 40,
-  },
-  debugPanel: {
-    backgroundColor: '#1F2937',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 2,
-    borderColor: '#10B981',
-  },
-  debugTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#10B981',
-    marginBottom: 12,
-  },
-  debugText: {
-    fontSize: 12,
-    fontFamily: 'monospace',
-    color: '#D1D5DB',
-    marginBottom: 6,
   },
   header: {
     alignItems: 'center',
@@ -475,17 +363,5 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.5,
-  },
-  buildInfo: {
-    marginTop: 32,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  buildInfoText: {
-    fontSize: 11,
-    color: colors.textLight,
-    textAlign: 'center',
-    fontFamily: 'monospace',
   },
 });

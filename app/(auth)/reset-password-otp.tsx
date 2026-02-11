@@ -16,136 +16,16 @@ export default function ResetPasswordOTPScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resendingCode, setResendingCode] = useState(false);
   const [error, setError] = useState<{ title: string; body: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [codeResent, setCodeResent] = useState(false);
-
-  // 🔍 DEBUG STATE - Always visible
-  const [debugInfo, setDebugInfo] = useState({
-    lastAction: 'idle',
-    lastSupabaseCall: null as string | null,
-    success: null as boolean | null,
-    error: null as string | null,
-    returnedSessionExists: null as boolean | null,
-    timestamp: '',
-  });
-
-  const handleResendCode = async () => {
-    console.log('User tapped Resend Code button');
-    
-    // 🔍 CHECKPOINT: Resending code
-    setDebugInfo({
-      lastAction: 'resending_code',
-      lastSupabaseCall: null,
-      success: null,
-      error: null,
-      returnedSessionExists: null,
-      timestamp: new Date().toISOString(),
-    });
-    setError(null);
-    setCodeResent(false);
-
-    if (!email) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'resetPasswordForEmail',
-        success: false,
-        error: 'Email is required.',
-        lastAction: 'resend_failed',
-      }));
-      setError({
-        title: 'Email required',
-        body: 'Please enter your email address.',
-      });
-      return;
-    }
-
-    setResendingCode(true);
-
-    try {
-      console.log('=== Resending Password Reset OTP ===');
-      console.log('Email:', email);
-      
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: 'https://oliveandfable.com/reset-password',
-      });
-
-      if (resetError) {
-        console.log('❌ Resend code error:', resetError);
-        setDebugInfo(prev => ({
-          ...prev,
-          lastSupabaseCall: 'resetPasswordForEmail',
-          success: false,
-          error: resetError.message,
-          lastAction: 'resend_failed',
-        }));
-        
-        const friendlyError = getFriendlyAuthError(resetError, 'reset');
-        setError({
-          title: friendlyError.title,
-          body: friendlyError.body,
-        });
-      } else {
-        console.log('✅ Reset code resent successfully');
-        setDebugInfo(prev => ({
-          ...prev,
-          lastSupabaseCall: 'resetPasswordForEmail',
-          success: true,
-          error: null,
-          lastAction: 'resend_success',
-        }));
-        setCodeResent(true);
-        
-        // Auto-hide success message after 5 seconds
-        setTimeout(() => {
-          setCodeResent(false);
-        }, 5000);
-      }
-    } catch (err: any) {
-      console.log('❌ Unexpected error during resend:', err);
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'resetPasswordForEmail',
-        success: false,
-        error: err.message || 'Network error',
-        lastAction: 'resend_failed',
-      }));
-      
-      setError({
-        title: 'Connection issue',
-        body: 'We could not reach our server. Please try again in a moment.',
-      });
-    } finally {
-      setResendingCode(false);
-    }
-  };
 
   const handleResetPassword = async () => {
     console.log('User tapped Reset Password button');
-    
-    // 🔍 CHECKPOINT 1: Starting
-    setDebugInfo({
-      lastAction: 'verifying_code',
-      lastSupabaseCall: null,
-      success: null,
-      error: null,
-      returnedSessionExists: null,
-      timestamp: new Date().toISOString(),
-    });
     setError(null);
-    setCodeResent(false);
 
     // Validation
     if (!email) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'verifyOtp',
-        success: false,
-        error: 'Email is required.',
-        lastAction: 'verify_failed',
-      }));
       setError({
         title: 'Email required',
         body: 'Please enter your email address.',
@@ -154,13 +34,6 @@ export default function ResetPasswordOTPScreen() {
     }
 
     if (!otpCode) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'verifyOtp',
-        success: false,
-        error: 'Code is required.',
-        lastAction: 'verify_failed',
-      }));
       setError({
         title: 'Code required',
         body: 'Please enter the reset code from your email.',
@@ -169,13 +42,6 @@ export default function ResetPasswordOTPScreen() {
     }
 
     if (otpCode.length < 6 || otpCode.length > 10) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'verifyOtp',
-        success: false,
-        error: 'Code must be 6-10 digits.',
-        lastAction: 'verify_failed',
-      }));
       setError({
         title: 'Invalid code',
         body: 'The code must be 6-10 digits.',
@@ -184,13 +50,6 @@ export default function ResetPasswordOTPScreen() {
     }
 
     if (!newPassword) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'verifyOtp',
-        success: false,
-        error: 'Password is required.',
-        lastAction: 'verify_failed',
-      }));
       setError({
         title: 'Password required',
         body: 'Please enter a new password.',
@@ -199,13 +58,6 @@ export default function ResetPasswordOTPScreen() {
     }
 
     if (newPassword.length < 8) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'verifyOtp',
-        success: false,
-        error: 'Password must be at least 8 characters.',
-        lastAction: 'verify_failed',
-      }));
       setError({
         title: 'Password too short',
         body: 'Password must be at least 8 characters.',
@@ -214,13 +66,6 @@ export default function ResetPasswordOTPScreen() {
     }
 
     if (newPassword !== confirmPassword) {
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'verifyOtp',
-        success: false,
-        error: 'Passwords do not match.',
-        lastAction: 'verify_failed',
-      }));
       setError({
         title: 'Passwords do not match',
         body: 'Please make sure both passwords match.',
@@ -236,7 +81,7 @@ export default function ResetPasswordOTPScreen() {
       console.log('OTP Code:', otpCode);
       console.log('Using Supabase SDK: supabase.auth.verifyOtp()');
 
-      // 🔍 CHECKPOINT 2: Calling verifyOtp
+      // STEP 1: Verify OTP using Supabase SDK
       const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         email: email.trim(),
         token: otpCode,
@@ -244,79 +89,27 @@ export default function ResetPasswordOTPScreen() {
       });
 
       if (verifyError) {
-        // 🔍 CHECKPOINT 3: OTP verification failed
         console.log('❌ OTP verification failed:', verifyError);
-        setDebugInfo(prev => ({
-          ...prev,
-          lastSupabaseCall: 'verifyOtp',
-          success: false,
-          error: verifyError.message,
-          returnedSessionExists: false,
-          lastAction: 'verify_failed',
-        }));
-        
         setError({
           title: 'Invalid or expired code',
-          body: 'The code you entered is invalid or has expired. Tap "Resend code" to get a new one.',
+          body: 'The code you entered is invalid or has expired. Please request a new code.',
         });
         setLoading(false);
         return;
       }
 
-      // 🔍 CHECKPOINT 4: Check if session exists
-      const sessionExists = !!verifyData.session;
-      console.log('Session exists:', sessionExists);
-
-      if (!sessionExists) {
-        // 🔍 CHECKPOINT 4a: verifyOtp succeeded but no session
-        console.log('⚠️ verifyOtp succeeded but no session returned');
-        setDebugInfo(prev => ({
-          ...prev,
-          lastSupabaseCall: 'verifyOtp',
-          success: true,
-          error: 'verifyOtp succeeded but no session returned',
-          returnedSessionExists: false,
-          lastAction: 'verify_failed',
-        }));
-        
-        setError({
-          title: 'Session error',
-          body: 'OTP verified but no session was created. Please try again or contact support.',
-        });
-        setLoading(false);
-        return;
-      }
-
-      // 🔍 CHECKPOINT 5: OTP verified successfully with session
-      console.log('✅ OTP verified successfully with session');
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'verifyOtp',
-        success: true,
-        error: null,
-        returnedSessionExists: true,
-        lastAction: 'updating_password',
-      }));
+      console.log('✅ OTP verified successfully');
 
       console.log('=== STEP 2: Updating Password ===');
       console.log('Using Supabase SDK: supabase.auth.updateUser()');
 
-      // 🔍 CHECKPOINT 6: Calling updateUser
+      // STEP 2: Update password using Supabase SDK
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       });
 
       if (updateError) {
-        // 🔍 CHECKPOINT 7: Password update failed
         console.log('❌ Password update failed:', updateError);
-        setDebugInfo(prev => ({
-          ...prev,
-          lastSupabaseCall: 'updateUser',
-          success: false,
-          error: updateError.message,
-          lastAction: 'update_failed',
-        }));
-        
         const friendlyError = getFriendlyAuthError(updateError, 'reset');
         setError({
           title: friendlyError.title,
@@ -326,15 +119,7 @@ export default function ResetPasswordOTPScreen() {
         return;
       }
 
-      // 🔍 CHECKPOINT 8: Password updated successfully
       console.log('✅ Password updated successfully');
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: 'updateUser',
-        success: true,
-        error: null,
-        lastAction: 'done',
-      }));
 
       // Optional: Sign out to ensure clean login flow
       console.log('Signing out to ensure clean login flow');
@@ -347,21 +132,12 @@ export default function ResetPasswordOTPScreen() {
       router.replace({
         pathname: '/(auth)/login',
         params: { 
-          message: 'Password updated successfully. Please sign in with your new password.',
+          message: 'Password updated. Please sign in.',
         },
       });
 
     } catch (err: any) {
-      // 🔍 CHECKPOINT 9: Network/unexpected error
       console.log('❌ Unexpected error during password reset:', err);
-      setDebugInfo(prev => ({
-        ...prev,
-        lastSupabaseCall: prev.lastSupabaseCall || 'unknown',
-        success: false,
-        error: err.message || 'Network error',
-        lastAction: 'update_failed',
-      }));
-      
       setError({
         title: 'Connection issue',
         body: 'We could not reach our server. Please try again in a moment.',
@@ -370,15 +146,13 @@ export default function ResetPasswordOTPScreen() {
     }
   };
 
-  const titleText = 'Enter reset code';
+  const titleText = 'Reset your password';
   const emailLabelText = 'Email';
-  const codeLabelText = 'Reset code (6-8 digits)';
+  const codeLabelText = 'Reset code (8 digits)';
   const newPasswordLabelText = 'New Password';
   const confirmPasswordLabelText = 'Confirm Password';
-  const buttonText = 'Update Password';
-  const resendText = 'Resend code';
+  const buttonText = 'Reset Password';
   const backText = 'Back';
-  const codeResentSuccessText = '✓ New code sent! Check your email.';
 
   return (
     <View style={commonStyles.container}>
@@ -395,16 +169,6 @@ export default function ResetPasswordOTPScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* 🔍 DEBUG PANEL - Always visible */}
-        <View style={styles.debugPanel}>
-          <Text style={styles.debugTitle}>🔍 Auth Debug Panel</Text>
-          <Text style={styles.debugText}>lastAction: {debugInfo.lastAction}</Text>
-          <Text style={styles.debugText}>lastSupabaseCall: {debugInfo.lastSupabaseCall || 'null'}</Text>
-          <Text style={styles.debugText}>success: {debugInfo.success !== null ? String(debugInfo.success) : 'null'}</Text>
-          <Text style={styles.debugText}>error: {debugInfo.error || 'null'}</Text>
-          <Text style={styles.debugText}>returnedSessionExists: {debugInfo.returnedSessionExists !== null ? String(debugInfo.returnedSessionExists) : 'null'}</Text>
-        </View>
-
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <IconSymbol 
@@ -425,12 +189,6 @@ export default function ResetPasswordOTPScreen() {
           </View>
         )}
 
-        {codeResent && (
-          <View style={styles.successMessage}>
-            <Text style={styles.successText}>{codeResentSuccessText}</Text>
-          </View>
-        )}
-
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{emailLabelText}</Text>
@@ -446,28 +204,15 @@ export default function ResetPasswordOTPScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              editable={!loading && !resendingCode}
+              editable={!loading}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Text style={styles.label}>{codeLabelText}</Text>
-              <Pressable 
-                onPress={handleResendCode}
-                disabled={resendingCode || loading}
-                style={styles.resendButton}
-              >
-                {resendingCode ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
-                ) : (
-                  <Text style={styles.resendButtonText}>{resendText}</Text>
-                )}
-              </Pressable>
-            </View>
+            <Text style={styles.label}>{codeLabelText}</Text>
             <TextInput
               style={[styles.input, styles.codeInput, error && styles.inputError]}
-              placeholder="Enter 6-8 digit code"
+              placeholder="Enter 8-digit code"
               placeholderTextColor={colors.textSecondary}
               value={otpCode}
               onChangeText={(text) => {
@@ -475,11 +220,10 @@ export default function ResetPasswordOTPScreen() {
                 const numericText = text.replace(/[^0-9]/g, '').slice(0, 10);
                 setOtpCode(numericText);
                 if (error) setError(null);
-                if (codeResent) setCodeResent(false);
               }}
               keyboardType="number-pad"
               maxLength={10}
-              editable={!loading && !resendingCode}
+              editable={!loading}
             />
           </View>
 
@@ -488,7 +232,7 @@ export default function ResetPasswordOTPScreen() {
             <View style={styles.passwordContainer}>
               <TextInput
                 style={[styles.passwordInput, error && styles.inputError]}
-                placeholder="Enter new password (min 8 characters)"
+                placeholder="Enter new password"
                 placeholderTextColor={colors.textSecondary}
                 value={newPassword}
                 onChangeText={(text) => {
@@ -498,7 +242,7 @@ export default function ResetPasswordOTPScreen() {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
-                editable={!loading && !resendingCode}
+                editable={!loading}
               />
               <Pressable 
                 style={styles.eyeIcon}
@@ -529,7 +273,7 @@ export default function ResetPasswordOTPScreen() {
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
-                editable={!loading && !resendingCode}
+                editable={!loading}
               />
               <Pressable 
                 style={styles.eyeIcon}
@@ -550,10 +294,10 @@ export default function ResetPasswordOTPScreen() {
               buttonStyles.primary,
               styles.submitButton,
               pressed && styles.pressed,
-              (loading || resendingCode) && styles.disabled
+              loading && styles.disabled
             ]}
             onPress={handleResetPassword}
-            disabled={loading || resendingCode}
+            disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
@@ -565,7 +309,7 @@ export default function ResetPasswordOTPScreen() {
           <View style={styles.toggleContainer}>
             <Pressable 
               onPress={() => router.back()}
-              disabled={loading || resendingCode}
+              disabled={loading}
             >
               <Text style={styles.toggleLink}>{backText}</Text>
             </Pressable>
@@ -581,29 +325,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 20,
+    paddingTop: 40,
     paddingHorizontal: 20,
     paddingBottom: 40,
-  },
-  debugPanel: {
-    backgroundColor: '#1F2937',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 2,
-    borderColor: '#10B981',
-  },
-  debugTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#10B981',
-    marginBottom: 12,
-  },
-  debugText: {
-    fontSize: 12,
-    fontFamily: 'monospace',
-    color: '#D1D5DB',
-    marginBottom: 6,
   },
   header: {
     alignItems: 'center',
@@ -646,44 +370,17 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 20,
   },
-  successMessage: {
-    backgroundColor: '#10B98115',
-    borderWidth: 1,
-    borderColor: '#10B981',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  successText: {
-    fontSize: 15,
-    color: '#059669',
-    lineHeight: 22,
-  },
   form: {
     marginBottom: 32,
   },
   inputGroup: {
     marginBottom: 20,
   },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-  },
-  resendButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  resendButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
+    marginBottom: 8,
   },
   input: {
     backgroundColor: colors.card,
