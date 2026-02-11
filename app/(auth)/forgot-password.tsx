@@ -13,6 +13,12 @@ export default function ForgotPasswordScreen() {
   const [error, setError] = useState<{ title: string; body: string } | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // 🔍 DEBUG STATE - Always visible
+  const [lastAction, setLastAction] = useState<string>('idle');
+  const [lastSupabaseError, setLastSupabaseError] = useState<string | null>(null);
+  const [lastSupabaseResult, setLastSupabaseResult] = useState<string | null>(null);
+  const [timestamp, setTimestamp] = useState<string>('');
+
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -20,9 +26,17 @@ export default function ForgotPasswordScreen() {
 
   const handleSendResetCode = async () => {
     console.log('User tapped Send Reset Code button');
+    
+    // 🔍 CHECKPOINT 1: Starting
+    setLastAction('sending_code');
+    setTimestamp(new Date().toISOString());
+    setLastSupabaseError(null);
+    setLastSupabaseResult(null);
     setError(null);
 
     if (!email) {
+      setLastSupabaseError('Email is required.');
+      setLastAction('send_failed');
       setError({
         title: 'Email required',
         body: 'Please enter your email address.',
@@ -31,6 +45,8 @@ export default function ForgotPasswordScreen() {
     }
 
     if (!validateEmail(email)) {
+      setLastSupabaseError('Invalid email format.');
+      setLastAction('send_failed');
       setError({
         title: 'Invalid email',
         body: 'Please enter a valid email address.',
@@ -45,22 +61,33 @@ export default function ForgotPasswordScreen() {
       console.log('Email:', email);
       console.log('Using Supabase SDK: supabase.auth.resetPasswordForEmail()');
       
-      // Use Supabase SDK - NO redirectTo for OTP flow
+      // 🔍 CHECKPOINT 2: Calling Supabase
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
 
       if (resetError) {
+        // 🔍 CHECKPOINT 3: Error from Supabase
         console.log('❌ Password reset OTP request error:', resetError);
+        setLastSupabaseError(resetError.message);
+        setLastAction('send_failed');
+        
         const friendlyError = getFriendlyAuthError(resetError, 'reset');
         setError({
           title: friendlyError.title,
           body: friendlyError.body,
         });
       } else {
+        // 🔍 CHECKPOINT 4: Success from Supabase
         console.log('✅ Password reset OTP email sent successfully');
+        setLastSupabaseResult('email_sent');
+        setLastAction('send_success');
         setSuccess(true);
       }
     } catch (err: any) {
+      // 🔍 CHECKPOINT 5: Network/unexpected error
       console.log('❌ Unexpected error during password reset OTP request:', err);
+      setLastSupabaseError(err.message || 'Network error');
+      setLastAction('send_failed');
+      
       setError({
         title: 'Connection issue',
         body: 'We could not reach our server. Please try again in a moment.',
@@ -73,7 +100,7 @@ export default function ForgotPasswordScreen() {
   const titleText = 'Reset your password';
   const subtitleText = 'Enter your email address and we will send you a code to reset your password';
   const emailLabelText = 'Email Address';
-  const buttonText = 'Send Reset Code';
+  const buttonText = 'Send reset code';
   const backToLoginText = 'Back to Sign In';
 
   if (success) {
@@ -94,6 +121,16 @@ export default function ForgotPasswordScreen() {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
+          {/* 🔍 DEBUG PANEL - Always visible */}
+          <View style={styles.debugPanel}>
+            <Text style={styles.debugTitle}>🔍 Debug Checkpoints</Text>
+            <Text style={styles.debugText}>lastAction: {lastAction}</Text>
+            <Text style={styles.debugText}>lastSupabaseError: {lastSupabaseError || 'null'}</Text>
+            <Text style={styles.debugText}>lastSupabaseResult: {lastSupabaseResult || 'null'}</Text>
+            <Text style={styles.debugText}>emailUsed: {email}</Text>
+            <Text style={styles.debugText}>timestamp: {timestamp}</Text>
+          </View>
+
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <IconSymbol 
@@ -176,6 +213,16 @@ export default function ForgotPasswordScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/* 🔍 DEBUG PANEL - Always visible */}
+        <View style={styles.debugPanel}>
+          <Text style={styles.debugTitle}>🔍 Debug Checkpoints</Text>
+          <Text style={styles.debugText}>lastAction: {lastAction}</Text>
+          <Text style={styles.debugText}>lastSupabaseError: {lastSupabaseError || 'null'}</Text>
+          <Text style={styles.debugText}>lastSupabaseResult: {lastSupabaseResult || 'null'}</Text>
+          <Text style={styles.debugText}>emailUsed: {email}</Text>
+          <Text style={styles.debugText}>timestamp: {timestamp}</Text>
+        </View>
+
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <IconSymbol 
@@ -251,9 +298,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: 40,
+    paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 40,
+  },
+  debugPanel: {
+    backgroundColor: '#1F2937',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: '#10B981',
+  },
+  debugTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#10B981',
+    marginBottom: 12,
+  },
+  debugText: {
+    fontSize: 12,
+    fontFamily: 'monospace',
+    color: '#D1D5DB',
+    marginBottom: 6,
   },
   header: {
     alignItems: 'center',
