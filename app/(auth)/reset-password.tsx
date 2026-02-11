@@ -25,6 +25,7 @@ export default function ResetPasswordScreen() {
   const [success, setSuccess] = useState(false);
   const [validatingSession, setValidatingSession] = useState(true);
   const [hasValidSession, setHasValidSession] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
     validateResetSession();
@@ -46,7 +47,27 @@ export default function ResetPasswordScreen() {
         console.log('- User email:', session.user.email);
         console.log('- Session expires at:', session.expires_at);
         console.log('- Session created at:', new Date(session.user.created_at).toISOString());
-        console.log('- Access token (first 20 chars):', session.access_token.substring(0, 20) + '...');
+        
+        // Calculate time until expiration
+        if (session.expires_at) {
+          const expiresAt = new Date(session.expires_at * 1000);
+          const now = new Date();
+          const minutesUntilExpiry = Math.floor((expiresAt.getTime() - now.getTime()) / 1000 / 60);
+          console.log('- Minutes until session expires:', minutesUntilExpiry);
+          
+          if (minutesUntilExpiry < 1) {
+            console.log('⚠️ Session is about to expire or has expired');
+            setHasValidSession(false);
+            setError({
+              title: 'Session expired',
+              body: 'Your password reset session has expired. Please request a new password reset link.',
+            });
+            setValidatingSession(false);
+            return;
+          }
+        }
+        
+        setUserEmail(session.user.email || '');
       }
       
       if (sessionError) {
@@ -63,10 +84,11 @@ export default function ResetPasswordScreen() {
         console.log('1. User navigated directly to /reset-password without clicking email link');
         console.log('2. The callback handler failed to process the tokens');
         console.log('3. The session expired between callback and this screen');
+        console.log('4. The reset link was already used (one-time use only)');
         setHasValidSession(false);
         setError({
-          title: 'Invalid or expired link',
-          body: 'This password reset link has expired or is invalid. Please request a new one.',
+          title: 'No active reset session',
+          body: 'You must click the password reset link from your email to access this page. Each link can only be used once.',
         });
       } else {
         console.log('✅ Valid reset session found');
@@ -77,8 +99,8 @@ export default function ResetPasswordScreen() {
       console.log('❌ Error validating reset session:', err);
       setHasValidSession(false);
       setError({
-        title: 'Invalid or expired link',
-        body: 'This password reset link has expired or is invalid. Please request a new one.',
+        title: 'Something went wrong',
+        body: 'Unable to validate your reset session. Please request a new password reset link.',
       });
     } finally {
       setValidatingSession(false);
@@ -119,7 +141,7 @@ export default function ResetPasswordScreen() {
     if (!session) {
       console.log('❌ No session found when attempting password update');
       setError({
-        title: 'Invalid or expired link',
+        title: 'Session expired',
         body: 'Your session has expired. Please request a new password reset link.',
       });
       return;
@@ -162,7 +184,7 @@ export default function ResetPasswordScreen() {
   };
 
   const titleText = 'Reset password';
-  const subtitleText = 'Enter your new password below';
+  const subtitleText = userEmail ? `Set a new password for ${userEmail}` : 'Enter your new password below';
   const passwordLabelText = 'New Password';
   const confirmPasswordLabelText = 'Confirm Password';
   const buttonText = 'Save new password';
@@ -419,6 +441,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 20,
+    lineHeight: 24,
   },
   errorMessage: {
     backgroundColor: '#DC262615',

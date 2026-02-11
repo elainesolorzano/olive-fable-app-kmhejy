@@ -37,13 +37,16 @@ function RootLayoutNav() {
     const handleDeepLink = (event: { url: string }) => {
       const url = event.url;
       
+      // Create a unique key for this URL (without hash/fragment to avoid duplicates)
+      const urlKey = url.split('#')[0];
+      
       // Prevent processing the same URL twice
-      if (processedUrls.current.has(url)) {
-        console.log('URL already processed, skipping:', url);
+      if (processedUrls.current.has(urlKey)) {
+        console.log('⚠️ URL already processed in _layout, skipping:', urlKey);
         return;
       }
       
-      console.log('=== Deep link received ===');
+      console.log('=== Deep link received in _layout ===');
       console.log('URL:', url);
 
       try {
@@ -65,7 +68,7 @@ function RootLayoutNav() {
         }
 
         // Mark URL as processed
-        processedUrls.current.add(url);
+        processedUrls.current.add(urlKey);
         console.log('✅ Auth-related URL detected, navigating to callback');
         
         // Navigate to callback handler with the full URL
@@ -84,9 +87,12 @@ function RootLayoutNav() {
         console.log('=== App opened with initial deep link ===');
         console.log('Initial URL:', url);
         
+        // Create a unique key for this URL
+        const urlKey = url.split('#')[0];
+        
         // Prevent processing the same URL twice
-        if (processedUrls.current.has(url)) {
-          console.log('Initial URL already processed, skipping');
+        if (processedUrls.current.has(urlKey)) {
+          console.log('⚠️ Initial URL already processed, skipping');
           return;
         }
         
@@ -108,7 +114,7 @@ function RootLayoutNav() {
           }
 
           // Mark URL as processed
-          processedUrls.current.add(url);
+          processedUrls.current.add(urlKey);
           console.log('✅ Initial URL is auth-related, navigating to callback');
           
           setTimeout(() => {

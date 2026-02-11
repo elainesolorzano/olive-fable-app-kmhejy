@@ -18,7 +18,7 @@
  * - Token hash: ?token_hash=...&type=recovery (for password reset)
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,19 +26,24 @@ import { colors } from "@/styles/commonStyles";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import * as Linking from "expo-linking";
 
+// Global set to track processed URLs across component remounts
+const processedUrls = new Set<string>();
+
 export default function AuthCallbackScreen() {
   const params = useLocalSearchParams();
   const [error, setError] = useState<string | null>(null);
   const { refreshAuthAndUser } = useSupabaseAuth();
   const [processing, setProcessing] = useState(false);
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
-    // Prevent double processing
-    if (processing) {
-      console.log('Already processing callback, skipping...');
+    // Prevent double processing within the same component instance
+    if (hasProcessed.current) {
+      console.log('Already processed in this component instance, skipping...');
       return;
     }
     
+    hasProcessed.current = true;
     handleCallback();
   }, []);
 
@@ -69,6 +74,23 @@ export default function AuthCallbackScreen() {
       }
 
       console.log('Processing URL:', urlParam);
+
+      // ============================================================
+      // CRITICAL: Check if this URL has already been processed
+      // This prevents consuming the same one-time token multiple times
+      // ============================================================
+      const urlKey = urlParam.split('#')[0]; // Use URL without hash as key
+      
+      if (processedUrls.has(urlKey)) {
+        console.log('⚠️ This URL has already been processed. Redirecting to login.');
+        setError("This link has already been used. Please request a new password reset link if needed.");
+        setTimeout(() => router.replace("/(auth)/forgot-password"), 3000);
+        return;
+      }
+
+      // Mark URL as being processed
+      processedUrls.add(urlKey);
+      console.log('✅ URL marked as processing (will not be reused)');
 
       // ============================================================
       // STEP 1: Parse the URL and extract redirect parameter if present
@@ -145,8 +167,26 @@ export default function AuthCallbackScreen() {
       // Check for errors in the callback
       if (errorCode) {
         console.log('❌ Error in callback:', errorCode, errorDescription);
-        setError(errorDescription || "Authentication failed");
-        setTimeout(() => router.replace("/(auth)/login"), 3000);
+        
+        // Provide user-friendly error messages
+        let friendlyError = errorDescription || "Authentication failed";
+        
+        if (errorCode === 'access_denied') {
+          friendlyError = "Access was denied. Please try again.";
+        } else if (errorDescription?.includes('expired')) {
+          friendlyError = "This link has expired. Please request a new one.";
+        } else if (errorDescription?.includes('invalid')) {
+          friendlyError = "This link is invalid. Please request a new one.";
+        }
+        
+        setError(friendlyError);
+        setTimeout(() => {
+          if (type === 'recovery') {
+            router.replace("/(auth)/forgot-password");
+          } else {
+            router.replace("/(auth)/login");
+          }
+        }, 3000);
         return;
       }
 
@@ -168,16 +208,22 @@ export default function AuthCallbackScreen() {
           if (verifyError) {
             console.log('❌ Token hash verification error:', verifyError.message);
             
-            // Check if token is expired or already used
-            if (verifyError.message.includes('expired') || verifyError.message.includes('invalid')) {
-              setError("This password reset link has expired or is invalid. Please request a new one.");
-            } else {
-              setError(verifyError.message);
+            // Provide specific error messages based on the error
+            let friendlyError = "This password reset link is invalid or has expired.";
+            
+            if (verifyError.message.includes('expired')) {
+              friendlyError = "This password reset link has expired. Password reset links are only valid for a short time.";
+            } else if (verifyError.message.includes('already been used') || verifyError.message.includes('not found')) {
+              friendlyError = "This password reset link has already been used. Each link can only be used once.";
+            } else if (verifyError.message.includes('invalid')) {
+              friendlyError = "This password reset link is invalid.";
             }
+            
+            setError(friendlyError + " Please request a new password reset link.");
             
             setTimeout(() => {
               router.replace("/(auth)/forgot-password");
-            }, 3000);
+            }, 4000);
             return;
           }
 
@@ -194,13 +240,13 @@ export default function AuthCallbackScreen() {
             return;
           } else {
             console.log('❌ verifyOtp returned no session');
-            setError("Failed to establish recovery session");
+            setError("Failed to establish recovery session. Please request a new password reset link.");
             setTimeout(() => router.replace("/(auth)/forgot-password"), 3000);
             return;
           }
         } catch (err: any) {
           console.log('❌ Error during token hash verification:', err);
-          setError("Failed to verify reset link");
+          setError("Failed to verify reset link. Please request a new one.");
           setTimeout(() => router.replace("/(auth)/forgot-password"), 3000);
           return;
         }
@@ -216,14 +262,24 @@ export default function AuthCallbackScreen() {
 
           if (exchangeError) {
             console.log('❌ Code exchange error:', exchangeError.message);
-            setError("Link expired or invalid. Please try again.");
+            
+            let friendlyError = "This link has expired or is invalid.";
+            
+            if (exchangeError.message.includes('expired')) {
+              friendlyError = "This link has expired. Links are only valid for a short time.";
+            } else if (exchangeError.message.includes('already been used')) {
+              friendlyError = "This link has already been used. Each link can only be used once.";
+            }
+            
+            setError(friendlyError + " Please request a new one.");
+            
             setTimeout(() => {
               if (type === 'recovery') {
                 router.replace("/(auth)/forgot-password");
               } else {
                 router.replace("/(auth)/login");
               }
-            }, 3000);
+            }, 4000);
             return;
           }
 
@@ -246,7 +302,7 @@ export default function AuthCallbackScreen() {
           }
         } catch (err) {
           console.log('❌ Error during code exchange:', err);
-          setError("Failed to complete authentication");
+          setError("Failed to complete authentication. Please try again.");
           setTimeout(() => router.replace("/(auth)/login"), 3000);
           return;
         }
@@ -268,14 +324,24 @@ export default function AuthCallbackScreen() {
 
           if (sessionError) {
             console.log('❌ Set session error:', sessionError.message);
-            setError("Link expired or invalid. Please try again.");
+            
+            let friendlyError = "This link has expired or is invalid.";
+            
+            if (sessionError.message.includes('expired')) {
+              friendlyError = "This link has expired. Links are only valid for a short time.";
+            } else if (sessionError.message.includes('invalid')) {
+              friendlyError = "This link is invalid.";
+            }
+            
+            setError(friendlyError + " Please request a new one.");
+            
             setTimeout(() => {
               if (type === 'recovery') {
                 router.replace("/(auth)/forgot-password");
               } else {
                 router.replace("/(auth)/login");
               }
-            }, 3000);
+            }, 4000);
             return;
           }
 
@@ -299,13 +365,13 @@ export default function AuthCallbackScreen() {
             return;
           } else {
             console.log('❌ setSession returned no session');
-            setError("Failed to establish session");
+            setError("Failed to establish session. Please request a new link.");
             setTimeout(() => router.replace("/(auth)/login"), 3000);
             return;
           }
         } catch (err: any) {
           console.log('❌ Error during setSession:', err);
-          setError("Failed to complete authentication");
+          setError("Failed to complete authentication. Please try again.");
           setTimeout(() => router.replace("/(auth)/login"), 3000);
           return;
         }
@@ -396,6 +462,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     textAlign: "center",
+    lineHeight: 24,
   },
   redirectText: {
     fontSize: 14,
