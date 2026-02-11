@@ -15,7 +15,7 @@ import { colors, commonStyles, buttonStyles } from "@/styles/commonStyles";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function VerifyEmailScreen() {
-  const { user, signOut } = useSupabaseAuth();
+  const { user, signOut, refreshAuthAndUser } = useSupabaseAuth();
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
   const [emailResent, setEmailResent] = useState(false);
@@ -34,6 +34,9 @@ export default function VerifyEmailScreen() {
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: user.email,
+        options: {
+          emailRedirectTo: "https://oliveandfable.com/appconfirmed",
+        },
       });
 
       if (error) {
@@ -50,24 +53,23 @@ export default function VerifyEmailScreen() {
   };
 
   const handleCheckVerification = async () => {
-    console.log('User tapped Check Verification button');
+    console.log('User tapped "I already verified" button');
     try {
       setChecking(true);
       
-      // Refresh the session to get the latest email verification status
-      const { data, error } = await supabase.auth.refreshSession();
+      // Use the new refreshAuthAndUser function to get latest auth state
+      await refreshAuthAndUser();
       
-      if (error) {
-        console.error('Error refreshing session:', error);
-        return;
-      }
-
-      // Check if email is now verified
-      if (data.session?.user?.email_confirmed_at) {
-        console.log('Email verified successfully');
+      // After refresh, check if email is now verified
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      
+      if (freshUser?.email_confirmed_at) {
+        console.log('Email verified successfully, redirecting to tabs');
         router.replace("/(tabs)");
       } else {
         console.log('Email not yet verified');
+        // Show a brief message that verification hasn't been detected yet
+        setEmailResent(false);
       }
     } catch (error: any) {
       console.error('Check verification error:', error);
@@ -87,6 +89,7 @@ export default function VerifyEmailScreen() {
   };
 
   const emailResentText = '✓ Verification email sent! Check your inbox.';
+  const alreadyVerifiedButtonText = "I already verified";
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -144,7 +147,7 @@ export default function VerifyEmailScreen() {
               size={20} 
               color="#fff" 
             />
-            <Text style={buttonStyles.buttonText}>I&apos;ve Verified My Email</Text>
+            <Text style={buttonStyles.buttonText}>{alreadyVerifiedButtonText}</Text>
           </>
         )}
       </Pressable>

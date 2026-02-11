@@ -1,4 +1,3 @@
-
 {
   "expo": {
     "name": "Olive & Fable",
@@ -69,6 +68,6 @@
         "origin": false
       }
     },
-    "scheme": "oliveandfable"
+    "scheme": "Olive & Fable"
   }
 }

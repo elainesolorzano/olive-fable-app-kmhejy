@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
+import { Platform, AppState, AppStateStatus } from 'react-native';
 
 interface SupabaseAuthContextType {
   session: Session | null;
@@ -12,6 +12,7 @@ interface SupabaseAuthContextType {
   signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refreshAuthAndUser: () => Promise<void>;
 }
 
 const SupabaseAuthContext = createContext<SupabaseAuthContextType | undefined>(undefined);
@@ -115,6 +116,49 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }, [saveSession]);
 
+  // Refresh auth state and user data
+  const refreshAuthAndUser = useCallback(async () => {
+    console.log('[Auth Refresh] Starting auth refresh...');
+    try {
+      // Get the latest session from Supabase
+      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.log('[Auth Refresh] Error getting session:', sessionError.message);
+        return;
+      }
+
+      if (!freshSession) {
+        console.log('[Auth Refresh] No active session found');
+        return;
+      }
+
+      console.log('[Auth Refresh] Session found, fetching user data...');
+
+      // Get the latest user data
+      const { data: { user: freshUser }, error: userError } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.log('[Auth Refresh] Error getting user:', userError.message);
+        return;
+      }
+
+      if (freshUser) {
+        console.log('[Auth Refresh] User data refreshed');
+        console.log('[Auth Refresh] Email verified:', !!freshUser.email_confirmed_at);
+        
+        // Update state with fresh data
+        setSession(freshSession);
+        setUser(freshUser);
+        await saveSession(freshSession);
+        
+        console.log('[Auth Refresh] Auth state updated successfully');
+      }
+    } catch (error) {
+      console.log('[Auth Refresh] Error during refresh:', error);
+    }
+  }, [saveSession]);
+
   useEffect(() => {
     console.log('Auth context initializing');
     let mounted = true;
@@ -171,6 +215,26 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     };
   }, [loadSession, saveSession]);
 
+  // Listen for AppState changes (app coming to foreground)
+  useEffect(() => {
+    console.log('[AppState] Setting up AppState listener for auth refresh');
+    
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      console.log('[AppState] App state changed to:', nextAppState);
+      
+      if (nextAppState === 'active') {
+        console.log('[AppState] App became active, triggering auth refresh');
+        refreshAuthAndUser();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [refreshAuthAndUser]);
+
   const signUp = async (email: string, password: string, name?: string) => {
     console.log('User signing up with email:', email);
     const { error } = await supabase.auth.signUp({ 
@@ -179,7 +243,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       options: {
         data: {
           full_name: name,
-        }
+        },
+        emailRedirectTo: "https://oliveandfable.com/appconfirmed",
       }
     });
     if (error) {
@@ -209,7 +274,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SupabaseAuthContext.Provider value={{ session, user, loading, signUp, signIn, signOut }}>
+    <SupabaseAuthContext.Provider value={{ session, user, loading, signUp, signIn, signOut, refreshAuthAndUser }}>
       {children}
     </SupabaseAuthContext.Provider>
   );

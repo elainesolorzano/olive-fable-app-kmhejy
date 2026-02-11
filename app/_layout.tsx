@@ -27,11 +27,11 @@ export const unstable_settings = {
 };
 
 function RootLayoutNav() {
-  const { session, loading } = useSupabaseAuth();
+  const { session, loading, refreshAuthAndUser } = useSupabaseAuth();
   const segments = useSegments();
   const router = useRouter();
 
-  // Handle deep links - Universal HTTPS links for password reset
+  // Handle deep links - Universal HTTPS links for password reset and email confirmation
   useEffect(() => {
     const handleDeepLink = (event: { url: string }) => {
       const url = event.url;
@@ -41,6 +41,17 @@ function RootLayoutNav() {
       try {
         const urlObj = new URL(url);
         console.log('Parsed URL - protocol:', urlObj.protocol, 'hostname:', urlObj.hostname, 'pathname:', urlObj.pathname);
+
+        // Handle universal HTTPS link for email confirmation
+        // https://oliveandfable.com/appconfirmed
+        if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/appconfirmed') {
+          console.log('✅ Email confirmation link detected (appconfirmed)');
+          console.log('[Deep Link] Triggering auth refresh for email confirmation');
+          
+          // Trigger auth refresh to update email verification status
+          refreshAuthAndUser();
+          return;
+        }
 
         // Handle universal HTTPS link for password reset
         // https://oliveandfable.com/reset-password?token_hash=...&type=recovery
@@ -75,6 +86,16 @@ function RootLayoutNav() {
             console.log('⚠️ Missing token_hash, redirecting to forgot password');
             router.push('/(auth)/forgot-password');
           }
+          return;
+        }
+
+        // Check if URL contains auth/v1/verify (Supabase email confirmation)
+        if (url.includes('auth/v1/verify')) {
+          console.log('✅ Supabase email verification link detected');
+          console.log('[Deep Link] Triggering auth refresh for email verification');
+          
+          // Trigger auth refresh to update email verification status
+          refreshAuthAndUser();
           return;
         }
 
@@ -128,6 +149,18 @@ function RootLayoutNav() {
         try {
           const urlObj = new URL(url);
           
+          // Handle universal HTTPS link for email confirmation
+          if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/appconfirmed') {
+            console.log('✅ Initial URL is email confirmation link (appconfirmed)');
+            console.log('[Deep Link] Triggering auth refresh for email confirmation');
+            
+            // Small delay to ensure auth context is ready
+            setTimeout(() => {
+              refreshAuthAndUser();
+            }, 100);
+            return;
+          }
+
           // Handle universal HTTPS link for password reset
           if (urlObj.hostname === 'oliveandfable.com' && urlObj.pathname === '/reset-password') {
             console.log('✅ Initial URL is universal HTTPS link for password reset');
@@ -165,6 +198,17 @@ function RootLayoutNav() {
                 router.push('/(auth)/forgot-password');
               }, 100);
             }
+            return;
+          }
+
+          // Check if URL contains auth/v1/verify
+          if (url.includes('auth/v1/verify')) {
+            console.log('✅ Initial URL contains email verification');
+            console.log('[Deep Link] Triggering auth refresh for email verification');
+            
+            setTimeout(() => {
+              refreshAuthAndUser();
+            }, 100);
             return;
           }
 
@@ -212,7 +256,7 @@ function RootLayoutNav() {
     return () => {
       subscription.remove();
     };
-  }, [router]);
+  }, [router, refreshAuthAndUser]);
 
   useEffect(() => {
     if (loading) {
