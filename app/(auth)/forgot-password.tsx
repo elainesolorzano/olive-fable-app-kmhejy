@@ -7,6 +7,8 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { getFriendlyAuthError } from '@/utils/authErrorMessages';
 import { supabase } from '@/integrations/supabase/client';
 
+const BUILD_INFO = `Build: ${new Date().toLocaleString()} | Env: production`;
+
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,10 +16,14 @@ export default function ForgotPasswordScreen() {
   const [success, setSuccess] = useState(false);
 
   // 🔍 DEBUG STATE - Always visible
-  const [lastAction, setLastAction] = useState<string>('idle');
-  const [lastSupabaseError, setLastSupabaseError] = useState<string | null>(null);
-  const [lastSupabaseResult, setLastSupabaseResult] = useState<string | null>(null);
-  const [timestamp, setTimestamp] = useState<string>('');
+  const [debugInfo, setDebugInfo] = useState({
+    lastAction: 'idle',
+    lastSupabaseCall: null as string | null,
+    success: null as boolean | null,
+    error: null as string | null,
+    returnedSessionExists: null as boolean | null,
+    timestamp: '',
+  });
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,15 +34,24 @@ export default function ForgotPasswordScreen() {
     console.log('User tapped Send Reset Code button');
     
     // 🔍 CHECKPOINT 1: Starting
-    setLastAction('sending_code');
-    setTimestamp(new Date().toISOString());
-    setLastSupabaseError(null);
-    setLastSupabaseResult(null);
+    setDebugInfo({
+      lastAction: 'sending_code',
+      lastSupabaseCall: null,
+      success: null,
+      error: null,
+      returnedSessionExists: null,
+      timestamp: new Date().toISOString(),
+    });
     setError(null);
 
     if (!email) {
-      setLastSupabaseError('Email is required.');
-      setLastAction('send_failed');
+      setDebugInfo(prev => ({
+        ...prev,
+        lastSupabaseCall: 'resetPasswordForEmail',
+        success: false,
+        error: 'Email is required.',
+        lastAction: 'send_failed',
+      }));
       setError({
         title: 'Email required',
         body: 'Please enter your email address.',
@@ -45,8 +60,13 @@ export default function ForgotPasswordScreen() {
     }
 
     if (!validateEmail(email)) {
-      setLastSupabaseError('Invalid email format.');
-      setLastAction('send_failed');
+      setDebugInfo(prev => ({
+        ...prev,
+        lastSupabaseCall: 'resetPasswordForEmail',
+        success: false,
+        error: 'Invalid email format.',
+        lastAction: 'send_failed',
+      }));
       setError({
         title: 'Invalid email',
         body: 'Please enter a valid email address.',
@@ -67,8 +87,13 @@ export default function ForgotPasswordScreen() {
       if (resetError) {
         // 🔍 CHECKPOINT 3: Error from Supabase
         console.log('❌ Password reset OTP request error:', resetError);
-        setLastSupabaseError(resetError.message);
-        setLastAction('send_failed');
+        setDebugInfo(prev => ({
+          ...prev,
+          lastSupabaseCall: 'resetPasswordForEmail',
+          success: false,
+          error: resetError.message,
+          lastAction: 'send_failed',
+        }));
         
         const friendlyError = getFriendlyAuthError(resetError, 'reset');
         setError({
@@ -78,15 +103,25 @@ export default function ForgotPasswordScreen() {
       } else {
         // 🔍 CHECKPOINT 4: Success from Supabase
         console.log('✅ Password reset OTP email sent successfully');
-        setLastSupabaseResult('email_sent');
-        setLastAction('send_success');
+        setDebugInfo(prev => ({
+          ...prev,
+          lastSupabaseCall: 'resetPasswordForEmail',
+          success: true,
+          error: null,
+          lastAction: 'send_success',
+        }));
         setSuccess(true);
       }
     } catch (err: any) {
       // 🔍 CHECKPOINT 5: Network/unexpected error
       console.log('❌ Unexpected error during password reset OTP request:', err);
-      setLastSupabaseError(err.message || 'Network error');
-      setLastAction('send_failed');
+      setDebugInfo(prev => ({
+        ...prev,
+        lastSupabaseCall: 'resetPasswordForEmail',
+        success: false,
+        error: err.message || 'Network error',
+        lastAction: 'send_failed',
+      }));
       
       setError({
         title: 'Connection issue',
@@ -123,12 +158,12 @@ export default function ForgotPasswordScreen() {
         >
           {/* 🔍 DEBUG PANEL - Always visible */}
           <View style={styles.debugPanel}>
-            <Text style={styles.debugTitle}>🔍 Debug Checkpoints</Text>
-            <Text style={styles.debugText}>lastAction: {lastAction}</Text>
-            <Text style={styles.debugText}>lastSupabaseError: {lastSupabaseError || 'null'}</Text>
-            <Text style={styles.debugText}>lastSupabaseResult: {lastSupabaseResult || 'null'}</Text>
-            <Text style={styles.debugText}>emailUsed: {email}</Text>
-            <Text style={styles.debugText}>timestamp: {timestamp}</Text>
+            <Text style={styles.debugTitle}>🔍 Auth Debug Panel</Text>
+            <Text style={styles.debugText}>lastAction: {debugInfo.lastAction}</Text>
+            <Text style={styles.debugText}>lastSupabaseCall: {debugInfo.lastSupabaseCall || 'null'}</Text>
+            <Text style={styles.debugText}>success: {debugInfo.success !== null ? String(debugInfo.success) : 'null'}</Text>
+            <Text style={styles.debugText}>error: {debugInfo.error || 'null'}</Text>
+            <Text style={styles.debugText}>returnedSessionExists: {debugInfo.returnedSessionExists !== null ? String(debugInfo.returnedSessionExists) : 'N/A'}</Text>
           </View>
 
           <View style={styles.header}>
@@ -193,6 +228,11 @@ export default function ForgotPasswordScreen() {
               <Text style={styles.toggleLink}>Try again</Text>
             </Pressable>
           </View>
+
+          {/* 🔍 BUILD INFO FOOTER */}
+          <View style={styles.buildInfo}>
+            <Text style={styles.buildInfoText}>{BUILD_INFO}</Text>
+          </View>
         </ScrollView>
       </View>
     );
@@ -215,12 +255,12 @@ export default function ForgotPasswordScreen() {
       >
         {/* 🔍 DEBUG PANEL - Always visible */}
         <View style={styles.debugPanel}>
-          <Text style={styles.debugTitle}>🔍 Debug Checkpoints</Text>
-          <Text style={styles.debugText}>lastAction: {lastAction}</Text>
-          <Text style={styles.debugText}>lastSupabaseError: {lastSupabaseError || 'null'}</Text>
-          <Text style={styles.debugText}>lastSupabaseResult: {lastSupabaseResult || 'null'}</Text>
-          <Text style={styles.debugText}>emailUsed: {email}</Text>
-          <Text style={styles.debugText}>timestamp: {timestamp}</Text>
+          <Text style={styles.debugTitle}>🔍 Auth Debug Panel</Text>
+          <Text style={styles.debugText}>lastAction: {debugInfo.lastAction}</Text>
+          <Text style={styles.debugText}>lastSupabaseCall: {debugInfo.lastSupabaseCall || 'null'}</Text>
+          <Text style={styles.debugText}>success: {debugInfo.success !== null ? String(debugInfo.success) : 'null'}</Text>
+          <Text style={styles.debugText}>error: {debugInfo.error || 'null'}</Text>
+          <Text style={styles.debugText}>returnedSessionExists: {debugInfo.returnedSessionExists !== null ? String(debugInfo.returnedSessionExists) : 'N/A'}</Text>
         </View>
 
         <View style={styles.header}>
@@ -287,6 +327,11 @@ export default function ForgotPasswordScreen() {
               <Text style={styles.toggleLink}>{backToLoginText}</Text>
             </Pressable>
           </View>
+        </View>
+
+        {/* 🔍 BUILD INFO FOOTER */}
+        <View style={styles.buildInfo}>
+          <Text style={styles.buildInfoText}>{BUILD_INFO}</Text>
         </View>
       </ScrollView>
     </View>
@@ -430,5 +475,17 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.5,
+  },
+  buildInfo: {
+    marginTop: 32,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  buildInfoText: {
+    fontSize: 11,
+    color: colors.textLight,
+    textAlign: 'center',
+    fontFamily: 'monospace',
   },
 });
