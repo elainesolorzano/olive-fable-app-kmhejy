@@ -60,7 +60,7 @@ export default function ResetPasswordScreen() {
             setHasValidSession(false);
             setError({
               title: 'Session expired',
-              body: 'Your password reset session has expired. Please request a new password reset link.',
+              body: 'Your password reset session has expired. Password reset links are only valid for 1 hour. Please request a new password reset link.',
             });
             setValidatingSession(false);
             return;
@@ -75,7 +75,7 @@ export default function ResetPasswordScreen() {
         setHasValidSession(false);
         setError({
           title: 'Invalid or expired link',
-          body: 'This password reset link has expired or is invalid. Please request a new one.',
+          body: 'This password reset link has expired or is invalid. Password reset links are only valid for 1 hour. Please request a new one.',
         });
       } else if (!session) {
         console.log('❌ No session found - user must use reset link');
@@ -88,7 +88,7 @@ export default function ResetPasswordScreen() {
         setHasValidSession(false);
         setError({
           title: 'No active reset session',
-          body: 'You must click the password reset link from your email to access this page. Each link can only be used once.',
+          body: 'You must click the password reset link from your email to access this page. Each link can only be used once and is valid for 1 hour.',
         });
       } else {
         console.log('✅ Valid reset session found');
@@ -159,7 +159,25 @@ export default function ResetPasswordScreen() {
 
       if (updateError) {
         console.log('❌ Password update error:', updateError.message);
-        const friendlyError = getFriendlyAuthError(updateError, 'resetPassword');
+        
+        // Provide specific error messages
+        let friendlyError = {
+          title: 'Password update failed',
+          body: 'We could not update your password. Please try again.',
+        };
+        
+        if (updateError.message.includes('session')) {
+          friendlyError = {
+            title: 'Session expired',
+            body: 'Your password reset session has expired. Please request a new password reset link.',
+          };
+        } else if (updateError.message.includes('weak')) {
+          friendlyError = {
+            title: 'Password too weak',
+            body: 'Please use a stronger password with a mix of letters, numbers, and symbols.',
+          };
+        }
+        
         setError(friendlyError);
       } else {
         console.log('✅ Password reset successful');
@@ -176,8 +194,10 @@ export default function ResetPasswordScreen() {
       }
     } catch (err: any) {
       console.log('❌ Unexpected error during password reset:', err);
-      const friendlyError = getFriendlyAuthError(err, 'resetPassword');
-      setError(friendlyError);
+      setError({
+        title: 'Something went wrong',
+        body: 'An unexpected error occurred. Please try again or request a new password reset link.',
+      });
     } finally {
       setLoading(false);
     }

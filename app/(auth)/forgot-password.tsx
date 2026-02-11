@@ -73,8 +73,8 @@ export default function ForgotPasswordScreen() {
   const backToLoginText = 'Back to Sign In';
 
   if (success) {
-    const successTitle = AUTH_SUCCESS_MESSAGES.forgotPassword.title;
-    const successBody = AUTH_SUCCESS_MESSAGES.forgotPassword.body;
+    const successTitle = 'Check your email';
+    const successBody = 'We have sent you a password reset link. Click the link in the email to reset your password.';
 
     return (
       <View style={commonStyles.container}>
@@ -104,9 +104,33 @@ export default function ForgotPasswordScreen() {
           </View>
 
           <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              Check your email inbox and spam folder. The link will expire in 1 hour.
-            </Text>
+            <View style={styles.infoRow}>
+              <IconSymbol 
+                ios_icon_name="clock.fill"
+                android_material_icon_name="schedule"
+                size={20}
+                color="#059669"
+              />
+              <Text style={styles.infoText}>The link will expire in 1 hour</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <IconSymbol 
+                ios_icon_name="exclamationmark.circle.fill"
+                android_material_icon_name="info"
+                size={20}
+                color="#059669"
+              />
+              <Text style={styles.infoText}>Each link can only be used once</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <IconSymbol 
+                ios_icon_name="envelope.fill"
+                android_material_icon_name="email"
+                size={20}
+                color="#059669"
+              />
+              <Text style={styles.infoText}>Check your spam folder if you don&apos;t see it</Text>
+            </View>
           </View>
 
           <Pressable 
@@ -241,6 +265,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 20,
+    lineHeight: 24,
   },
   errorMessage: {
     backgroundColor: '#DC262615',
@@ -268,11 +293,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+    gap: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   infoText: {
     fontSize: 14,
     color: colors.text,
     lineHeight: 20,
+    flex: 1,
   },
   form: {
     marginBottom: 32,

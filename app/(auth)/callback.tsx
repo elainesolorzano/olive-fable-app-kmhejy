@@ -19,15 +19,63 @@
  */
 
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/integrations/supabase/client";
 import { colors } from "@/styles/commonStyles";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import * as Linking from "expo-linking";
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Global set to track processed URLs across component remounts
-const processedUrls = new Set<string>();
+// Key for storing processed URLs
+const PROCESSED_URLS_KEY = 'processed_auth_urls';
+
+// Helper to get processed URLs from storage
+async function getProcessedUrls(): Promise<Set<string>> {
+  try {
+    let storedUrls: string | null = null;
+    
+    if (Platform.OS === 'web') {
+      storedUrls = localStorage.getItem(PROCESSED_URLS_KEY);
+    } else {
+      storedUrls = await AsyncStorage.getItem(PROCESSED_URLS_KEY);
+    }
+    
+    if (storedUrls) {
+      const urlsArray = JSON.parse(storedUrls);
+      return new Set(urlsArray);
+    }
+  } catch (error) {
+    console.log('Error loading processed URLs:', error);
+  }
+  
+  return new Set();
+}
+
+// Helper to save processed URLs to storage
+async function saveProcessedUrl(url: string) {
+  try {
+    const processedUrls = await getProcessedUrls();
+    processedUrls.add(url);
+    
+    // Convert Set to Array for storage
+    const urlsArray = Array.from(processedUrls);
+    
+    // Keep only last 50 URLs to prevent storage bloat
+    const recentUrls = urlsArray.slice(-50);
+    
+    if (Platform.OS === 'web') {
+      localStorage.setItem(PROCESSED_URLS_KEY, JSON.stringify(recentUrls));
+    } else {
+      await AsyncStorage.setItem(PROCESSED_URLS_KEY, JSON.stringify(recentUrls));
+    }
+    
+    console.log('✅ URL marked as processed and saved to storage');
+  } catch (error) {
+    console.log('Error saving processed URL:', error);
+  }
+}
 
 export default function AuthCallbackScreen() {
   const params = useLocalSearchParams();
@@ -78,19 +126,20 @@ export default function AuthCallbackScreen() {
       // ============================================================
       // CRITICAL: Check if this URL has already been processed
       // This prevents consuming the same one-time token multiple times
+      // Now persisted across app restarts!
       // ============================================================
-      const urlKey = urlParam.split('#')[0]; // Use URL without hash as key
+      const urlKey = urlParam.split('#')[0].split('?')[0]; // Use base URL as key
+      
+      const processedUrls = await getProcessedUrls();
       
       if (processedUrls.has(urlKey)) {
         console.log('⚠️ This URL has already been processed. Redirecting to login.');
-        setError("This link has already been used. Please request a new password reset link if needed.");
-        setTimeout(() => router.replace("/(auth)/forgot-password"), 3000);
+        setError("This link has already been used. Each reset link can only be used once. Please request a new password reset link if needed.");
+        setTimeout(() => router.replace("/(auth)/forgot-password"), 4000);
         return;
       }
 
-      // Mark URL as being processed
-      processedUrls.add(urlKey);
-      console.log('✅ URL marked as processing (will not be reused)');
+      console.log('✅ URL has not been processed before, continuing...');
 
       // ============================================================
       // STEP 1: Parse the URL and extract redirect parameter if present
@@ -174,7 +223,7 @@ export default function AuthCallbackScreen() {
         if (errorCode === 'access_denied') {
           friendlyError = "Access was denied. Please try again.";
         } else if (errorDescription?.includes('expired')) {
-          friendlyError = "This link has expired. Please request a new one.";
+          friendlyError = "This link has expired. Password reset links are only valid for a short time. Please request a new one.";
         } else if (errorDescription?.includes('invalid')) {
           friendlyError = "This link is invalid. Please request a new one.";
         }
@@ -186,7 +235,7 @@ export default function AuthCallbackScreen() {
           } else {
             router.replace("/(auth)/login");
           }
-        }, 3000);
+        }, 4000);
         return;
       }
 
@@ -212,14 +261,14 @@ export default function AuthCallbackScreen() {
             let friendlyError = "This password reset link is invalid or has expired.";
             
             if (verifyError.message.includes('expired')) {
-              friendlyError = "This password reset link has expired. Password reset links are only valid for a short time.";
-            } else if (verifyError.message.includes('already been used') || verifyError.message.includes('not found')) {
-              friendlyError = "This password reset link has already been used. Each link can only be used once.";
+              friendlyError = "This password reset link has expired. Password reset links are only valid for 1 hour. Please request a new one.";
+            } else if (verifyError.message.includes('already been used') || verifyError.message.includes('not found') || verifyError.message.includes('One-time')) {
+              friendlyError = "This password reset link has already been used. Each link can only be used once. Please request a new password reset link.";
             } else if (verifyError.message.includes('invalid')) {
-              friendlyError = "This password reset link is invalid.";
+              friendlyError = "This password reset link is invalid. Please request a new one.";
             }
             
-            setError(friendlyError + " Please request a new password reset link.");
+            setError(friendlyError);
             
             setTimeout(() => {
               router.replace("/(auth)/forgot-password");
@@ -231,6 +280,9 @@ export default function AuthCallbackScreen() {
             console.log('✅ Recovery session established via token_hash');
             console.log('Session user:', data.session.user.email);
             console.log('Session expires at:', data.session.expires_at);
+            
+            // Mark URL as processed AFTER successful session establishment
+            await saveProcessedUrl(urlKey);
             
             // Refresh auth state
             await refreshAuthAndUser();
@@ -246,8 +298,17 @@ export default function AuthCallbackScreen() {
           }
         } catch (err: any) {
           console.log('❌ Error during token hash verification:', err);
-          setError("Failed to verify reset link. Please request a new one.");
-          setTimeout(() => router.replace("/(auth)/forgot-password"), 3000);
+          
+          let friendlyError = "Failed to verify reset link.";
+          
+          if (err.message?.includes('expired')) {
+            friendlyError = "This password reset link has expired. Please request a new one.";
+          } else if (err.message?.includes('already been used') || err.message?.includes('not found')) {
+            friendlyError = "This password reset link has already been used. Please request a new one.";
+          }
+          
+          setError(friendlyError);
+          setTimeout(() => router.replace("/(auth)/forgot-password"), 4000);
           return;
         }
       }
@@ -266,12 +327,12 @@ export default function AuthCallbackScreen() {
             let friendlyError = "This link has expired or is invalid.";
             
             if (exchangeError.message.includes('expired')) {
-              friendlyError = "This link has expired. Links are only valid for a short time.";
+              friendlyError = "This link has expired. Links are only valid for a short time. Please request a new one.";
             } else if (exchangeError.message.includes('already been used')) {
-              friendlyError = "This link has already been used. Each link can only be used once.";
+              friendlyError = "This link has already been used. Each link can only be used once. Please request a new one.";
             }
             
-            setError(friendlyError + " Please request a new one.");
+            setError(friendlyError);
             
             setTimeout(() => {
               if (type === 'recovery') {
@@ -286,6 +347,9 @@ export default function AuthCallbackScreen() {
           if (data.session) {
             console.log('✅ Session established via code exchange');
             console.log('Session user:', data.session.user.email);
+            
+            // Mark URL as processed AFTER successful session establishment
+            await saveProcessedUrl(urlKey);
             
             // Refresh auth state
             await refreshAuthAndUser();
@@ -328,12 +392,14 @@ export default function AuthCallbackScreen() {
             let friendlyError = "This link has expired or is invalid.";
             
             if (sessionError.message.includes('expired')) {
-              friendlyError = "This link has expired. Links are only valid for a short time.";
+              friendlyError = "This link has expired. Password reset links are only valid for 1 hour. Please request a new one.";
             } else if (sessionError.message.includes('invalid')) {
-              friendlyError = "This link is invalid.";
+              friendlyError = "This link is invalid. Please request a new one.";
+            } else if (sessionError.message.includes('already been used') || sessionError.message.includes('not found')) {
+              friendlyError = "This link has already been used. Each link can only be used once. Please request a new password reset link.";
             }
             
-            setError(friendlyError + " Please request a new one.");
+            setError(friendlyError);
             
             setTimeout(() => {
               if (type === 'recovery') {
@@ -349,6 +415,9 @@ export default function AuthCallbackScreen() {
             console.log('✅ Session established via setSession');
             console.log('Session user:', data.session.user.email);
             console.log('Session expires at:', data.session.expires_at);
+            
+            // Mark URL as processed AFTER successful session establishment
+            await saveProcessedUrl(urlKey);
             
             // Refresh auth state to update context
             await refreshAuthAndUser();
@@ -371,8 +440,17 @@ export default function AuthCallbackScreen() {
           }
         } catch (err: any) {
           console.log('❌ Error during setSession:', err);
-          setError("Failed to complete authentication. Please try again.");
-          setTimeout(() => router.replace("/(auth)/login"), 3000);
+          
+          let friendlyError = "Failed to complete authentication.";
+          
+          if (err.message?.includes('expired')) {
+            friendlyError = "This link has expired. Please request a new one.";
+          } else if (err.message?.includes('already been used') || err.message?.includes('not found')) {
+            friendlyError = "This link has already been used. Please request a new one.";
+          }
+          
+          setError(friendlyError);
+          setTimeout(() => router.replace("/(auth)/login"), 4000);
           return;
         }
       }
