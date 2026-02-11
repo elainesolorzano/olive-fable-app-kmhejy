@@ -1,7 +1,7 @@
 
 import { colors, commonStyles } from '@/styles/commonStyles';
-import React, { useState } from 'react';
-import { router } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Logo } from '@/components/Logo';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
@@ -178,12 +178,16 @@ const styles = StyleSheet.create({
 });
 
 export default function LoginScreen() {
+  const params = useLocalSearchParams();
+  const successMessage = params.message as string;
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ title: string; body: string; type: 'invalid' | 'unverified' } | null>(null);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [emailResent, setEmailResent] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const { height } = useWindowDimensions();
   const { signIn } = useSupabaseAuth();
@@ -191,6 +195,18 @@ export default function LoginScreen() {
   const isSmallPhone = height < 750;
   const logoToTitleGap = isSmallPhone ? 14 : 28;
   const topPadding = isSmallPhone ? 22 : 40;
+
+  useEffect(() => {
+    if (successMessage) {
+      console.log('Password reset success message:', successMessage);
+      setShowSuccessMessage(true);
+      // Auto-hide after 10 seconds
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -225,6 +241,7 @@ export default function LoginScreen() {
     console.log('User tapped Sign In button');
     setError(null);
     setEmailResent(false);
+    setShowSuccessMessage(false);
 
     if (!email.trim() || !password) {
       setError({
@@ -301,6 +318,12 @@ export default function LoginScreen() {
         <View style={styles.formContainer}>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
+
+          {showSuccessMessage && successMessage && (
+            <View style={styles.successMessage}>
+              <Text style={styles.successText}>{successMessage}</Text>
+            </View>
+          )}
 
           {error && error.type === 'invalid' && (
             <View style={styles.errorMessage}>

@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { router, Stack } from 'expo-router';
-import { supabase } from '@/integrations/supabase/client';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { getFriendlyAuthError, AUTH_SUCCESS_MESSAGES } from '@/utils/authErrorMessages';
+import { getFriendlyAuthError } from '@/utils/authErrorMessages';
+
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -18,8 +20,8 @@ export default function ForgotPasswordScreen() {
     return emailRegex.test(email);
   };
 
-  const handleResetPassword = async () => {
-    console.log('User tapped Send Reset Link button');
+  const handleSendResetCode = async () => {
+    console.log('User tapped Send Reset Code button');
     setError(null);
 
     if (!email) {
@@ -41,40 +43,53 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      console.log('=== Requesting Password Reset ===');
+      console.log('=== Requesting Password Reset OTP ===');
       console.log('Email:', email);
-      console.log('Redirect URL: https://oliveandfable.com/reset-password');
+      console.log('Using Supabase REST API: /auth/v1/recover');
       
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://oliveandfable.com/reset-password',
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+        }),
       });
 
-      if (resetError) {
-        console.log('❌ Password reset request error:', resetError.message);
-        const friendlyError = getFriendlyAuthError(resetError, 'forgotPassword');
-        setError(friendlyError);
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.log('❌ Password reset OTP request error:', data);
+        setError({
+          title: 'Request failed',
+          body: data.error_description || data.msg || 'Could not send reset code. Please try again.',
+        });
       } else {
-        console.log('✅ Password reset email sent successfully');
+        console.log('✅ Password reset OTP email sent successfully');
         setSuccess(true);
       }
     } catch (err: any) {
-      console.log('❌ Unexpected error during password reset request:', err);
-      const friendlyError = getFriendlyAuthError(err, 'forgotPassword');
-      setError(friendlyError);
+      console.log('❌ Unexpected error during password reset OTP request:', err);
+      setError({
+        title: 'Connection issue',
+        body: 'We could not reach our server. Please try again in a moment.',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const titleText = 'Reset your password';
-  const subtitleText = 'Enter your email address and we will send you a link to reset your password';
+  const subtitleText = 'Enter your email address and we will send you a 6-digit code to reset your password';
   const emailLabelText = 'Email Address';
-  const buttonText = 'Send reset link';
+  const buttonText = 'Send Reset Code';
   const backToLoginText = 'Back to Sign In';
 
   if (success) {
     const successTitle = 'Check your email';
-    const successBody = 'We have sent you a password reset link. Click the link in the email to reset your password.';
+    const successBody = 'We have sent you a 6-digit code. Enter the code on the next screen to reset your password.';
 
     return (
       <View style={commonStyles.container}>
@@ -111,7 +126,7 @@ export default function ForgotPasswordScreen() {
                 size={20}
                 color="#059669"
               />
-              <Text style={styles.infoText}>The link will expire in 1 hour</Text>
+              <Text style={styles.infoText}>The code will expire in 1 hour</Text>
             </View>
             <View style={styles.infoRow}>
               <IconSymbol 
@@ -120,7 +135,7 @@ export default function ForgotPasswordScreen() {
                 size={20}
                 color="#059669"
               />
-              <Text style={styles.infoText}>Each link can only be used once</Text>
+              <Text style={styles.infoText}>Each code can only be used once</Text>
             </View>
             <View style={styles.infoRow}>
               <IconSymbol 
@@ -135,13 +150,19 @@ export default function ForgotPasswordScreen() {
 
           <Pressable 
             style={buttonStyles.primaryButton}
-            onPress={() => router.replace('/(auth)/login')}
+            onPress={() => {
+              console.log('Navigating to OTP verification screen with email:', email);
+              router.push({
+                pathname: '/(auth)/reset-password-otp',
+                params: { email: email.trim() },
+              });
+            }}
           >
-            <Text style={buttonStyles.buttonText}>{backToLoginText}</Text>
+            <Text style={buttonStyles.buttonText}>Continue</Text>
           </Pressable>
 
           <View style={styles.toggleContainer}>
-            <Text style={styles.toggleText}>Didn&apos;t receive the email? </Text>
+            <Text style={styles.toggleText}>Didn&apos;t receive the code? </Text>
             <Pressable onPress={() => setSuccess(false)}>
               <Text style={styles.toggleLink}>Try again</Text>
             </Pressable>
@@ -212,7 +233,7 @@ export default function ForgotPasswordScreen() {
               pressed && styles.pressed,
               loading && styles.disabled
             ]}
-            onPress={handleResetPassword}
+            onPress={handleSendResetCode}
             disabled={loading}
           >
             {loading ? (
