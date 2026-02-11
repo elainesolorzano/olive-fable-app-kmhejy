@@ -16,9 +16,11 @@ export default function ResetPasswordOTPScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendingCode, setResendingCode] = useState(false);
   const [error, setError] = useState<{ title: string; body: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [codeResent, setCodeResent] = useState(false);
 
   // 🔍 DEBUG STATE - Always visible
   const [debugInfo, setDebugInfo] = useState({
@@ -29,6 +31,96 @@ export default function ResetPasswordOTPScreen() {
     returnedSessionExists: null as boolean | null,
     timestamp: '',
   });
+
+  const handleResendCode = async () => {
+    console.log('User tapped Resend Code button');
+    
+    // 🔍 CHECKPOINT: Resending code
+    setDebugInfo({
+      lastAction: 'resending_code',
+      lastSupabaseCall: null,
+      success: null,
+      error: null,
+      returnedSessionExists: null,
+      timestamp: new Date().toISOString(),
+    });
+    setError(null);
+    setCodeResent(false);
+
+    if (!email) {
+      setDebugInfo(prev => ({
+        ...prev,
+        lastSupabaseCall: 'resetPasswordForEmail',
+        success: false,
+        error: 'Email is required.',
+        lastAction: 'resend_failed',
+      }));
+      setError({
+        title: 'Email required',
+        body: 'Please enter your email address.',
+      });
+      return;
+    }
+
+    setResendingCode(true);
+
+    try {
+      console.log('=== Resending Password Reset OTP ===');
+      console.log('Email:', email);
+      
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'https://oliveandfable.com/reset-password',
+      });
+
+      if (resetError) {
+        console.log('❌ Resend code error:', resetError);
+        setDebugInfo(prev => ({
+          ...prev,
+          lastSupabaseCall: 'resetPasswordForEmail',
+          success: false,
+          error: resetError.message,
+          lastAction: 'resend_failed',
+        }));
+        
+        const friendlyError = getFriendlyAuthError(resetError, 'reset');
+        setError({
+          title: friendlyError.title,
+          body: friendlyError.body,
+        });
+      } else {
+        console.log('✅ Reset code resent successfully');
+        setDebugInfo(prev => ({
+          ...prev,
+          lastSupabaseCall: 'resetPasswordForEmail',
+          success: true,
+          error: null,
+          lastAction: 'resend_success',
+        }));
+        setCodeResent(true);
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+          setCodeResent(false);
+        }, 5000);
+      }
+    } catch (err: any) {
+      console.log('❌ Unexpected error during resend:', err);
+      setDebugInfo(prev => ({
+        ...prev,
+        lastSupabaseCall: 'resetPasswordForEmail',
+        success: false,
+        error: err.message || 'Network error',
+        lastAction: 'resend_failed',
+      }));
+      
+      setError({
+        title: 'Connection issue',
+        body: 'We could not reach our server. Please try again in a moment.',
+      });
+    } finally {
+      setResendingCode(false);
+    }
+  };
 
   const handleResetPassword = async () => {
     console.log('User tapped Reset Password button');
@@ -43,6 +135,7 @@ export default function ResetPasswordOTPScreen() {
       timestamp: new Date().toISOString(),
     });
     setError(null);
+    setCodeResent(false);
 
     // Validation
     if (!email) {
@@ -164,7 +257,7 @@ export default function ResetPasswordOTPScreen() {
         
         setError({
           title: 'Invalid or expired code',
-          body: 'The code you entered is invalid or has expired. Please request a new code.',
+          body: 'The code you entered is invalid or has expired. Tap "Resend code" to get a new one.',
         });
         setLoading(false);
         return;
@@ -254,7 +347,7 @@ export default function ResetPasswordOTPScreen() {
       router.replace({
         pathname: '/(auth)/login',
         params: { 
-          message: 'Password updated. Please sign in.',
+          message: 'Password updated successfully. Please sign in with your new password.',
         },
       });
 
@@ -277,13 +370,15 @@ export default function ResetPasswordOTPScreen() {
     }
   };
 
-  const titleText = 'Reset your password';
+  const titleText = 'Enter reset code';
   const emailLabelText = 'Email';
-  const codeLabelText = 'Reset code (8 digits)';
+  const codeLabelText = 'Reset code (6-8 digits)';
   const newPasswordLabelText = 'New Password';
   const confirmPasswordLabelText = 'Confirm Password';
-  const buttonText = 'Reset Password';
+  const buttonText = 'Update Password';
+  const resendText = 'Resend code';
   const backText = 'Back';
+  const codeResentSuccessText = '✓ New code sent! Check your email.';
 
   return (
     <View style={commonStyles.container}>
@@ -330,6 +425,12 @@ export default function ResetPasswordOTPScreen() {
           </View>
         )}
 
+        {codeResent && (
+          <View style={styles.successMessage}>
+            <Text style={styles.successText}>{codeResentSuccessText}</Text>
+          </View>
+        )}
+
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{emailLabelText}</Text>
@@ -345,15 +446,28 @@ export default function ResetPasswordOTPScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              editable={!loading}
+              editable={!loading && !resendingCode}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{codeLabelText}</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>{codeLabelText}</Text>
+              <Pressable 
+                onPress={handleResendCode}
+                disabled={resendingCode || loading}
+                style={styles.resendButton}
+              >
+                {resendingCode ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Text style={styles.resendButtonText}>{resendText}</Text>
+                )}
+              </Pressable>
+            </View>
             <TextInput
               style={[styles.input, styles.codeInput, error && styles.inputError]}
-              placeholder="Enter 8-digit code"
+              placeholder="Enter 6-8 digit code"
               placeholderTextColor={colors.textSecondary}
               value={otpCode}
               onChangeText={(text) => {
@@ -361,10 +475,11 @@ export default function ResetPasswordOTPScreen() {
                 const numericText = text.replace(/[^0-9]/g, '').slice(0, 10);
                 setOtpCode(numericText);
                 if (error) setError(null);
+                if (codeResent) setCodeResent(false);
               }}
               keyboardType="number-pad"
               maxLength={10}
-              editable={!loading}
+              editable={!loading && !resendingCode}
             />
           </View>
 
@@ -373,7 +488,7 @@ export default function ResetPasswordOTPScreen() {
             <View style={styles.passwordContainer}>
               <TextInput
                 style={[styles.passwordInput, error && styles.inputError]}
-                placeholder="Enter new password"
+                placeholder="Enter new password (min 8 characters)"
                 placeholderTextColor={colors.textSecondary}
                 value={newPassword}
                 onChangeText={(text) => {
@@ -383,7 +498,7 @@ export default function ResetPasswordOTPScreen() {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
-                editable={!loading}
+                editable={!loading && !resendingCode}
               />
               <Pressable 
                 style={styles.eyeIcon}
@@ -414,7 +529,7 @@ export default function ResetPasswordOTPScreen() {
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
-                editable={!loading}
+                editable={!loading && !resendingCode}
               />
               <Pressable 
                 style={styles.eyeIcon}
@@ -435,10 +550,10 @@ export default function ResetPasswordOTPScreen() {
               buttonStyles.primary,
               styles.submitButton,
               pressed && styles.pressed,
-              loading && styles.disabled
+              (loading || resendingCode) && styles.disabled
             ]}
             onPress={handleResetPassword}
-            disabled={loading}
+            disabled={loading || resendingCode}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
@@ -450,7 +565,7 @@ export default function ResetPasswordOTPScreen() {
           <View style={styles.toggleContainer}>
             <Pressable 
               onPress={() => router.back()}
-              disabled={loading}
+              disabled={loading || resendingCode}
             >
               <Text style={styles.toggleLink}>{backText}</Text>
             </Pressable>
@@ -531,17 +646,44 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 20,
   },
+  successMessage: {
+    backgroundColor: '#10B98115',
+    borderWidth: 1,
+    borderColor: '#10B981',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  successText: {
+    fontSize: 15,
+    color: '#059669',
+    lineHeight: 22,
+  },
   form: {
     marginBottom: 32,
   },
   inputGroup: {
     marginBottom: 20,
   },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 8,
+  },
+  resendButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  resendButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
   input: {
     backgroundColor: colors.card,
