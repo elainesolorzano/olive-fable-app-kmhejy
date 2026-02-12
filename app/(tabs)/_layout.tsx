@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 
 export default function TabLayout() {
-  // Define the tabs configuration - 4 tabs (removed Notifications)
+  // Define the tabs configuration - 5 tabs (Notifications restored as standalone)
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
@@ -25,11 +25,17 @@ export default function TabLayout() {
       label: 'Workshops',
     },
     {
+      name: 'notifications',
+      route: '/(tabs)/notifications',
+      icon: 'notifications',
+      label: 'Notifications',
+      showNotificationBadge: true, // Show unread badge on Notifications tab
+    },
+    {
       name: 'my-studio',
       route: '/(tabs)/my-studio',
       icon: 'person',
       label: 'My Studio',
-      showNotificationBadge: true, // Show unread badge on My Studio tab
     },
   ];
 
@@ -45,10 +51,10 @@ export default function TabLayout() {
         <Stack.Screen key="home" name="(home)" />
         <Stack.Screen key="learn" name="learn" />
         <Stack.Screen key="workshops" name="workshops" />
+        <Stack.Screen key="notifications" name="notifications" />
         <Stack.Screen key="my-studio" name="my-studio" />
-        {/* Hide index and notifications routes from tab bar */}
+        {/* Hide index route from tab bar */}
         <Stack.Screen name="index" options={{ href: null }} />
-        <Stack.Screen name="notifications" options={{ href: null }} />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>
