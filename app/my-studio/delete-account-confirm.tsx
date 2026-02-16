@@ -172,11 +172,34 @@ export default function DeleteAccountConfirmScreen() {
     setLoading(true);
 
     try {
-      console.log('Calling delete-account Edge Function via Supabase client');
+      // Get the current session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      console.log('Session check:', { 
+        hasSession: !!sessionData?.session, 
+        hasAccessToken: !!sessionData?.session?.access_token,
+        error: sessionError 
+      });
 
-      // Call the delete-account Edge Function using Supabase client
-      // This automatically handles authentication headers and JWT tokens
-      const { data, error } = await supabase.functions.invoke('delete-account');
+      if (sessionError || !sessionData?.session) {
+        console.error('No active session:', sessionError);
+        showToast('You are not authenticated. Please log in again.', true);
+        setLoading(false);
+        return;
+      }
+
+      const session = sessionData.session;
+
+      console.log('Calling delete-account Edge Function with auth token');
+
+      // Call the Edge Function with explicit authorization header
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      console.log('Edge Function response:', { data, error });
 
       if (error) {
         console.error('Delete error:', error);
@@ -205,7 +228,6 @@ export default function DeleteAccountConfirmScreen() {
     } catch (err) {
       console.error('Unexpected delete error:', err);
       showToast('Unexpected error deleting account.', true);
-    } finally {
       setLoading(false);
     }
   };
