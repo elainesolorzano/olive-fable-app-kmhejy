@@ -172,41 +172,28 @@ export default function DeleteAccountConfirmScreen() {
     setLoading(true);
 
     try {
-      // Get current session
-      const session = await supabase.auth.getSession();
+      console.log('Calling delete-account Edge Function via Supabase client');
 
-      if (!session.data.session) {
-        throw new Error("Not authenticated");
+      // Call the delete-account Edge Function using Supabase client
+      // This automatically handles authentication headers and JWT tokens
+      const { data, error } = await supabase.functions.invoke('delete-account');
+
+      if (error) {
+        console.error('Delete error:', error);
+        const errorMessage = error.message || 'Failed to delete account.';
+        showToast(errorMessage, true);
+        setLoading(false);
+        return;
       }
 
-      console.log('Calling delete-account Edge Function');
-
-      // Call the delete-account Edge Function
-      const response = await fetch(
-        "https://lynyqzidefvwtxbwarb.supabase.co/functions/v1/delete-account",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.data.session.access_token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete account");
-      }
-
-      console.log('Account deleted successfully');
-      showToast('Account deleted');
+      console.log('Account deleted successfully:', data);
+      showToast('Account deleted successfully');
 
       // Wait a moment for the toast to show
       setTimeout(async () => {
         // Sign out and clear local state
         try {
-          await signOut();
+          await supabase.auth.signOut();
         } catch (signOutError) {
           console.error('Error signing out after deletion:', signOutError);
         }
@@ -215,10 +202,9 @@ export default function DeleteAccountConfirmScreen() {
         router.replace('/(auth)/login');
       }, 1500);
 
-    } catch (error: any) {
-      console.error('Error deleting account:', error);
-      const errorMessage = error?.message || 'An unexpected error occurred. Please try again.';
-      showToast(errorMessage, true);
+    } catch (err) {
+      console.error('Unexpected delete error:', err);
+      showToast('Unexpected error deleting account.', true);
     } finally {
       setLoading(false);
     }
