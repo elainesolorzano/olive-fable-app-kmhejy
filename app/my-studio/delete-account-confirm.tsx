@@ -114,7 +114,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  // Toast Modal Styles
   toastOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
@@ -139,7 +138,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   toastError: {
-    color: colors.error,
+    color: '#FF3B30',
   },
 });
 
@@ -172,7 +171,6 @@ export default function DeleteAccountConfirmScreen() {
     setLoading(true);
 
     try {
-      // Get the current session
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       console.log('Session check:', { 
@@ -190,9 +188,8 @@ export default function DeleteAccountConfirmScreen() {
 
       const session = sessionData.session;
 
-      console.log('Calling delete-account Edge Function with auth token');
+      console.log('Calling delete-account Edge Function');
 
-      // Call the Edge Function with explicit authorization header
       const { data, error } = await supabase.functions.invoke('delete-account', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -212,16 +209,13 @@ export default function DeleteAccountConfirmScreen() {
       console.log('Account deleted successfully:', data);
       showToast('Account deleted successfully');
 
-      // Wait a moment for the toast to show
       setTimeout(async () => {
-        // Sign out and clear local state
         try {
           await supabase.auth.signOut();
         } catch (signOutError) {
           console.error('Error signing out after deletion:', signOutError);
         }
         
-        // Navigate to login screen
         router.replace('/(auth)/login');
       }, 1500);
 
@@ -310,7 +304,6 @@ export default function DeleteAccountConfirmScreen() {
         </View>
       </ScrollView>
 
-      {/* Toast Modal */}
       <Modal
         visible={toastVisible}
         transparent
