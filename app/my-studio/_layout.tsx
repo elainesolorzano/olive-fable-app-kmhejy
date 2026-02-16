@@ -65,6 +65,13 @@ export default function MyStudioLayout() {
           presentation: 'card',
         }} 
       />
+      <Stack.Screen 
+        name="delete-account-confirm" 
+        options={{ 
+          title: 'Delete Account',
+          presentation: 'card',
+        }} 
+      />
     </Stack>
   );
 }

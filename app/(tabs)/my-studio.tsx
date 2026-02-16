@@ -446,6 +446,11 @@ export default function MyStudioScreen() {
     router.push('/my-studio/support');
   };
 
+  const handleDeleteAccount = () => {
+    console.log('User navigating to Delete Account');
+    router.push('/my-studio/delete-account-confirm');
+  };
+
   const handleSignOut = async () => {
     console.log('User tapped Sign Out button');
     await signOut();
@@ -714,6 +719,26 @@ export default function MyStudioScreen() {
             />
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>Help & Support</Text>
+            </View>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron-right"
+              size={20}
+              color={colors.textSecondary}
+              style={styles.chevron}
+            />
+          </Pressable>
+
+          <Pressable style={styles.menuItem} onPress={handleDeleteAccount}>
+            <IconSymbol
+              ios_icon_name="trash.fill"
+              android_material_icon_name="delete"
+              size={24}
+              color="#FF3B30"
+              style={styles.menuIcon}
+            />
+            <View style={styles.menuContent}>
+              <Text style={[styles.menuTitle, { color: '#FF3B30' }]}>Delete Account</Text>
             </View>
             <IconSymbol
               ios_icon_name="chevron.right"
