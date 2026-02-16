@@ -1,7 +1,8 @@
+
 {
   "expo": {
     "name": "Olive & Fable",
-    "slug": "Olive & Fable",
+    "slug": "olive-and-fable",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo-139b9ca7-cb0b-4c8f-a83e-c08db754caa0.png.png",
@@ -73,6 +74,6 @@
         "origin": false
       }
     },
-    "scheme": "Olive & Fable"
+    "scheme": "olivefable"
   }
 }
