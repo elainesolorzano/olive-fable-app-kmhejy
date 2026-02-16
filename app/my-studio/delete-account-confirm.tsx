@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF3CD',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 24,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#FFE69C',
     flexDirection: 'row',
@@ -45,6 +45,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: '#856404',
+    lineHeight: 22,
+  },
+  processingInfoBox: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  processingInfoText: {
+    fontSize: 15,
+    color: colors.text,
     lineHeight: 22,
   },
   bodyText: {
@@ -171,57 +184,50 @@ export default function DeleteAccountConfirmScreen() {
     setLoading(true);
 
     try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      console.log('Session check:', { 
-        hasSession: !!sessionData?.session, 
-        hasAccessToken: !!sessionData?.session?.access_token,
-        error: sessionError 
-      });
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (sessionError || !sessionData?.session) {
-        console.error('No active session:', sessionError);
+      if (!user) {
+        console.error('No authenticated user found');
         showToast('You are not authenticated. Please log in again.', true);
         setLoading(false);
         return;
       }
 
-      const session = sessionData.session;
+      console.log('Marking account for deletion:', user.id);
 
-      console.log('Calling delete-account Edge Function');
+      // Update the user's profile to mark for deletion
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ delete_requested_at: new Date().toISOString() })
+        .eq('id', user.id);
 
-      const { data, error } = await supabase.functions.invoke('delete-account', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      console.log('Edge Function response:', { data, error });
-
-      if (error) {
-        console.error('Delete error:', error);
-        const errorMessage = error.message || 'Failed to delete account.';
-        showToast(errorMessage, true);
+      if (updateError) {
+        console.error('Error requesting account deletion:', updateError);
+        showToast(updateError.message || 'Failed to request account deletion.', true);
         setLoading(false);
         return;
       }
 
-      console.log('Account deleted successfully:', data);
-      showToast('Account deleted successfully');
+      console.log('Account marked for deletion successfully');
+      
+      // Show success message
+      showToast('Your deletion request has been received. Your account will be permanently deleted within 24 hours.');
 
+      // Wait for toast to be visible, then sign out and redirect
       setTimeout(async () => {
         try {
+          console.log('Signing out user after deletion request');
           await supabase.auth.signOut();
         } catch (signOutError) {
-          console.error('Error signing out after deletion:', signOutError);
+          console.error('Error signing out after deletion request:', signOutError);
         }
         
         router.replace('/(auth)/login');
-      }, 1500);
+      }, 3000);
 
     } catch (err) {
-      console.error('Unexpected delete error:', err);
-      showToast('Unexpected error deleting account.', true);
+      console.error('Unexpected error during deletion request:', err);
+      showToast('An unexpected error occurred. Please try again.', true);
       setLoading(false);
     }
   };
@@ -252,6 +258,12 @@ export default function DeleteAccountConfirmScreen() {
           />
           <Text style={styles.warningText}>
             This action cannot be undone. All your data will be permanently deleted.
+          </Text>
+        </View>
+
+        <View style={styles.processingInfoBox}>
+          <Text style={styles.processingInfoText}>
+            Your account deletion request will be processed within 24 hours. During this time, your account will remain inaccessible. Once completed, all associated data will be permanently removed.
           </Text>
         </View>
 
