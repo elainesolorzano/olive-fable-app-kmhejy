@@ -186,6 +186,8 @@ export default function DeleteAccountConfirmScreen() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
+      console.log('Delete request user:', user?.id);
+
       if (!user) {
         console.error('No authenticated user found');
         showToast('You are not authenticated. Please log in again.', true);
@@ -193,21 +195,25 @@ export default function DeleteAccountConfirmScreen() {
         return;
       }
 
-      console.log('Marking account for deletion:', user.id);
+      console.log('Attempting to mark account for deletion. User ID:', user.id);
 
-      // Update the user's profile to mark for deletion
-      const { error: updateError } = await supabase
+      // CRITICAL FIX: Use user_id column (foreign key to auth.users.id), not id (primary key)
+      const { data, error } = await supabase
         .from('profiles')
         .update({ delete_requested_at: new Date().toISOString() })
-        .eq('id', user.id);
+        .eq('user_id', user.id)  // ✅ CORRECT: user_id is the foreign key to auth.users.id
+        .select('user_id, delete_requested_at')
+        .single();
 
-      if (updateError) {
-        console.error('Error requesting account deletion:', updateError);
-        showToast(updateError.message || 'Failed to request account deletion.', true);
+      if (error) {
+        console.error('Delete request update failed:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        showToast(error.message || 'Failed to request account deletion.', true);
         setLoading(false);
         return;
       }
 
+      console.log('Delete request update result:', data);
       console.log('Account marked for deletion successfully');
       
       // Show success message
