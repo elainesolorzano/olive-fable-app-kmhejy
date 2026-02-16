@@ -172,26 +172,27 @@ export default function DeleteAccountConfirmScreen() {
     setLoading(true);
 
     try {
-      // Get the current session to extract the access token
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // CRITICAL FIX: Refresh the session to get a fresh, valid access token
+      console.log('Refreshing session to get fresh token');
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
 
-      if (sessionError) {
-        console.error('Error getting session:', sessionError);
-        showToast('Unable to authenticate. Please try again.', true);
+      if (refreshError) {
+        console.error('Error refreshing session:', refreshError);
+        showToast('Unable to authenticate. Please log in again.', true);
         setLoading(false);
         return;
       }
 
-      if (!session) {
-        console.error('No active session found');
+      if (!refreshedSession) {
+        console.error('No session after refresh');
         showToast('No active session. Please log in again.', true);
         setLoading(false);
         return;
       }
 
-      console.log('Calling delete-account Edge Function with token');
+      console.log('Session refreshed successfully, calling delete-account Edge Function');
 
-      // Call the delete-account Edge Function
+      // Call the delete-account Edge Function with the fresh token
       const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
       if (!supabaseUrl) {
         console.error('EXPO_PUBLIC_SUPABASE_URL is not defined');
@@ -205,7 +206,7 @@ export default function DeleteAccountConfirmScreen() {
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${refreshedSession.access_token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({}),
