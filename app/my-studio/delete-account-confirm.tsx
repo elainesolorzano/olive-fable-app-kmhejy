@@ -175,16 +175,33 @@ export default function DeleteAccountConfirmScreen() {
       // Get the current session to extract the access token
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (sessionError || !session) {
+      if (sessionError) {
         console.error('Error getting session:', sessionError);
         showToast('Unable to authenticate. Please try again.', true);
         setLoading(false);
         return;
       }
 
+      if (!session) {
+        console.error('No active session found');
+        showToast('No active session. Please log in again.', true);
+        setLoading(false);
+        return;
+      }
+
+      console.log('Calling delete-account Edge Function with token');
+
       // Call the delete-account Edge Function
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      if (!supabaseUrl) {
+        console.error('EXPO_PUBLIC_SUPABASE_URL is not defined');
+        showToast('Configuration error. Please contact support.', true);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
+        `${supabaseUrl}/functions/v1/delete-account`,
         {
           method: 'POST',
           headers: {
@@ -195,11 +212,23 @@ export default function DeleteAccountConfirmScreen() {
         }
       );
 
-      const data = await response.json();
+      console.log('Delete account response status:', response.status);
+
+      let data;
+      try {
+        data = await response.json();
+        console.log('Delete account response data:', data);
+      } catch (parseError) {
+        console.error('Error parsing response JSON:', parseError);
+        showToast('Invalid response from server. Please try again.', true);
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
-        console.error('Error deleting account:', data.error);
-        showToast(data.error || 'Failed to delete account. Please try again.', true);
+        const errorMessage = data?.error || data?.message || 'Failed to delete account. Please try again.';
+        console.error('Error deleting account:', errorMessage);
+        showToast(errorMessage, true);
         setLoading(false);
         return;
       }
@@ -210,15 +239,20 @@ export default function DeleteAccountConfirmScreen() {
       // Wait a moment for the toast to show
       setTimeout(async () => {
         // Sign out and clear local state
-        await signOut();
+        try {
+          await signOut();
+        } catch (signOutError) {
+          console.error('Error signing out after deletion:', signOutError);
+        }
         
         // Navigate to login screen
         router.replace('/(auth)/login');
       }, 1500);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Unexpected error deleting account:', error);
-      showToast('An unexpected error occurred. Please try again.', true);
+      const errorMessage = error?.message || 'An unexpected error occurred. Please try again.';
+      showToast(errorMessage, true);
       setLoading(false);
     }
   };
