@@ -172,66 +172,31 @@ export default function DeleteAccountConfirmScreen() {
     setLoading(true);
 
     try {
-      // CRITICAL FIX: Refresh the session to get a fresh, valid access token
-      console.log('Refreshing session to get fresh token');
-      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+      // Get current session
+      const session = await supabase.auth.getSession();
 
-      if (refreshError) {
-        console.error('Error refreshing session:', refreshError);
-        showToast('Unable to authenticate. Please log in again.', true);
-        setLoading(false);
-        return;
+      if (!session.data.session) {
+        throw new Error("Not authenticated");
       }
 
-      if (!refreshedSession) {
-        console.error('No session after refresh');
-        showToast('No active session. Please log in again.', true);
-        setLoading(false);
-        return;
-      }
+      console.log('Calling delete-account Edge Function');
 
-      console.log('Session refreshed successfully, calling delete-account Edge Function');
-
-      // Call the delete-account Edge Function with the fresh token
-      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-      if (!supabaseUrl) {
-        console.error('EXPO_PUBLIC_SUPABASE_URL is not defined');
-        showToast('Configuration error. Please contact support.', true);
-        setLoading(false);
-        return;
-      }
-
+      // Call the delete-account Edge Function
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/delete-account`,
+        "https://lynyqzidefvwtxbwarb.supabase.co/functions/v1/delete-account",
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${refreshedSession.access_token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.data.session.access_token}`,
           },
-          body: JSON.stringify({}),
         }
       );
 
-      console.log('Delete account response status:', response.status);
-
-      let data;
-      try {
-        data = await response.json();
-        console.log('Delete account response data:', data);
-      } catch (parseError) {
-        console.error('Error parsing response JSON:', parseError);
-        showToast('Invalid response from server. Please try again.', true);
-        setLoading(false);
-        return;
-      }
+      const data = await response.json();
 
       if (!response.ok) {
-        const errorMessage = data?.error || data?.message || 'Failed to delete account. Please try again.';
-        console.error('Error deleting account:', errorMessage);
-        showToast(errorMessage, true);
-        setLoading(false);
-        return;
+        throw new Error(data.error || "Failed to delete account");
       }
 
       console.log('Account deleted successfully');
@@ -251,9 +216,10 @@ export default function DeleteAccountConfirmScreen() {
       }, 1500);
 
     } catch (error: any) {
-      console.error('Unexpected error deleting account:', error);
+      console.error('Error deleting account:', error);
       const errorMessage = error?.message || 'An unexpected error occurred. Please try again.';
       showToast(errorMessage, true);
+    } finally {
       setLoading(false);
     }
   };
