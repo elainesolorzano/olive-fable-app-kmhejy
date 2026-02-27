@@ -1,10 +1,11 @@
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Image, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Image, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import WebView from 'react-native-webview';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 interface DisplayOption {
   id: string;
@@ -167,6 +168,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default function LearnScreen() {
@@ -174,6 +180,16 @@ export default function LearnScreen() {
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [currentUrl, setCurrentUrl] = useState('');
+  const { isLoading } = useAuthGuard();
+
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   const handleViewDetails = (option: DisplayOption) => {
     console.log('LearnScreen: User tapped View Details for:', option.title);

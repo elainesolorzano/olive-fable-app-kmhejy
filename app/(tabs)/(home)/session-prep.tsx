@@ -2,9 +2,10 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { GemmaMessage } from '@/components/GemmaMessage';
 import React from 'react';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 90 : 70;
 
@@ -143,10 +144,25 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 8,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default function SessionPrepScreen() {
   const insets = useSafeAreaInsets();
+  const { isLoading } = useAuthGuard();
+
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

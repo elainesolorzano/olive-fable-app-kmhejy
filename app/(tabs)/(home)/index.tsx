@@ -5,9 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Platform, ActivityIndicator } from 'react-native';
 import { GemmaMessage } from '@/components/GemmaMessage';
 import * as WebBrowser from 'expo-web-browser';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
@@ -118,10 +119,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default function ClientLoungeScreen() {
   const insets = useSafeAreaInsets();
+  const { isLoading } = useAuthGuard();
+
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   const handleOpenUpdates = async () => {
     console.log('User tapped View Updates & Events button');

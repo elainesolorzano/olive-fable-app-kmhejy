@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking, Image, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, Pressable, Linking, Image, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { IconSymbol } from '@/components/IconSymbol';
 import WebView from 'react-native-webview';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 88 : 64;
 
@@ -194,11 +195,26 @@ const styles = StyleSheet.create({
   webviewContainer: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default function RevealPrepScreen() {
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
+  const { isLoading } = useAuthGuard();
+
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   const handleViewProductGuide = () => {
     console.log('User tapped View Product Guide button');

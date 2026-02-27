@@ -6,6 +6,7 @@ import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 export default function EditProfileScreen() {
   const { user } = useSupabaseAuth();
@@ -16,6 +17,7 @@ export default function EditProfileScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [contactMethod, setContactMethod] = useState<'Email' | 'Text Message'>('Email');
   const [successMessage, setSuccessMessage] = useState('');
+  const { isLoading: authLoading } = useAuthGuard();
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) {
@@ -126,7 +128,8 @@ export default function EditProfileScreen() {
     }
   };
 
-  if (loading) {
+  // Show loading state while auth is being checked
+  if (authLoading || loading) {
     return (
       <View style={[commonStyles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={colors.primary} />

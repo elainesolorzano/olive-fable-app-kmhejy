@@ -10,9 +10,11 @@ import {
   Linking,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { colors, buttonStyles } from '@/styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 interface WorkshopFeature {
   id: string;
@@ -151,11 +153,26 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 8,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default function WorkshopsScreen() {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const { isLoading } = useAuthGuard();
+
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
