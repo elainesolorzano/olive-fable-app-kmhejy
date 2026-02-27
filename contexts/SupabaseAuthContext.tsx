@@ -31,7 +31,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
   // Save session to secure storage
   const saveSession = useCallback(async (session: Session | null) => {
-    console.log('Saving session to secure storage:', session ? 'Session exists' : 'No session');
+    console.log('[Session Storage] Saving session:', session ? 'Session exists' : 'No session');
     try {
       if (Platform.OS === 'web') {
         // Use localStorage for web
@@ -52,14 +52,15 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
           await SecureStore.deleteItemAsync(SESSION_TIMESTAMP_KEY);
         }
       }
+      console.log('[Session Storage] Session saved successfully');
     } catch (error) {
-      console.log('Error saving session to secure storage - non-critical');
+      console.log('[Session Storage] Error saving session - non-critical:', error);
     }
   }, []);
 
   // Load session from secure storage - wrapped in useCallback to stabilize the reference
   const loadSession = useCallback(async (): Promise<Session | null> => {
-    console.log('Loading session from secure storage');
+    console.log('[Session Storage] Loading session from secure storage');
     try {
       let sessionJson: string | null = null;
       let timestampStr: string | null = null;
@@ -75,7 +76,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (!sessionJson || !timestampStr) {
-        console.log('No stored session found');
+        console.log('[Session Storage] No stored session found');
         return null;
       }
 
@@ -85,14 +86,14 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       const timeSinceLastActivity = now - timestamp;
 
       if (timeSinceLastActivity > SESSION_EXPIRATION_MS) {
-        console.log('Session expired due to inactivity (30 days)');
+        console.log('[Session Storage] Session expired due to inactivity (30 days)');
         // Clear expired session
         await saveSession(null);
         return null;
       }
 
       const storedSession = JSON.parse(sessionJson) as Session;
-      console.log('Loaded session from storage, checking validity');
+      console.log('[Session Storage] Loaded session from storage, checking validity');
 
       // Verify the session is still valid with Supabase
       const { data: { session: validSession }, error } = await supabase.auth.setSession({
@@ -101,17 +102,17 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error || !validSession) {
-        console.log('Stored session is invalid:', error?.message);
+        console.log('[Session Storage] Stored session is invalid:', error?.message);
         await saveSession(null);
         return null;
       }
 
-      console.log('Session restored successfully');
+      console.log('[Session Storage] Session restored successfully');
       // Update timestamp since user is active
       await saveSession(validSession);
       return validSession;
     } catch (error) {
-      console.log('Error loading session from secure storage - non-critical');
+      console.log('[Session Storage] Error loading session - non-critical:', error);
       return null;
     }
   }, [saveSession]);
@@ -160,7 +161,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, [saveSession]);
 
   useEffect(() => {
-    console.log('Auth context initializing');
+    console.log('[Auth Context] Initializing auth context');
     let mounted = true;
 
     const initializeAuth = async () => {
@@ -169,7 +170,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         const storedSession = await loadSession();
         
         if (storedSession && mounted) {
-          console.log('Using stored session');
+          console.log('[Auth Context] Using stored session');
           setSession(storedSession);
           setUser(storedSession.user);
           setLoading(false);
@@ -177,20 +178,22 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         }
 
         // If no stored session, check Supabase for active session
-        console.log('Checking Supabase for active session');
+        console.log('[Auth Context] Checking Supabase for active session');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (mounted) {
           if (currentSession) {
-            console.log('Found active Supabase session');
+            console.log('[Auth Context] Found active Supabase session');
             await saveSession(currentSession);
+          } else {
+            console.log('[Auth Context] No active session found');
           }
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
           setLoading(false);
         }
       } catch (error) {
-        console.log('Error initializing auth - non-critical');
+        console.log('[Auth Context] Error initializing auth - non-critical:', error);
         if (mounted) {
           setLoading(false);
         }
@@ -201,7 +204,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session ? 'Session exists' : 'No session');
+      console.log('[Auth Context] Auth state changed:', _event, session ? 'Session exists' : 'No session');
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
@@ -236,7 +239,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, [refreshAuthAndUser]);
 
   const signUp = async (email: string, password: string, name?: string) => {
-    console.log('User signing up with email:', email);
+    console.log('[Auth] User signing up with email:', email);
     const { error } = await supabase.auth.signUp({ 
       email, 
       password,
@@ -248,29 +251,40 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       }
     });
     if (error) {
-      console.log('Sign up failed - error will be handled by UI');
+      console.log('[Auth] Sign up failed - error will be handled by UI');
     } else {
-      console.log('Sign up successful');
+      console.log('[Auth] Sign up successful');
     }
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
-    console.log('User signing in with email:', email);
+    console.log('[Auth] User signing in with email:', email);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      console.log('Sign in failed - error will be handled by UI');
+      console.log('[Auth] Sign in failed - error will be handled by UI');
     } else {
-      console.log('Sign in successful');
+      console.log('[Auth] Sign in successful');
     }
     return { error };
   };
 
   const signOut = async () => {
-    console.log('User signing out');
-    await supabase.auth.signOut();
-    await saveSession(null);
-    console.log('Sign out complete');
+    console.log('[Auth] User signing out');
+    try {
+      // Clear local state immediately (ONE CLICK OUT)
+      setSession(null);
+      setUser(null);
+      await saveSession(null);
+      console.log('[Auth] Local session cleared');
+      
+      // Then sign out from Supabase (fire and forget)
+      await supabase.auth.signOut();
+      console.log('[Auth] Sign out complete');
+    } catch (error) {
+      console.log('[Auth] Error during sign out - local state already cleared:', error);
+      // Even if Supabase sign out fails, user is logged out locally
+    }
   };
 
   return (

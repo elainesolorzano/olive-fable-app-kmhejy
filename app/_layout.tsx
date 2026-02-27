@@ -7,7 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Linking from "expo-linking";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme } from "react-native";
+import { useColorScheme, View, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   DarkTheme,
@@ -19,6 +19,7 @@ import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 import { SupabaseAuthProvider, useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { NotificationBadgeProvider } from "@/contexts/NotificationBadgeContext";
+import { colors } from "@/styles/commonStyles";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,7 +28,7 @@ export const unstable_settings = {
 };
 
 function RootLayoutNav() {
-  const { session, loading, refreshAuthAndUser } = useSupabaseAuth();
+  const { session, loading } = useSupabaseAuth();
   const segments = useSegments();
   const router = useRouter();
   const processedUrls = useRef(new Set<string>());
@@ -131,27 +132,47 @@ function RootLayoutNav() {
     };
   }, [router]);
 
+  // AUTH GATE: Protect routes based on authentication status
   useEffect(() => {
     if (loading) {
-      console.log('Auth loading, waiting...');
+      console.log('[Auth Gate] Auth loading, waiting...');
       return;
     }
 
-    console.log('Auth loaded. Session:', session ? 'Authenticated' : 'Not authenticated');
-    console.log('Current segments:', segments);
+    console.log('[Auth Gate] Auth loaded. Session:', session ? 'Authenticated' : 'Not authenticated');
+    console.log('[Auth Gate] Current segments:', segments);
 
     const inAuthGroup = segments[0] === "(auth)";
+    const inTabsGroup = segments[0] === "(tabs)";
+    const inMyStudioStack = segments[0] === "my-studio";
 
     // If user is authenticated and on auth screens, redirect to tabs
     if (session && inAuthGroup) {
-      console.log('User authenticated, redirecting from auth screens to tabs');
+      console.log('[Auth Gate] User authenticated, redirecting from auth screens to tabs');
       router.replace("/(tabs)");
+      return;
     }
 
-    // Note: We do NOT redirect unauthenticated users away from tabs
-    // They can browse Home, Learn, and Workshops freely
-    // My Studio will show its own login screen when accessed
+    // If user is NOT authenticated and trying to access My Studio stack (protected routes)
+    if (!session && inMyStudioStack) {
+      console.log('[Auth Gate] User not authenticated, blocking access to My Studio stack, redirecting to login');
+      router.replace("/(auth)/login");
+      return;
+    }
+
+    // Allow unauthenticated users to browse Home, Learn (Artwork), and Workshops tabs
+    // My Studio tab will show its own login screen when accessed
+    console.log('[Auth Gate] Navigation allowed');
   }, [session, loading, segments, router]);
+
+  // Show loading screen while checking auth state
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <Stack>

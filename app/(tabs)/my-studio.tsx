@@ -343,12 +343,12 @@ export default function MyStudioScreen() {
   // Fetch user profile from Supabase
   const fetchProfile = useCallback(async () => {
     if (!user) {
-      console.log('No user logged in, skipping profile fetch');
+      console.log('[My Studio] No user logged in, skipping profile fetch');
       setLoadingProfile(false);
       return;
     }
 
-    console.log('Fetching profile for user:', user.id);
+    console.log('[My Studio] Fetching profile for user:', user.id);
     setRefreshing(true);
 
     try {
@@ -359,15 +359,15 @@ export default function MyStudioScreen() {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error.message);
+        console.error('[My Studio] Error fetching profile:', error.message);
         // If profile doesn't exist, treat as inquiry_received
         setProfile({ order_status: null, email: user.email || null });
       } else {
-        console.log('Profile fetched successfully:', data);
+        console.log('[My Studio] Profile fetched successfully:', data);
         setProfile(data);
       }
     } catch (error) {
-      console.error('Unexpected error fetching profile:', error);
+      console.error('[My Studio] Unexpected error fetching profile:', error);
       setProfile({ order_status: null, email: user.email || null });
     } finally {
       setRefreshing(false);
@@ -379,7 +379,7 @@ export default function MyStudioScreen() {
   // This ensures the badge is updated when returning from the notifications screen
   useFocusEffect(
     useCallback(() => {
-      console.log('My Studio screen focused - refreshing unread count');
+      console.log('[My Studio] Screen focused - refreshing unread count');
       refreshUnreadCount();
     }, [refreshUnreadCount])
   );
@@ -397,7 +397,7 @@ export default function MyStudioScreen() {
   useEffect(() => {
     if (!user) return;
 
-    console.log('Setting up realtime subscription for user profile (user:', user.id, ')');
+    console.log('[My Studio] Setting up realtime subscription for user profile (user:', user.id, ')');
 
     const channel = supabase
       .channel('profile-changes')
@@ -410,10 +410,10 @@ export default function MyStudioScreen() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Profile changed in realtime:', payload.eventType, 'for user:', user.id);
+          console.log('[My Studio] Profile changed in realtime:', payload.eventType, 'for user:', user.id);
           if (payload.new && typeof payload.new === 'object' && 'order_status' in payload.new) {
             const newProfile = payload.new as { order_status: string | null; email: string | null };
-            console.log('Profile order_status updated to:', newProfile.order_status);
+            console.log('[My Studio] Profile order_status updated to:', newProfile.order_status);
             setProfile(newProfile);
           }
         }
@@ -421,55 +421,57 @@ export default function MyStudioScreen() {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription for user profile (user:', user.id, ')');
+      console.log('[My Studio] Cleaning up realtime subscription for user profile (user:', user.id, ')');
       supabase.removeChannel(channel);
     };
   }, [user]);
 
   const handleEditProfile = () => {
-    console.log('User navigating to Edit Profile');
+    console.log('[My Studio] User navigating to Edit Profile');
     router.push('/my-studio/edit-profile');
   };
 
   const handleNotifications = () => {
-    console.log('User navigating to Notifications');
+    console.log('[My Studio] User navigating to Notifications');
     router.push('/my-studio/notifications');
   };
 
   const handlePrivacy = () => {
-    console.log('User navigating to Privacy & Security');
+    console.log('[My Studio] User navigating to Privacy & Security');
     router.push('/my-studio/privacy');
   };
 
   const handleHelp = () => {
-    console.log('User navigating to Help & Support');
+    console.log('[My Studio] User navigating to Help & Support');
     router.push('/my-studio/support');
   };
 
   const handleDeleteAccount = () => {
-    console.log('User navigating to Delete Account');
+    console.log('[My Studio] User navigating to Delete Account');
     router.push('/my-studio/delete-account-confirm');
   };
 
   const handleSignOut = async () => {
-    console.log('User tapped Sign Out button');
+    console.log('[My Studio] User tapped Sign Out button');
     await signOut();
+    // Navigation to auth stack will be handled automatically by the auth gate in _layout.tsx
+    console.log('[My Studio] Sign out complete, auth gate will redirect to login');
   };
 
   const handleSignIn = () => {
-    console.log('User tapped Sign In button from My Studio');
+    console.log('[My Studio] User tapped Sign In button from My Studio');
     router.push('/(auth)/login');
   };
 
   const handleOpenAppointment = async (url: string, title: string) => {
-    console.log('User opening appointment:', title);
+    console.log('[My Studio] User opening appointment:', title);
     try {
       await WebBrowser.openBrowserAsync(url, {
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
         controlsColor: colors.primary,
       });
     } catch (error) {
-      console.error('Error opening appointment link:', error);
+      console.error('[My Studio] Error opening appointment link:', error);
     }
   };
 
