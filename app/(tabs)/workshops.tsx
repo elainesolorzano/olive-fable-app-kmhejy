@@ -28,7 +28,7 @@ const workshopFeatures: WorkshopFeature[] = [
   {
     id: 'pet-parents',
     title: 'For Pet Parents: Better Photos',
-    description: 'Easy tips for posing, lighting, and getting your pet&apos;s attention - using your phone or camera.',
+    description: 'Easy tips for posing, lighting, and getting your pet\'s attention - using your phone or camera.',
   },
   {
     id: 'styling-design',
