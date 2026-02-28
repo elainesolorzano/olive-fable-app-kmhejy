@@ -1,8 +1,9 @@
+
 {
   "expo": {
     "name": "Olive & Fable",
-    "slug": "Olive & Fable",
-    "version": "1.0.1",
+    "slug": "olive-and-fable",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/logo-139b9ca7-cb0b-4c8f-a83e-c08db754caa0.png.png",
     "userInterfaceStyle": "automatic",
@@ -15,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.oliveandfable.studio",
-      "buildNumber": "9",
+      "buildNumber": "10",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -74,6 +75,6 @@
         "origin": false
       }
     },
-    "scheme": "Olive & Fable"
+    "scheme": "olive-and-fable"
   }
 }
