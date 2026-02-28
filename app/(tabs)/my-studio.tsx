@@ -8,7 +8,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/styles/commonStyles';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform, RefreshControl, Linking, Alert } from 'react-native';
 import { useNotificationBadge } from '@/contexts/NotificationBadgeContext';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -265,6 +265,38 @@ const styles = StyleSheet.create({
   checkIcon: {
     color: '#FFFFFF',
   },
+  // Review CTA Card Styles
+  reviewCard: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: colors.border,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reviewIconContainer: {
+    marginRight: 16,
+  },
+  reviewContent: {
+    flex: 1,
+  },
+  reviewTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  reviewSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  reviewChevron: {
+    marginLeft: 12,
+  },
   // Account & Settings Section
   section: {
     marginBottom: 32,
@@ -475,6 +507,25 @@ export default function MyStudioScreen() {
     }
   };
 
+  const handleShareReview = async () => {
+    console.log('[My Studio] User tapped Share my experience button');
+    const reviewUrl = 'https://search.google.com/local/writereview?placeid=ChIJAWInxJfM1mARnVihp_xApG';
+    
+    try {
+      const canOpen = await Linking.canOpenURL(reviewUrl);
+      if (canOpen) {
+        await Linking.openURL(reviewUrl);
+        console.log('[My Studio] Successfully opened Google review page');
+      } else {
+        console.error('[My Studio] Cannot open review URL');
+        Alert.alert('Error', 'Couldn\'t open the review page. Please try again.');
+      }
+    } catch (error) {
+      console.error('[My Studio] Error opening review page:', error);
+      Alert.alert('Error', 'Couldn\'t open the review page. Please try again.');
+    }
+  };
+
   // Determine current step index based on order_status
   const currentStepIndex = profile?.order_status
     ? ORDER_STATUS_STEPS.findIndex(step => step.status === profile.order_status)
@@ -641,6 +692,31 @@ export default function MyStudioScreen() {
             {ORDER_STATUS_STEPS.map((step, index) => renderProgressStep(step, index))}
           </View>
         </View>
+
+        {/* Share Review CTA Card */}
+        <Pressable style={styles.reviewCard} onPress={handleShareReview}>
+          <View style={styles.reviewIconContainer}>
+            <IconSymbol
+              ios_icon_name="star.fill"
+              android_material_icon_name="star"
+              size={28}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.reviewContent}>
+            <Text style={styles.reviewTitle}>Share my experience</Text>
+            <Text style={styles.reviewSubtitle}>
+              Your words may be the reason another family chooses to preserve their love in art.
+            </Text>
+          </View>
+          <IconSymbol
+            ios_icon_name="chevron.right"
+            android_material_icon_name="chevron-right"
+            size={24}
+            color={colors.textSecondary}
+            style={styles.reviewChevron}
+          />
+        </Pressable>
 
         {/* Account & Settings Section */}
         <View style={styles.section}>
