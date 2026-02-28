@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   checkIcon: {
     color: '#FFFFFF',
   },
-  // Review CTA Card Styles
+  // Review CTA Card Styles (NON-CLICKABLE)
   reviewCard: {
     backgroundColor: colors.backgroundAlt,
     borderRadius: 16,
@@ -274,8 +274,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
+  },
+  reviewCardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
   reviewIconContainer: {
     marginRight: 16,
@@ -294,8 +297,21 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
   },
-  reviewChevron: {
-    marginLeft: 12,
+  reviewButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-end',
+  },
+  reviewButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
   },
   // Account & Settings Section
   section: {
@@ -507,9 +523,9 @@ export default function MyStudioScreen() {
     }
   };
 
-  const handleShareReview = async () => {
-    console.log('[My Studio] User tapped Share my experience button');
-    const reviewUrl = 'https://search.google.com/local/writereview?placeid=ChIJAWInxJfM1mARnVihp_xApG';
+  const handleOpenGoogleReview = async () => {
+    console.log('[My Studio] User tapped Google Review button');
+    const reviewUrl = 'https://search.google.com/local/writereview?placeid=ChIJAWInxJfM1mARnVihp_xApGY';
     
     try {
       const canOpen = await Linking.canOpenURL(reviewUrl);
@@ -693,30 +709,39 @@ export default function MyStudioScreen() {
           </View>
         </View>
 
-        {/* Share Review CTA Card */}
-        <Pressable style={styles.reviewCard} onPress={handleShareReview}>
-          <View style={styles.reviewIconContainer}>
+        {/* Share Review CTA Card (NON-CLICKABLE with button inside) */}
+        <View style={styles.reviewCard}>
+          <View style={styles.reviewCardHeader}>
+            <View style={styles.reviewIconContainer}>
+              <IconSymbol
+                ios_icon_name="star.fill"
+                android_material_icon_name="star"
+                size={28}
+                color={colors.primary}
+              />
+            </View>
+            <View style={styles.reviewContent}>
+              <Text style={styles.reviewTitle}>Share my experience</Text>
+              <Text style={styles.reviewSubtitle}>
+                Your words may be the reason another family chooses to preserve their love in art.
+              </Text>
+            </View>
+          </View>
+          <Pressable
+            style={styles.reviewButton}
+            onPress={handleOpenGoogleReview}
+            accessibilityLabel="Open Google review page"
+            accessibilityRole="button"
+          >
+            <Text style={styles.reviewButtonText}>Google Review</Text>
             <IconSymbol
-              ios_icon_name="star.fill"
-              android_material_icon_name="star"
-              size={28}
-              color={colors.primary}
+              ios_icon_name="arrow.up.right"
+              android_material_icon_name="open-in-new"
+              size={18}
+              color="#FFFFFF"
             />
-          </View>
-          <View style={styles.reviewContent}>
-            <Text style={styles.reviewTitle}>Share my experience</Text>
-            <Text style={styles.reviewSubtitle}>
-              Your words may be the reason another family chooses to preserve their love in art.
-            </Text>
-          </View>
-          <IconSymbol
-            ios_icon_name="chevron.right"
-            android_material_icon_name="chevron-right"
-            size={24}
-            color={colors.textSecondary}
-            style={styles.reviewChevron}
-          />
-        </Pressable>
+          </Pressable>
+        </View>
 
         {/* Account & Settings Section */}
         <View style={styles.section}>
